@@ -1,0 +1,30 @@
+[2026-06-30T16:59:59] [START] run_dir=results/2026-06-30/run_20260630_165959 phase=all dry_run=False
+[2026-06-30T16:59:59] [VIDEO] start target_success=7 already_success=0 prompts=7 interval=140.0s
+[2026-06-30T17:05:03] [VIDEO] ERR id=v001 class=server_busy stop=True terminal=False Agnes HTTP 503: {"code": "fail_to_fetch_task", "message": "{\"error\":{\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - {\\\"error\\\":{\\\"message\\\":\\\"Service busy (tasks: 1)\\\",\\\"code\\\":\\
+[2026-06-30T17:05:03] [VIDEO] stop phase reason=server busy/upstream timeout consecutive_errors=1
+[2026-06-30T17:05:03] [IMAGE] start target_success=550 already_success=0 prompts=550 interval=90.0s size=2048x2048
+[2026-06-30T17:06:11] [IMAGE] OK id=i0001 success=1/550 url=https://platform-outputs.agnes-ai.space/images/t2i/f0b9d57660fc4ba990b2427dd07d9a6d.png
+[2026-06-30T17:06:11] [WAIT] 90.0s next image create interval
+[2026-06-30T17:08:59] [IMAGE] OK id=i0002 success=2/550 url=https://platform-outputs.agnes-ai.space/images/t2i/179e13243ef04f2b90561f7fba0f0f22.png
+[2026-06-30T17:08:59] [WAIT] 90.0s next image create interval
+[2026-06-30T17:11:36] [IMAGE] OK id=i0003 success=3/550 url=https://platform-outputs.agnes-ai.space/images/t2i/657b3e14ce684b55bf2b4a24b130722a.png
+[2026-06-30T17:11:36] [WAIT] 90.0s next image create interval
+[2026-06-30T17:14:09] [IMAGE] OK id=i0004 success=4/550 url=https://platform-outputs.agnes-ai.space/images/t2i/88f43c1702e7475fb0cd76c1e45795c8.png
+[2026-06-30T17:14:09] [WAIT] 90.0s next image create interval
+[2026-06-30T17:16:54] [IMAGE] OK id=i0005 success=5/550 url=https://platform-outputs.agnes-ai.space/images/t2i/320e9f9d35884befa64dcb6e09892b8a.png
+[2026-06-30T17:16:54] [WAIT] 90.0s next image create interval
+[2026-06-30T17:20:02] [IMAGE] OK id=i0006 success=6/550 url=https://platform-outputs.agnes-ai.space/images/t2i/b831eadfec1b4bd98c58ab3e88990693.png
+[2026-06-30T17:20:02] [WAIT] 90.0s next image create interval
+[2026-06-30T17:22:38] [IMAGE] OK id=i0007 success=7/550 url=https://platform-outputs.agnes-ai.space/images/t2i/85f2e59ea772492186b6bfa8a12f93f1.png
+[2026-06-30T17:22:38] [WAIT] 90.0s next image create interval
+[2026-06-30T17:25:04] [IMAGE] OK id=i0008 success=8/550 url=https://platform-outputs.agnes-ai.space/images/t2i/b48ab4b0db2b4607abf607b2ff3a0e2c.png
+[2026-06-30T17:25:04] [WAIT] 90.0s next image create interval
+[2026-06-30T17:28:00] [IMAGE] OK id=i0009 success=9/550 url=https://platform-outputs.agnes-ai.space/images/t2i/fe7715857f894089aec7d6f72b2a3b5f.png
+[2026-06-30T17:28:00] [WAIT] 90.0s next image create interval
+[2026-06-30T17:31:29] [IMAGE] OK id=i0010 success=10/550 url=https://platform-outputs.agnes-ai.space/images/t2i/d67e79067c244b4abd539557ef6818dc.png
+[2026-06-30T17:31:29] [WAIT] 90.0s next image create interval
+[2026-06-30T17:34:26] [IMAGE] OK id=i0011 success=11/550 url=https://platform-outputs.agnes-ai.space/images/t2i/478ced3fb8bf4a5e846a0fddd1e3c76d.png
+[2026-06-30T17:34:26] [WAIT] 90.0s next image create interval
+[2026-06-30T17:37:36] [IMAGE] ERR id=i0012 class=server_busy stop=True terminal=False Agnes HTTP 503: {"error": {"message": "***.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - Error code: 503 - {'detail': 'Service busy (id: req_560ff1d8a0cf423ebd2e783f4e3b5d2a)'}", "type": "upstream_error", "param": "", 
+[2026-06-30T17:37:36] [IMAGE] stop phase reason=server busy/upstream timeout consecutive_errors=1
+[2026-06-30T17:37:36] [DONE]

@@ -1,0 +1,55 @@
+timezone: Asia/Taipei
+api_key_env: AGNES_API_KEY
+base_url: https://apihub.agnes-ai.com
+output_dir: results
+state_file: state/agnes_media_state.json
+log_dir: logs
+
+# Conservative by design: this project is for slow free-tier observation/harvesting,
+# not throughput benchmarking. Agnes docs list much higher RPM than these defaults,
+# but the goal is to avoid competing for busy shared capacity.
+http:
+  connect_timeout_seconds: 30
+  read_timeout_seconds: 900
+  write_timeout_seconds: 60
+  pool_timeout_seconds: 30
+
+download_outputs: true
+
+video:
+  enabled: true
+  model: agnes-video-v2.0
+  prompt_file: prompts/video_prompts.jsonl
+  target_success: 7
+  create_interval_seconds: 140        # 6 minutes
+  poll_interval_seconds: 30
+  poll_timeout_seconds: 300          # 40 minutes per submitted video task
+  # 10s approximate duration according to docs: 241 frames / 24 fps.
+  # If free-tier 10s is too heavy, change num_frames to 121 (~5s) or 81 (~3s).
+  num_frames: 241
+  frame_rate: 24
+  # Leave width/height null to let Agnes standardize defaults.
+  width: null
+  height: null
+  seed_min: 100000
+  seed_max: 999999999
+  negative_prompt: "low quality, distorted anatomy, flickering, heavy artifacts, unreadable text, watermark"
+  stop_on_quota_or_payment: true
+  stop_on_rate_limit: true
+  stop_on_server_busy: true
+  max_consecutive_errors: 1
+  download_outputs: true
+
+image:
+  enabled: true
+  model: agnes-image-2.1-flash
+  prompt_file: prompts/image_prompts.jsonl
+  target_success: 550
+  create_interval_seconds: 90         # 1.5 minutes
+  size: 2048x2048                     # 2K square; dimensions are multiples of 16
+  response_format: url
+  stop_on_quota_or_payment: true
+  stop_on_rate_limit: true
+  stop_on_server_busy: true
+  max_consecutive_errors: 1
+  download_outputs: true

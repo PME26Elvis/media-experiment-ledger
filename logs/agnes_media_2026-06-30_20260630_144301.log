@@ -1,0 +1,50 @@
+[2026-06-30T14:43:01] [START] run_dir=results/2026-06-30/run_20260630_144301 phase=all dry_run=False
+[2026-06-30T14:43:01] [VIDEO] start target_success=7 already_success=0 prompts=7 interval=140.0s
+[2026-06-30T14:47:03] [VIDEO] ERR id=v001 class=server_busy stop=True terminal=False Agnes HTTP 503: {"code": "fail_to_fetch_task", "message": "{\"error\":{\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - {\\\"error\\\":{\\\"message\\\":\\\"Service busy (tasks: 1)\\\",\\\"code\\\":\\
+[2026-06-30T14:47:03] [VIDEO] stop phase reason=server busy/upstream timeout consecutive_errors=1
+[2026-06-30T14:47:03] [IMAGE] start target_success=550 already_success=0 prompts=550 interval=90.0s size=2048x2048
+[2026-06-30T14:48:08] [IMAGE] OK id=i0001 success=1/550 url=https://platform-outputs.agnes-ai.space/images/t2i/b45f5e3fda3a4a948ee8d925892612f6.png
+[2026-06-30T14:48:08] [WAIT] 90.0s next image create interval
+[2026-06-30T14:50:49] [IMAGE] OK id=i0002 success=2/550 url=https://platform-outputs.agnes-ai.space/images/t2i/79ce71c6b2d0410aa2d395f011eb5103.png
+[2026-06-30T14:50:49] [WAIT] 90.0s next image create interval
+[2026-06-30T14:53:24] [IMAGE] OK id=i0003 success=3/550 url=https://platform-outputs.agnes-ai.space/images/t2i/42c902dc33c346da801472546a95e9b9.png
+[2026-06-30T14:53:24] [WAIT] 90.0s next image create interval
+[2026-06-30T14:56:00] [IMAGE] OK id=i0004 success=4/550 url=https://platform-outputs.agnes-ai.space/images/t2i/2f79618a880641ea9fa731fe55c6c38f.png
+[2026-06-30T14:56:00] [WAIT] 90.0s next image create interval
+[2026-06-30T14:58:36] [IMAGE] OK id=i0005 success=5/550 url=https://platform-outputs.agnes-ai.space/images/t2i/eded2ca1c49e49ca8bb458e9afac0c33.png
+[2026-06-30T14:58:36] [WAIT] 90.0s next image create interval
+[2026-06-30T15:01:13] [IMAGE] OK id=i0006 success=6/550 url=https://platform-outputs.agnes-ai.space/images/t2i/cebb630f123c47f29418f2f3538c1a20.png
+[2026-06-30T15:01:13] [WAIT] 90.0s next image create interval
+[2026-06-30T15:04:11] [IMAGE] OK id=i0007 success=7/550 url=https://platform-outputs.agnes-ai.space/images/t2i/b97f3aa24c1d4a56add9e9a61a42590c.png
+[2026-06-30T15:04:11] [WAIT] 90.0s next image create interval
+[2026-06-30T15:06:46] [IMAGE] OK id=i0008 success=8/550 url=https://platform-outputs.agnes-ai.space/images/t2i/edd97488a7c24ebebfc2f0a6af8b83b8.png
+[2026-06-30T15:06:46] [WAIT] 90.0s next image create interval
+[2026-06-30T15:09:25] [IMAGE] OK id=i0009 success=9/550 url=https://platform-outputs.agnes-ai.space/images/t2i/372de0bd1cc84d749a4b5660c19a01fc.png
+[2026-06-30T15:09:25] [WAIT] 90.0s next image create interval
+[2026-06-30T15:11:55] [IMAGE] OK id=i0010 success=10/550 url=https://platform-outputs.agnes-ai.space/images/t2i/bacdfc2770fb4b97b449ce0352047bc8.png
+[2026-06-30T15:11:55] [WAIT] 90.0s next image create interval
+[2026-06-30T15:14:34] [IMAGE] OK id=i0011 success=11/550 url=https://platform-outputs.agnes-ai.space/images/t2i/936014ac779a4ea6b9e0448b76bad433.png
+[2026-06-30T15:14:34] [WAIT] 90.0s next image create interval
+[2026-06-30T15:17:11] [IMAGE] OK id=i0012 success=12/550 url=https://platform-outputs.agnes-ai.space/images/t2i/34f45f970ef94f54805b0d1bfb202d79.png
+[2026-06-30T15:17:11] [WAIT] 90.0s next image create interval
+[2026-06-30T15:19:47] [IMAGE] OK id=i0013 success=13/550 url=https://platform-outputs.agnes-ai.space/images/t2i/fc0335ac35bc44dca3a27365b3e4fd99.png
+[2026-06-30T15:19:47] [WAIT] 90.0s next image create interval
+[2026-06-30T15:22:22] [IMAGE] OK id=i0014 success=14/550 url=https://platform-outputs.agnes-ai.space/images/t2i/a249112414644cbb801ebfa19f11a0ab.png
+[2026-06-30T15:22:22] [WAIT] 90.0s next image create interval
+[2026-06-30T15:28:01] [IMAGE] OK id=i0015 success=15/550 url=https://platform-outputs.agnes-ai.space/images/t2i/6443a147bb094d2d97f21d3864faf5a8.png
+[2026-06-30T15:28:01] [WAIT] 90.0s next image create interval
+[2026-06-30T15:30:43] [IMAGE] OK id=i0016 success=16/550 url=https://platform-outputs.agnes-ai.space/images/t2i/66185f95060d4ee3bf33665b9f1d6076.png
+[2026-06-30T15:30:43] [WAIT] 90.0s next image create interval
+[2026-06-30T15:33:16] [IMAGE] OK id=i0017 success=17/550 url=https://platform-outputs.agnes-ai.space/images/t2i/cb5efab93100487595510cdbf7054225.png
+[2026-06-30T15:33:16] [WAIT] 90.0s next image create interval
+[2026-06-30T15:37:01] [IMAGE] OK id=i0018 success=18/550 url=https://platform-outputs.agnes-ai.space/images/t2i/752fa3a0913145ad85278c20594710cf.png
+[2026-06-30T15:37:01] [WAIT] 90.0s next image create interval
+[2026-06-30T15:40:00] [IMAGE] OK id=i0019 success=19/550 url=https://platform-outputs.agnes-ai.space/images/t2i/849ed789f92e41459957299029662e3c.png
+[2026-06-30T15:40:00] [WAIT] 90.0s next image create interval
+[2026-06-30T15:42:43] [IMAGE] OK id=i0020 success=20/550 url=https://platform-outputs.agnes-ai.space/images/t2i/a5d0d230cf74416cb937cf3869c2a146.png
+[2026-06-30T15:42:43] [WAIT] 90.0s next image create interval
+[2026-06-30T15:45:28] [IMAGE] OK id=i0021 success=21/550 url=https://platform-outputs.agnes-ai.space/images/t2i/8f6d6a5be41f4a39a2916b06dbd4625b.png
+[2026-06-30T15:45:28] [WAIT] 90.0s next image create interval
+[2026-06-30T15:47:05] [IMAGE] ERR id=i0022 class=server_busy stop=True terminal=False Agnes HTTP 500: {"error": {"message": "upstream error: do request failed (request id: 20260630074658332657511kWlja29N)", "type": "AgnesAI_error", "param": "", "code": "do_request_failed"}}
+[2026-06-30T15:47:05] [IMAGE] stop phase reason=server busy/upstream timeout consecutive_errors=1
+[2026-06-30T15:47:05] [DONE]

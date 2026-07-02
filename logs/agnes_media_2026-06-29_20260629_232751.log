@@ -1,0 +1,6 @@
+[2026-06-29T23:27:51] [START] run_dir=results/2026-06-29/run_20260629_232751 phase=all dry_run=False
+[2026-06-29T23:27:51] [VIDEO] start target_success=7 already_success=7 prompts=7 interval=360.0s
+[2026-06-29T23:27:51] [VIDEO] complete target_success=7
+[2026-06-29T23:27:51] [IMAGE] start target_success=550 already_success=550 prompts=550 interval=90.0s size=2048x2048
+[2026-06-29T23:27:51] [IMAGE] complete target_success=550
+[2026-06-29T23:27:51] [DONE]
