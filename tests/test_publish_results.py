@@ -3,6 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 SPEC = importlib.util.spec_from_file_location("publish_results", Path(__file__).parents[1] / "tools" / "publish_results.py")
@@ -34,6 +35,13 @@ class PublishResultsTests(unittest.TestCase):
             self.assertIn("run_20260629_120000-images.zip", names)
             self.assertIn("run_20260629_120000-videos.zip", names)
             self.assertIn("run_20260629_120000-outputs.jsonl", names)
+            images_zip = next(asset.path for asset in plan.assets if asset.name.endswith("-images.zip"))
+            videos_zip = next(asset.path for asset in plan.assets if asset.name.endswith("-videos.zip"))
+            for archive_path in (images_zip, videos_zip):
+                with zipfile.ZipFile(archive_path) as archive:
+                    members = set(archive.namelist())
+                self.assertIn("outputs.jsonl", members)
+                self.assertIn("errors.jsonl", members)
             self.assertEqual(plan.stats["image_completed"], 1)
             self.assertEqual(plan.stats["file_count"], 4)
             self.assertTrue(plan.digest)
