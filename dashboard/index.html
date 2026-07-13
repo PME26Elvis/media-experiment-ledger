@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Media Experiment Ledger</title>
+  <meta name="description" content="Interactive longitudinal analytics for media-generation experiment runs.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">MEDIA EXPERIMENT LEDGER</p>
+      <h1>Run analytics</h1>
+      <p class="lede">Release-backed output, latency, and error trends. Filters are applied locally in your browser.</p>
+    </div>
+    <div id="generated" class="generated">Loading data…</div>
+  </header>
+
+  <main>
+    <section id="summary" class="cards" aria-label="Portfolio summary"></section>
+
+    <section class="panel controls" aria-label="Filters">
+      <label>From date<input id="from-date" type="date"></label>
+      <label>To date<input id="to-date" type="date"></label>
+      <label>Minimum errors<input id="min-errors" type="number" min="0" value="0"></label>
+      <label>Sort runs<select id="sort-runs"><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="errors">Most errors</option><option value="outputs">Most outputs</option></select></label>
+      <button id="reset" type="button">Reset filters</button>
+    </section>
+
+    <section class="grid-two">
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">TREND</p><h2>Daily outputs</h2></div></div>
+        <div id="daily-chart" class="chart" role="img" aria-label="Daily completed output bar chart"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">QUALITY</p><h2>Error classes</h2></div></div>
+        <div id="errors-list" class="rank-list"></div>
+      </article>
+    </section>
+
+    <section class="grid-two">
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">CONTENT</p><h2>Top categories</h2></div></div>
+        <div id="categories-list" class="rank-list"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><div><p class="eyebrow">MONTHLY</p><h2>Monthly rollup</h2></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Month</th><th>Runs</th><th>Outputs</th><th>Errors</th><th>Success</th></tr></thead><tbody id="monthly-body"></tbody></table></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><div><p class="eyebrow">RUN LEDGER</p><h2>Runs</h2></div><span id="run-count" class="pill"></span></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Run</th><th>Images</th><th>Videos</th><th>Errors</th><th>Success</th><th>P95 latency</th><th>Release</th></tr></thead><tbody id="runs-body"></tbody></table></div>
+    </section>
+  </main>
+
+  <footer>Generated from public release metadata. Media archives are not loaded by this page.</footer>
+  <script src="app.js" defer></script>
+</body>
+</html>
