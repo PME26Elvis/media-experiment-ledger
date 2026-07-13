@@ -1,67 +1,100 @@
-# Agnes Media Harvester
+# Media Experiment Ledger
 
-Slow, single-key Agnes AI media harvester for text-to-video first, then text-to-image.
+A release-backed ledger for structured media-generation runs. The repository keeps source code, prompt banks, immutable release metadata, generated analytics, and a static dashboard in one place without committing large result folders to Git history.
 
-## Setup
+## What this repository does
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# edit .env and set AGNES_API_KEY
-```
+- Packages `results/YYYY-MM-DD/run_*` directories from a temporary Codespaces workspace.
+- Publishes one immutable GitHub Release per experiment date.
+- Stores images and videos in separate ZIP assets, split automatically before the 2 GiB asset boundary.
+- Keeps `outputs.jsonl`, `errors.jsonl`, and a SHA-256 manifest as standalone assets.
+- Skips runs that were already published with identical content.
+- Builds daily, monthly, per-run, category, latency, and error analytics.
+- Commits Markdown, CSV, JSON, SVG, and PNG reports to `analytics/`.
+- Publishes an interactive static dashboard through GitHub Pages.
 
-## Run
+## Fastest publishing path
 
-```bash
-python agnes_media_harvester.py --config agnes_media_config.yaml
-```
-
-Dry run without calling APIs:
-
-```bash
-python agnes_media_harvester.py --dry-run --reset-state --run-stamp test
-```
-
-Run only video or only image:
+1. Open this repository in GitHub Codespaces.
+2. Drag the complete local `results/` folder into the repository workspace.
+3. In the Codespaces terminal, run:
 
 ```bash
-python agnes_media_harvester.py --phase video
-python agnes_media_harvester.py --phase image
+python tools/publish_results.py --source results
 ```
 
-## Prompt banks
+The command scans every date folder, packages only runs not already present in Releases, creates date-scoped Releases, verifies each ZIP, and removes temporary ZIP files after successful publication. The uploaded `results/` folder remains in the Codespace until the Codespace is deleted.
 
-- `prompts/video_prompts.jsonl`: 7 text-to-video prompts
-- `prompts/image_prompts.jsonl`: 550 text-to-image prompts expected for the full run
+For a packaging-only check:
 
-Each line:
-
-```json
-{"id":"i0001","category":"product","prompt":"A professional product photo..."}
+```bash
+python tools/publish_results.py --source results --dry-run
 ```
 
-## Output layout
+For one date only:
+
+```bash
+python tools/publish_results.py --source results --date 2026-06-29
+```
+
+See [Codespaces publishing](docs/CODESPACES_PUBLISHING.md) for the full operational flow.
+
+## Release layout
+
+A primary release uses:
 
 ```text
-results/YYYY-MM-DD/run_YYYYMMDD_HHMMSS/
-  outputs.jsonl
-  errors.jsonl
-  media/
-    images/
-    videos/
-logs/
-state/
+Tag:   media-exp-2026-06-29
+Title: Media Experiment — 2026-06-29
 ```
 
-`state/agnes_media_state.json` tracks successful prompt ids per local date, so same-day reruns resume instead of repeating successes. Use `--reset-state` only when you intentionally want to rerun the same day.
+Assets are structured as:
 
-## Conservative defaults
+```text
+run_20260629_120000-images.zip
+run_20260629_120000-videos.zip
+run_20260629_120000-outputs.jsonl
+run_20260629_120000-errors.jsonl
+manifest-2026-06-29.json
+```
 
-- Video: one create attempt every 360 seconds, `241` frames at `24` fps, approximately 10 seconds.
-- Image: one create attempt every 90 seconds, `2048x2048`, URL output.
-- Video phase stops before image phase if quota/rate-limit/server-busy errors occur.
-- Image phase stops on quota/rate-limit/server-busy errors.
+If a date was already published and genuinely receives a new run later, the tool creates a supplement such as `media-exp-2026-06-29-s01`. Existing releases are not overwritten.
 
-The point is slow free-tier observation, not maximum throughput.
+## Analytics
+
+Every published experiment release triggers `.github/workflows/analytics.yml`. Normal analysis downloads only manifests and JSONL metadata. A manual workflow run can:
+
+- process only unseen releases;
+- process the latest N releases;
+- process a date range;
+- process one exact tag;
+- rebuild all reports;
+- optionally download and verify media ZIP files.
+
+Generated outputs appear under:
+
+```text
+analytics/
+  overview.md
+  daily/
+  monthly/
+  runs/
+  errors/
+  data/
+  charts/
+site/
+```
+
+The dashboard is deployed from `site/` with GitHub Pages. See [Analytics and Pages](docs/ANALYTICS_AND_PAGES.md).
+
+## Existing runner
+
+The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger tooling. Large local outputs, logs, state, secrets, and release staging directories are excluded by `.gitignore`.
+
+## Development
+
+```bash
+python -m pip install -r requirements-analytics.txt
+python -m compileall tools tests
+python -m unittest discover -s tests -v
+```
