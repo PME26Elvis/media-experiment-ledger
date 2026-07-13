@@ -1,8 +1,0 @@
-[2026-07-01T14:40:28] [START] run_dir=results/2026-07-01/run_20260701_144028 phase=all dry_run=False
-[2026-07-01T14:40:28] [VIDEO] start target_success=7 already_success=0 prompts=7 interval=140.0s
-[2026-07-01T14:41:07] [VIDEO] ERR id=v001 class=server_busy stop=True terminal=False Agnes HTTP 503: {"code": "fail_to_fetch_task", "message": "{\"error\":{\"message\":\"litellm.ServiceUnavailableError: ServiceUnavailableError: OpenAIException - {\\\"error\\\":{\\\"message\\\":\\\"Service busy (tasks: 1)\\\",\\\"code\\\":\\
-[2026-07-01T14:41:07] [VIDEO] stop phase reason=server busy/upstream timeout consecutive_errors=1
-[2026-07-01T14:41:07] [IMAGE] start target_success=550 already_success=0 prompts=550 interval=90.0s size=2048x2048
-[2026-07-01T14:41:13] [IMAGE] ERR id=i0001 class=server_busy stop=True terminal=False Agnes HTTP 500: {"error": {"message": "upstream error: do request failed (request id: 20260701064107223564200lZ5nML0f)", "type": "AgnesAI_error", "param": "", "code": "do_request_failed"}}
-[2026-07-01T14:41:13] [IMAGE] stop phase reason=server busy/upstream timeout consecutive_errors=1
-[2026-07-01T14:41:13] [DONE]
