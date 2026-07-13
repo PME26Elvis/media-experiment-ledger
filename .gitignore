@@ -1,0 +1,25 @@
+# Local generation outputs and runtime state
+results/
+logs/
+state/
+
+# Release packaging workspace
+.release-staging/
+
+# Local secrets and environments
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Editors and OS
+.vscode/
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
