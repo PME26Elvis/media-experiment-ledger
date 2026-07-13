@@ -1,0 +1,136 @@
+name: Build analytics and dashboard
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      selection_mode:
+        description: Release selection mode
+        required: true
+        default: new_only
+        type: choice
+        options:
+          - new_only
+          - latest_n
+          - date_range
+          - exact_tag
+          - rebuild_all
+      latest_n:
+        description: Number of latest releases for latest_n
+        required: false
+        default: "5"
+        type: string
+      from_date:
+        description: Inclusive Taipei date for date_range (YYYY-MM-DD)
+        required: false
+        type: string
+      to_date:
+        description: Inclusive Taipei date for date_range (YYYY-MM-DD)
+        required: false
+        type: string
+      exact_tag:
+        description: Exact experiment release tag
+        required: false
+        type: string
+      verify_media:
+        description: Download and test media ZIP assets
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: media-experiment-analytics
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  analyze-and-deploy:
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'media-exp-')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-analytics.txt
+
+      - name: Install analytics dependencies
+        run: python -m pip install -r requirements-analytics.txt
+
+      - name: Select releases and build analytics
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_MODE: ${{ inputs.selection_mode }}
+          INPUT_LATEST_N: ${{ inputs.latest_n }}
+          INPUT_FROM_DATE: ${{ inputs.from_date }}
+          INPUT_TO_DATE: ${{ inputs.to_date }}
+          INPUT_EXACT_TAG: ${{ inputs.exact_tag }}
+          INPUT_VERIFY_MEDIA: ${{ inputs.verify_media }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=()
+          if [[ "$EVENT_NAME" == "release" ]]; then
+            args+=(--mode exact_tag --exact-tag "$EVENT_TAG")
+          else
+            mode="${INPUT_MODE:-new_only}"
+            args+=(--mode "$mode")
+            case "$mode" in
+              latest_n)
+                args+=(--latest-n "${INPUT_LATEST_N:-5}")
+                ;;
+              date_range)
+                [[ -n "${INPUT_FROM_DATE:-}" ]] && args+=(--from-date "$INPUT_FROM_DATE")
+                [[ -n "${INPUT_TO_DATE:-}" ]] && args+=(--to-date "$INPUT_TO_DATE")
+                ;;
+              exact_tag)
+                args+=(--exact-tag "$INPUT_EXACT_TAG")
+                ;;
+            esac
+            [[ "${INPUT_VERIFY_MEDIA:-false}" == "true" ]] && args+=(--verify-media)
+          fi
+          python tools/analyze_releases.py "${args[@]}"
+
+      - name: Commit generated analytics
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain -- analytics site)" ]]; then
+            echo "No generated changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analytics site
+          git commit -m "analytics: refresh experiment ledger"
+          git push origin HEAD:main
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
