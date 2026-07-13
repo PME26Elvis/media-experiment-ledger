@@ -229,9 +229,12 @@ def package_run(plan: RunPlan, staging_dir: Path, max_part_bytes: int) -> RunPla
     run_dir = plan.source_dir
     run_id = plan.run_id
     assets: list[Asset] = []
-    for metadata in (run_dir / "outputs.jsonl", run_dir / "errors.jsonl"):
-        if not metadata.exists():
-            continue
+    metadata_sources = [
+        metadata
+        for metadata in (run_dir / "outputs.jsonl", run_dir / "errors.jsonl")
+        if metadata.exists()
+    ]
+    for metadata in metadata_sources:
         name = f"{run_id}-{metadata.name}"
         dest = staging_dir / name
         shutil.copy2(metadata, dest)
@@ -247,7 +250,7 @@ def package_run(plan: RunPlan, staging_dir: Path, max_part_bytes: int) -> RunPla
             suffix = f"-part{index:02d}" if len(parts) > 1 else ""
             name = f"{run_id}-{kind}{suffix}.zip"
             dest = staging_dir / name
-            create_stored_zip(dest, run_dir, part)
+            create_stored_zip(dest, run_dir, [*metadata_sources, *part])
             assets.append(Asset(dest, name, sha256_file(dest), dest.stat().st_size, kind, run_id))
     return RunPlan(plan.run_id, plan.source_dir, plan.digest, tuple(assets), plan.stats, plan.files)
 
@@ -472,7 +475,7 @@ def main() -> int:
                 message = publish_date(date_dir, args.staging, max_part_bytes, tags, args.dry_run)
                 results.append(message)
                 print(message, flush=True)
-            except Exception as exc:  # isolate one bad date from the remaining batch
+            except Exception as exc:
                 message = f"FAILED {date_dir.name}: {exc}"
                 failures.append(message)
                 print(message, file=sys.stderr, flush=True)

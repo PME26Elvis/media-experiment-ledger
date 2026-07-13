@@ -7,7 +7,7 @@ A release-backed ledger for structured media-generation runs. The repository kee
 - Packages `results/YYYY-MM-DD/run_*` directories from a temporary Codespaces workspace.
 - Publishes one immutable GitHub Release per experiment date.
 - Stores images and videos in separate ZIP assets, split automatically before the 2 GiB asset boundary.
-- Keeps `outputs.jsonl`, `errors.jsonl`, and a SHA-256 manifest as standalone assets.
+- Keeps `outputs.jsonl` and `errors.jsonl` inside every media ZIP part and also publishes them as standalone assets, alongside a SHA-256 manifest.
 - Skips runs that were already published with identical content.
 - Builds daily, monthly, per-run, category, latency, and error analytics.
 - Commits Markdown, CSV, JSON, SVG, and PNG reports to `analytics/`.
