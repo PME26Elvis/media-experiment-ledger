@@ -50,7 +50,7 @@ The publisher:
 4. blocks only a conflicting `run_id` whose content changed;
 5. packages images and videos separately with ZIP store mode;
 6. splits a media group near 1.8 GiB;
-7. uploads JSONL and manifest assets separately;
+7. includes the run JSONL files in every media ZIP part and also uploads JSONL and manifest assets separately;
 8. creates an immutable date release;
 9. verifies command completion;
 10. removes `.release-staging/` after a fully successful batch.
