@@ -74,6 +74,35 @@ Keep the extracted tree for inspection:
 python tools/publish_from_archive.py results.zip --keep-extracted
 ```
 
+## Last-resort browser transfer: upload two ordinary files
+
+If the browser also fails to upload one 2+ GiB ZIP, split it locally in WSL and upload the resulting files one at a time. This only changes the transport into Codespaces; the reconstructed ZIP and all later Releases remain identical.
+
+In WSL, beside `results.zip`:
+
+```bash
+sha256sum results.zip > results.zip.sha256
+split -b 1500M -d -a 3 results.zip results.zip.upload-part-
+```
+
+Upload these files individually:
+
+```text
+results.zip.upload-part-000
+results.zip.upload-part-001
+results.zip.sha256
+```
+
+Then reconstruct and verify inside Codespaces:
+
+```bash
+cat results.zip.upload-part-* > results.zip
+sha256sum -c results.zip.sha256
+python tools/publish_from_archive.py results.zip
+```
+
+The upload parts and reconstructed archive are ignored by Git.
+
 ## Fast storage path: publish an input snapshot first
 
 Use this when the priority is to get the uploaded archive into Release storage immediately, before spending time extracting, analyzing, and repackaging every date.
@@ -144,6 +173,7 @@ All of these paths are ignored by Git:
 ```text
 results/
 results*.zip
+results.zip.*
 .archive-imports/
 .input-staging/
 .input-download/
