@@ -54,7 +54,7 @@ jobs:
           python tools/input_snapshot.py "${args[@]}"
 
       - name: Refresh analytics after automated releases
-        if: ${{ !inputs.dry_run }}
+        if: ${{ inputs.dry_run == false }}
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh workflow run analytics.yml -f selection_mode=new_only
+        run: gh workflow run analytics.yml --ref main -f selection_mode=new_only
