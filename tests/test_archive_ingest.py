@@ -5,6 +5,7 @@ import unittest
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from unittest import mock
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).parents[1]
@@ -96,6 +97,34 @@ class InputSnapshotTests(unittest.TestCase):
             (parts_dir / records[0].name).write_bytes(b"xxxxx")
             with self.assertRaises(snapshot_mod.SnapshotError):
                 snapshot_mod.restore_from_directory(manifest, parts_dir, root / "restored.zip")
+
+    @mock.patch.object(snapshot_mod, "list_snapshot_tags")
+    def test_latest_resolves_to_newest_snapshot(self, list_tags):
+        list_tags.return_value = [
+            "media-input-2026-07-16-newest000001",
+            "media-input-2026-07-15-older0000002",
+        ]
+        self.assertEqual(
+            snapshot_mod.resolve_snapshot_tag("latest"),
+            "media-input-2026-07-16-newest000001",
+        )
+
+    @mock.patch.object(snapshot_mod, "list_snapshot_tags")
+    def test_missing_example_tag_falls_back_when_only_one_snapshot_exists(self, list_tags):
+        list_tags.return_value = ["media-input-2026-07-15-real12345678"]
+        self.assertEqual(
+            snapshot_mod.resolve_snapshot_tag("media-input-2026-07-15-a1b2c3d4e5f6"),
+            "media-input-2026-07-15-real12345678",
+        )
+
+    @mock.patch.object(snapshot_mod, "list_snapshot_tags")
+    def test_missing_tag_lists_choices_when_multiple_snapshots_exist(self, list_tags):
+        list_tags.return_value = [
+            "media-input-2026-07-16-newest000001",
+            "media-input-2026-07-15-older0000002",
+        ]
+        with self.assertRaisesRegex(snapshot_mod.SnapshotError, "Available input snapshot tags"):
+            snapshot_mod.resolve_snapshot_tag("media-input-does-not-exist")
 
 
 if __name__ == "__main__":

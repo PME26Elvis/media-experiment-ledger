@@ -24,7 +24,9 @@ from zoneinfo import ZoneInfo
 
 TAIPEI = ZoneInfo("Asia/Taipei")
 DEFAULT_PART_BYTES = int(1.8 * 1024**3)
+MAX_RELEASE_ASSET_BYTES = 2 * 1024**3
 MANIFEST_NAME = "input-snapshot-manifest.json"
+SNAPSHOT_TAG_PREFIX = "media-input-"
 
 
 @dataclass(frozen=True)
@@ -39,7 +41,9 @@ class SnapshotError(RuntimeError):
     pass
 
 
-def run_command(cmd: Sequence[str], *, check: bool = True, capture: bool = True) -> subprocess.CompletedProcess[str]:
+def run_command(
+    cmd: Sequence[str], *, check: bool = True, capture: bool = True
+) -> subprocess.CompletedProcess[str]:
     proc = subprocess.run(
         list(cmd),
         text=True,
@@ -60,7 +64,9 @@ def sha256_file(path: Path, chunk_size: int = 4 * 1024 * 1024) -> str:
     return digest.hexdigest()
 
 
-def copy_exact(source: BinaryIO, destination: BinaryIO, limit: int, whole_digest: Any) -> tuple[int, str]:
+def copy_exact(
+    source: BinaryIO, destination: BinaryIO, limit: int, whole_digest: Any
+) -> tuple[int, str]:
     part_digest = hashlib.sha256()
     written = 0
     while written < limit:
@@ -74,14 +80,19 @@ def copy_exact(source: BinaryIO, destination: BinaryIO, limit: int, whole_digest
     return written, part_digest.hexdigest()
 
 
-def split_archive(source: Path, destination: Path, max_part_bytes: int) -> tuple[list[PartRecord], str, int]:
+def split_archive(
+    source: Path, destination: Path, max_part_bytes: int
+) -> tuple[list[PartRecord], str, int]:
     source = source.expanduser().resolve()
     if not source.is_file():
         raise FileNotFoundError(f"Input archive does not exist: {source}")
     if max_part_bytes <= 0:
         raise ValueError("Part size must be positive")
-    if max_part_bytes >= 2 * 1024**3:
-        raise ValueError("Snapshot parts must remain strictly below GitHub's 2 GiB release-asset boundary")
+    if max_part_bytes >= MAX_RELEASE_ASSET_BYTES:
+        raise ValueError(
+            "Snapshot parts must remain strictly below GitHub's 2 GiB release-asset boundary"
+        )
+
     before = (source.stat().st_size, source.stat().st_mtime_ns)
     if before[0] == 0:
         raise SnapshotError(f"Input archive is empty: {source}")
@@ -96,25 +107,38 @@ def split_archive(source: Path, destination: Path, max_part_bytes: int) -> tuple
             name = f"{source.name}.part{index:03d}"
             path = destination / name
             with path.open("wb") as output_file:
-                written, digest = copy_exact(input_file, output_file, max_part_bytes, whole_digest)
+                written, digest = copy_exact(
+                    input_file, output_file, max_part_bytes, whole_digest
+                )
             if written == 0:
                 path.unlink(missing_ok=True)
                 break
-            records.append(PartRecord(name=name, size_bytes=written, sha256=digest, index=index))
+            records.append(
+                PartRecord(name=name, size_bytes=written, sha256=digest, index=index)
+            )
             total += written
             index += 1
 
     after = (source.stat().st_size, source.stat().st_mtime_ns)
     if before != after:
         raise SnapshotError(
-            f"{source.name} changed while it was being split. Wait for the browser upload to finish and retry."
+            f"{source.name} changed while it was being split. "
+            "Wait for the browser upload to finish and retry."
         )
     if total != before[0]:
-        raise SnapshotError(f"Split byte count mismatch: expected {before[0]}, wrote {total}")
+        raise SnapshotError(
+            f"Split byte count mismatch: expected {before[0]}, wrote {total}"
+        )
     return records, whole_digest.hexdigest(), total
 
 
-def make_manifest(source: Path, records: Sequence[PartRecord], source_sha256: str, source_size: int, tag: str) -> dict[str, Any]:
+def make_manifest(
+    source: Path,
+    records: Sequence[PartRecord],
+    source_sha256: str,
+    source_size: int,
+    tag: str,
+) -> dict[str, Any]:
     now_taipei = datetime.now(TAIPEI).replace(microsecond=0)
     now_utc = datetime.now(timezone.utc).replace(microsecond=0)
     return {
@@ -133,12 +157,7 @@ def make_manifest(source: Path, records: Sequence[PartRecord], source_sha256: st
 
 def snapshot_tag(source_sha256: str, now: datetime | None = None) -> str:
     current = now or datetime.now(TAIPEI)
-    return f"media-input-{current:%Y-%m-%d}-{source_sha256[:12]}"
-
-
-def release_exists(tag: str) -> bool:
-    proc = run_command(["gh", "release", "view", tag], check=False)
-    return proc.returncode == 0
+    return f"{SNAPSHOT_TAG_PREFIX}{current:%Y-%m-%d}-{source_sha256[:12]}"
 
 
 def ensure_gh() -> None:
@@ -147,11 +166,88 @@ def ensure_gh() -> None:
     run_command(["gh", "repo", "view"])
 
 
-def publish_snapshot(source: Path, staging_root: Path, max_part_bytes: int, dry_run: bool, keep_staging: bool) -> str:
+def release_exists(tag: str) -> bool:
+    proc = run_command(["gh", "release", "view", tag], check=False)
+    return proc.returncode == 0
+
+
+def list_snapshot_tags() -> list[str]:
+    """Return published input-snapshot tags, newest first."""
+    ensure_gh()
+    proc = run_command(
+        [
+            "gh",
+            "release",
+            "list",
+            "--limit",
+            "1000",
+            "--json",
+            "tagName,isDraft",
+        ]
+    )
+    try:
+        rows = json.loads(proc.stdout or "[]")
+    except json.JSONDecodeError as exc:
+        raise SnapshotError(f"Could not parse `gh release list` output: {exc}") from exc
+    if not isinstance(rows, list):
+        raise SnapshotError("Unexpected `gh release list` response")
+
+    tags: list[str] = []
+    for row in rows:
+        if not isinstance(row, dict) or row.get("isDraft"):
+            continue
+        tag = str(row.get("tagName") or "")
+        if tag.startswith(SNAPSHOT_TAG_PREFIX) and tag not in tags:
+            tags.append(tag)
+    return tags
+
+
+def resolve_snapshot_tag(
+    requested: str | None, *, allow_single_fallback: bool = True
+) -> str:
+    """Resolve `latest`, an exact tag, or a mistyped single-snapshot request."""
+    available = list_snapshot_tags()
+    normalized = (requested or "").strip()
+
+    if not available:
+        raise SnapshotError(
+            "No published input snapshot Releases were found. "
+            "Create one with `python tools/input_snapshot.py publish results.zip`."
+        )
+
+    if not normalized or normalized.lower() == "latest":
+        resolved = available[0]
+        print(f"Using latest input snapshot: {resolved}", file=sys.stderr)
+        return resolved
+
+    if normalized in available:
+        return normalized
+
+    if allow_single_fallback and len(available) == 1:
+        resolved = available[0]
+        print(
+            f"WARNING: requested snapshot tag `{normalized}` does not exist; "
+            f"using the only published input snapshot `{resolved}`.",
+            file=sys.stderr,
+        )
+        return resolved
+
+    choices = "\n".join(f"- {tag}" for tag in available)
+    raise SnapshotError(
+        f"Input snapshot tag `{normalized}` was not found.\n"
+        f"Available input snapshot tags (newest first):\n{choices}\n"
+        "Use `--tag latest` to select the newest one."
+    )
+
+
+def publish_snapshot(
+    source: Path,
+    staging_root: Path,
+    max_part_bytes: int,
+    dry_run: bool,
+    keep_staging: bool,
+) -> str:
     source = source.expanduser().resolve()
-    # Opening the central directory gives a clear error for an incomplete ZIP
-    # without reading the full archive twice. The promotion step will validate
-    # every extracted member and CRC.
     if source.suffix.lower() == ".zip":
         import zipfile
 
@@ -161,17 +257,23 @@ def publish_snapshot(source: Path, staging_root: Path, max_part_bytes: int, dry_
                     raise SnapshotError(f"ZIP contains no entries: {source}")
         except zipfile.BadZipFile as exc:
             raise SnapshotError(
-                f"Cannot open {source.name} as a complete ZIP. The browser upload may still be running: {exc}"
+                f"Cannot open {source.name} as a complete ZIP. "
+                f"The browser upload may still be running: {exc}"
             ) from exc
 
     staging_root.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(prefix="snapshot-", dir=staging_root))
     try:
-        parts, source_digest, source_size = split_archive(source, work, max_part_bytes)
+        parts, source_digest, source_size = split_archive(
+            source, work, max_part_bytes
+        )
         tag = snapshot_tag(source_digest)
         manifest = make_manifest(source, parts, source_digest, source_size, tag)
         manifest_path = work / MANIFEST_NAME
-        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
         notes_path = work / "input-snapshot-notes.md"
         notes_path.write_text(
             "\n".join(
@@ -193,7 +295,10 @@ def publish_snapshot(source: Path, staging_root: Path, max_part_bytes: int, dry_
         title = f"Input Snapshot — {title_time} (Taipei)"
         assets = [work / part.name for part in parts] + [manifest_path]
         if dry_run:
-            return f"DRY-RUN: would create {tag} with {len(parts)} part(s), source SHA-256 {source_digest}"
+            return (
+                f"DRY-RUN: would create {tag} with {len(parts)} part(s), "
+                f"source SHA-256 {source_digest}"
+            )
         ensure_gh()
         if release_exists(tag):
             return f"SKIP: {tag} already exists for source SHA-256 {source_digest}"
@@ -211,7 +316,10 @@ def publish_snapshot(source: Path, staging_root: Path, max_part_bytes: int, dry_
             ],
             capture=False,
         )
-        return f"PUBLISHED: {tag} ({len(parts)} part(s), {source_size / 1024**3:.2f} GiB)"
+        return (
+            f"PUBLISHED: {tag} "
+            f"({len(parts)} part(s), {source_size / 1024**3:.2f} GiB)"
+        )
     finally:
         if not keep_staging:
             shutil.rmtree(work, ignore_errors=True)
@@ -230,18 +338,46 @@ def load_manifest(path: Path) -> dict[str, Any]:
 
 
 def download_snapshot(tag: str, directory: Path) -> dict[str, Any]:
-    ensure_gh()
     directory.mkdir(parents=True, exist_ok=True)
     manifest_path = directory / MANIFEST_NAME
-    run_command(["gh", "release", "download", tag, "--pattern", MANIFEST_NAME, "--dir", str(directory)])
+    run_command(
+        [
+            "gh",
+            "release",
+            "download",
+            tag,
+            "--pattern",
+            MANIFEST_NAME,
+            "--dir",
+            str(directory),
+        ]
+    )
     manifest = load_manifest(manifest_path)
+    manifest_tag = str(manifest.get("tag") or "")
+    if manifest_tag and manifest_tag != tag:
+        raise SnapshotError(
+            f"Snapshot manifest tag mismatch: requested {tag}, manifest says {manifest_tag}"
+        )
     for part in manifest["parts"]:
         name = str(part["name"])
-        run_command(["gh", "release", "download", tag, "--pattern", name, "--dir", str(directory)])
+        run_command(
+            [
+                "gh",
+                "release",
+                "download",
+                tag,
+                "--pattern",
+                name,
+                "--dir",
+                str(directory),
+            ]
+        )
     return manifest
 
 
-def restore_from_directory(manifest: dict[str, Any], directory: Path, output: Path) -> Path:
+def restore_from_directory(
+    manifest: dict[str, Any], directory: Path, output: Path
+) -> Path:
     output = output.expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     partial = output.with_name(output.name + ".partial")
@@ -259,7 +395,10 @@ def restore_from_directory(manifest: dict[str, Any], directory: Path, output: Pa
                 expected_size = int(part["size_bytes"])
                 actual_size = path.stat().st_size
                 if actual_size != expected_size:
-                    raise SnapshotError(f"Part size mismatch for {path.name}: expected {expected_size}, got {actual_size}")
+                    raise SnapshotError(
+                        f"Part size mismatch for {path.name}: "
+                        f"expected {expected_size}, got {actual_size}"
+                    )
                 actual_digest = sha256_file(path)
                 if actual_digest != str(part["sha256"]):
                     raise SnapshotError(f"Part SHA-256 mismatch for {path.name}")
@@ -271,9 +410,13 @@ def restore_from_directory(manifest: dict[str, Any], directory: Path, output: Pa
         expected_total = int(manifest["source_size_bytes"])
         expected_digest = str(manifest["source_sha256"])
         if total != expected_total:
-            raise SnapshotError(f"Restored size mismatch: expected {expected_total}, got {total}")
+            raise SnapshotError(
+                f"Restored size mismatch: expected {expected_total}, got {total}"
+            )
         if whole_digest.hexdigest() != expected_digest:
-            raise SnapshotError("Restored archive SHA-256 does not match the manifest")
+            raise SnapshotError(
+                "Restored archive SHA-256 does not match the manifest"
+            )
         partial.replace(output)
         return output
     except Exception:
@@ -281,17 +424,29 @@ def restore_from_directory(manifest: dict[str, Any], directory: Path, output: Pa
         raise
 
 
-def restore_snapshot(tag: str, output: Path, download_root: Path | None, keep_downloads: bool) -> Path:
+def restore_snapshot(
+    tag: str | None,
+    output: Path,
+    download_root: Path | None,
+    keep_downloads: bool,
+) -> Path:
+    resolved_tag = resolve_snapshot_tag(tag)
+    print(f"Resolved input snapshot: {resolved_tag}", file=sys.stderr)
+
     if download_root is not None:
         resolved_download_root = download_root.expanduser().resolve()
         resolved_output = output.expanduser().resolve()
-        if not keep_downloads and resolved_output.is_relative_to(resolved_download_root):
-            raise SnapshotError("The restored output cannot be placed inside a download directory that will be deleted")
+        if not keep_downloads and resolved_output.is_relative_to(
+            resolved_download_root
+        ):
+            raise SnapshotError(
+                "The restored output cannot be placed inside a download directory that will be deleted"
+            )
         download_root = resolved_download_root
         if download_root.exists() and any(download_root.iterdir()):
             raise SnapshotError(f"Download directory must be empty: {download_root}")
         download_root.mkdir(parents=True, exist_ok=True)
-        manifest = download_snapshot(tag, download_root)
+        manifest = download_snapshot(resolved_tag, download_root)
         restored = restore_from_directory(manifest, download_root, output)
         if not keep_downloads:
             shutil.rmtree(download_root, ignore_errors=True)
@@ -299,7 +454,7 @@ def restore_snapshot(tag: str, output: Path, download_root: Path | None, keep_do
 
     with tempfile.TemporaryDirectory(prefix="input-snapshot-") as temporary:
         directory = Path(temporary)
-        manifest = download_snapshot(tag, directory)
+        manifest = download_snapshot(resolved_tag, directory)
         return restore_from_directory(manifest, directory, output)
 
 
@@ -307,7 +462,11 @@ def promote_snapshot(args: argparse.Namespace) -> int:
     with tempfile.TemporaryDirectory(prefix="promote-snapshot-") as temporary:
         archive = Path(temporary) / "results.zip"
         restore_snapshot(args.tag, archive, None, False)
-        command = [sys.executable, str(Path(__file__).with_name("publish_from_archive.py")), str(archive)]
+        command = [
+            sys.executable,
+            str(Path(__file__).with_name("publish_from_archive.py")),
+            str(archive),
+        ]
         for date in args.dates or []:
             command.extend(["--date", date])
         command.extend(["--max-part-gib", str(args.max_part_gib)])
@@ -320,24 +479,42 @@ def promote_snapshot(args: argparse.Namespace) -> int:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Publish, restore, or promote a split input snapshot Release.")
+    parser = argparse.ArgumentParser(
+        description="Publish, restore, or promote a split input snapshot Release."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    publish = subparsers.add_parser("publish", help="Split one archive and publish an input snapshot Release")
+    publish = subparsers.add_parser(
+        "publish", help="Split one archive and publish an input snapshot Release"
+    )
     publish.add_argument("archive", type=Path)
     publish.add_argument("--part-gib", type=float, default=1.8)
     publish.add_argument("--staging", type=Path, default=Path(".input-staging"))
     publish.add_argument("--dry-run", action="store_true")
     publish.add_argument("--keep-staging", action="store_true")
 
-    restore = subparsers.add_parser("restore", help="Download and reconstruct one snapshot")
-    restore.add_argument("--tag", required=True)
-    restore.add_argument("--output", type=Path, default=Path("restored-results.zip"))
+    restore = subparsers.add_parser(
+        "restore", help="Download and reconstruct one snapshot"
+    )
+    restore.add_argument(
+        "--tag",
+        default="latest",
+        help="Exact media-input tag, or `latest` (default)",
+    )
+    restore.add_argument(
+        "--output", type=Path, default=Path("restored-results.zip")
+    )
     restore.add_argument("--download-root", type=Path)
     restore.add_argument("--keep-downloads", action="store_true")
 
-    promote = subparsers.add_parser("promote", help="Restore a snapshot and publish its date-scoped releases")
-    promote.add_argument("--tag", required=True)
+    promote = subparsers.add_parser(
+        "promote", help="Restore a snapshot and publish its date-scoped releases"
+    )
+    promote.add_argument(
+        "--tag",
+        default="latest",
+        help="Exact media-input tag, or `latest` (default)",
+    )
     promote.add_argument("--date", action="append", dest="dates")
     promote.add_argument("--max-part-gib", type=float, default=1.8)
     promote.add_argument("--dry-run", action="store_true")
@@ -359,7 +536,9 @@ def main() -> int:
             print(result)
             return 0
         if args.command == "restore":
-            output = restore_snapshot(args.tag, args.output, args.download_root, args.keep_downloads)
+            output = restore_snapshot(
+                args.tag, args.output, args.download_root, args.keep_downloads
+            )
             print(f"RESTORED: {output}")
             return 0
         if args.command == "promote":
