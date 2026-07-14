@@ -1,1 +1,26 @@
-{}
+{
+  "marketing-video": 6,
+  "nature": 33,
+  "product-video": 7,
+  "taiwan-asia-urban": 32,
+  "abstract-concept": 30,
+  "architecture": 111,
+  "ecommerce": 60,
+  "editorial-design": 30,
+  "educational-diagram": 31,
+  "educational-video": 5,
+  "fantasy": 31,
+  "fantasy-video": 5,
+  "fashion": 26,
+  "food": 26,
+  "game-asset": 30,
+  "high-density": 30,
+  "lifestyle": 26,
+  "marketing": 55,
+  "music": 26,
+  "product": 231,
+  "sci-fi": 31,
+  "sci-fi-video": 5,
+  "travel": 26,
+  "ui-app-assets": 84
+}

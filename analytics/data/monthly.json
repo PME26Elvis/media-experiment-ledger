@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "period": "2026-06",
+    "runs": 6,
+    "image_completed": 590,
+    "video_completed": 11,
+    "errors": 6,
+    "success_rate": 0.9901153212520593,
+    "latency_mean_s": 107.45752508361204,
+    "source_bytes": 246468926
+  },
+  {
+    "period": "2026-07",
+    "runs": 7,
+    "image_completed": 347,
+    "video_completed": 29,
+    "errors": 9,
+    "success_rate": 0.9766233766233766,
+    "latency_mean_s": 69.16299480787227,
+    "source_bytes": 2105663293
+  }
+]

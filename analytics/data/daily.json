@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "period": "2026-06-29",
+    "runs": 3,
+    "image_completed": 550,
+    "video_completed": 11,
+    "errors": 0,
+    "success_rate": 1.0,
+    "latency_mean_s": 135.25,
+    "source_bytes": 16386671
+  },
+  {
+    "period": "2026-06-30",
+    "runs": 3,
+    "image_completed": 40,
+    "video_completed": 0,
+    "errors": 6,
+    "success_rate": 0.8695652173913043,
+    "latency_mean_s": 88.92920847268674,
+    "source_bytes": 230082255
+  },
+  {
+    "period": "2026-07-01",
+    "runs": 1,
+    "image_completed": 0,
+    "video_completed": 0,
+    "errors": 2,
+    "success_rate": 0.0,
+    "latency_mean_s": 22.5,
+    "source_bytes": 2216
+  },
+  {
+    "period": "2026-07-02",
+    "runs": 1,
+    "image_completed": 32,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.975,
+    "latency_mean_s": 84.15,
+    "source_bytes": 210382446
+  },
+  {
+    "period": "2026-07-03",
+    "runs": 1,
+    "image_completed": 28,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9722222222222222,
+    "latency_mean_s": 84.30555555555556,
+    "source_bytes": 186848705
+  },
+  {
+    "period": "2026-07-05",
+    "runs": 1,
+    "image_completed": 80,
+    "video_completed": 7,
+    "errors": 0,
+    "success_rate": 1.0,
+    "latency_mean_s": 68.85057471264368,
+    "source_bytes": 492698591
+  },
+  {
+    "period": "2026-07-11",
+    "runs": 1,
+    "image_completed": 59,
+    "video_completed": 0,
+    "errors": 2,
+    "success_rate": 0.9672131147540983,
+    "latency_mean_s": 53.459016393442624,
+    "source_bytes": 375358477
+  },
+  {
+    "period": "2026-07-12",
+    "runs": 1,
+    "image_completed": 145,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9934640522875817,
+    "latency_mean_s": 59.54248366013072,
+    "source_bytes": 822318788
+  },
+  {
+    "period": "2026-07-13",
+    "runs": 1,
+    "image_completed": 3,
+    "video_completed": 1,
+    "errors": 2,
+    "success_rate": 0.6666666666666666,
+    "latency_mean_s": 111.33333333333333,
+    "source_bytes": 18054070
+  }
+]

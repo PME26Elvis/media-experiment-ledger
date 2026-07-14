@@ -1,8 +1,560 @@
 {
-  "generated_at": "2026-07-14T16:36:43+00:00",
-  "runs": [],
-  "daily": [],
-  "monthly": [],
-  "error_classes": {},
-  "categories": {}
+  "generated_at": "2026-07-14T16:50:05+00:00",
+  "runs": [
+    {
+      "date": "2026-06-29",
+      "tag": "media-exp-2026-06-29",
+      "run_id": "run_20260629_232751",
+      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "image_completed": 0,
+      "video_completed": 0,
+      "errors": 0,
+      "success_rate": null,
+      "latency_mean_s": null,
+      "latency_p50_s": null,
+      "latency_p90_s": null,
+      "latency_p95_s": null,
+      "started_at": null,
+      "finished_at": null,
+      "source_bytes": 0,
+      "file_count": 0,
+      "models": {},
+      "categories": {},
+      "error_classes": {}
+    },
+    {
+      "date": "2026-06-29",
+      "tag": "media-exp-2026-06-29",
+      "run_id": "run_20260629_233317",
+      "digest": "ec9abc589993002484ce90757ba92fe9a7f8e5d83a26ebc3137549c9a445385b",
+      "image_completed": 0,
+      "video_completed": 4,
+      "errors": 0,
+      "success_rate": 1.0,
+      "latency_mean_s": 270.5,
+      "latency_p50_s": 269.0,
+      "latency_p90_s": 311.3,
+      "latency_p95_s": 317.15,
+      "started_at": "2026-06-29T23:33:18+08:00",
+      "finished_at": "2026-06-30T00:09:20+08:00",
+      "source_bytes": 16033722,
+      "file_count": 5,
+      "models": {
+        "agnes-video-v2.0": 8
+      },
+      "categories": {
+        "marketing-video": 1,
+        "nature": 1,
+        "product-video": 1,
+        "taiwan-asia-urban": 1
+      },
+      "error_classes": {}
+    },
+    {
+      "date": "2026-06-29",
+      "tag": "media-exp-2026-06-29",
+      "run_id": "run_test",
+      "digest": "bc53374c1c1e8304ae36c03bf7d319bcdbb8aa93cd17d0d7694ea95d7786144e",
+      "image_completed": 550,
+      "video_completed": 7,
+      "errors": 0,
+      "success_rate": 1.0,
+      "latency_mean_s": 0.0,
+      "latency_p50_s": 0.0,
+      "latency_p90_s": 0.0,
+      "latency_p95_s": 0.0,
+      "started_at": "2026-06-29T23:26:45+08:00",
+      "finished_at": "2026-06-29T23:26:45+08:00",
+      "source_bytes": 352949,
+      "file_count": 1,
+      "models": {
+        "agnes-image-2.1-flash": 550,
+        "agnes-video-v2.0": 14
+      },
+      "categories": {
+        "abstract-concept": 30,
+        "architecture": 28,
+        "ecommerce": 30,
+        "editorial-design": 30,
+        "educational-diagram": 31,
+        "educational-video": 1,
+        "fantasy": 31,
+        "fantasy-video": 1,
+        "fashion": 26,
+        "food": 26,
+        "game-asset": 30,
+        "high-density": 30,
+        "lifestyle": 26,
+        "marketing": 32,
+        "marketing-video": 1,
+        "music": 26,
+        "nature": 28,
+        "product": 32,
+        "product-video": 1,
+        "sci-fi": 31,
+        "sci-fi-video": 1,
+        "taiwan-asia-urban": 27,
+        "travel": 26,
+        "ui-app-assets": 32
+      },
+      "error_classes": {}
+    },
+    {
+      "date": "2026-06-30",
+      "tag": "media-exp-2026-06-30",
+      "run_id": "run_20260630_144301",
+      "digest": "370573f9925a66af24a277bc39429eede93e135e88c5a2a465157ed77d3f7c13",
+      "image_completed": 21,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.9130434782608695,
+      "latency_mean_s": 84.82608695652173,
+      "latency_p50_s": 67.0,
+      "latency_p90_s": 125.80000000000004,
+      "latency_p95_s": 231.29999999999984,
+      "started_at": "2026-06-30T14:43:01+08:00",
+      "finished_at": "2026-06-30T15:47:05+08:00",
+      "source_bytes": 121168348,
+      "file_count": 23,
+      "models": {
+        "agnes-image-2.1-flash": 22,
+        "agnes-video-v2.0": 1
+      },
+      "categories": {
+        "product": 21
+      },
+      "error_classes": {
+        "server_busy": 2
+      }
+    },
+    {
+      "date": "2026-06-30",
+      "tag": "media-exp-2026-06-30",
+      "run_id": "run_20260630_165959",
+      "digest": "6d53259333ff0032e139cc01a3ee50b8e760a7a67afcbda07726217fe97604fb",
+      "image_completed": 11,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.8461538461538461,
+      "latency_mean_s": 97.46153846153847,
+      "latency_p50_s": 78.0,
+      "latency_p90_s": 115.20000000000002,
+      "latency_p95_s": 192.99999999999974,
+      "started_at": "2026-06-30T16:59:59+08:00",
+      "finished_at": "2026-06-30T17:37:36+08:00",
+      "source_bytes": 62728857,
+      "file_count": 13,
+      "models": {
+        "agnes-image-2.1-flash": 12,
+        "agnes-video-v2.0": 1
+      },
+      "categories": {
+        "product": 11
+      },
+      "error_classes": {
+        "server_busy": 2
+      }
+    },
+    {
+      "date": "2026-06-30",
+      "tag": "media-exp-2026-06-30",
+      "run_id": "run_20260630_190013",
+      "digest": "0a0d6ed850ebb869fff6f155a35b57c14e478da0232171b95d57b02538591825",
+      "image_completed": 8,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.8,
+      "latency_mean_s": 84.5,
+      "latency_p50_s": 64.0,
+      "latency_p90_s": 86.79999999999993,
+      "latency_p95_s": 184.89999999999975,
+      "started_at": "2026-06-30T19:00:13+08:00",
+      "finished_at": "2026-06-30T19:26:19+08:00",
+      "source_bytes": 46185050,
+      "file_count": 10,
+      "models": {
+        "agnes-image-2.1-flash": 9,
+        "agnes-video-v2.0": 1
+      },
+      "categories": {
+        "product": 8
+      },
+      "error_classes": {
+        "server_busy": 2
+      }
+    },
+    {
+      "date": "2026-07-01",
+      "tag": "media-exp-2026-07-01",
+      "run_id": "run_20260701_144028",
+      "digest": "013f715a14b3e690db4b9d58af39aabfe60ac122246fcf005cf50ee97f02fa61",
+      "image_completed": 0,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.0,
+      "latency_mean_s": 22.5,
+      "latency_p50_s": 22.5,
+      "latency_p90_s": 35.7,
+      "latency_p95_s": 37.349999999999994,
+      "started_at": "2026-07-01T14:40:28+08:00",
+      "finished_at": "2026-07-01T14:41:13+08:00",
+      "source_bytes": 2216,
+      "file_count": 1,
+      "models": {
+        "agnes-image-2.1-flash": 1,
+        "agnes-video-v2.0": 1
+      },
+      "categories": {},
+      "error_classes": {
+        "server_busy": 2
+      }
+    },
+    {
+      "date": "2026-07-02",
+      "tag": "media-exp-2026-07-02",
+      "run_id": "run_20260702_132745",
+      "digest": "565c22ba0792a5fb9398ea7a8a21b06c106f99e07be3efe0d94e6855d01e3fd6",
+      "image_completed": 32,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.975,
+      "latency_mean_s": 84.15,
+      "latency_p50_s": 54.5,
+      "latency_p90_s": 224.0,
+      "latency_p95_s": 224.05,
+      "started_at": "2026-07-02T13:27:45+08:00",
+      "finished_at": "2026-07-02T15:28:12+08:00",
+      "source_bytes": 210382446,
+      "file_count": 41,
+      "models": {
+        "agnes-image-2.1-flash": 33,
+        "agnes-video-v2.0": 14
+      },
+      "categories": {
+        "educational-video": 1,
+        "fantasy-video": 1,
+        "marketing-video": 1,
+        "nature": 1,
+        "product": 32,
+        "product-video": 1,
+        "sci-fi-video": 1,
+        "taiwan-asia-urban": 1
+      },
+      "error_classes": {
+        "server_busy": 1
+      }
+    },
+    {
+      "date": "2026-07-03",
+      "tag": "media-exp-2026-07-03",
+      "run_id": "run_20260703_112425",
+      "digest": "7de768e7c4b7b7437f2a1ebf6794b860c9ff37d48bca928b708ccdd89c1912f2",
+      "image_completed": 28,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.9722222222222222,
+      "latency_mean_s": 84.30555555555556,
+      "latency_p50_s": 52.5,
+      "latency_p90_s": 223.5,
+      "latency_p95_s": 227.0,
+      "started_at": "2026-07-03T11:24:25+08:00",
+      "finished_at": "2026-07-03T13:13:23+08:00",
+      "source_bytes": 186848705,
+      "file_count": 37,
+      "models": {
+        "agnes-image-2.1-flash": 29,
+        "agnes-video-v2.0": 14
+      },
+      "categories": {
+        "educational-video": 1,
+        "fantasy-video": 1,
+        "marketing-video": 1,
+        "nature": 1,
+        "product": 28,
+        "product-video": 1,
+        "sci-fi-video": 1,
+        "taiwan-asia-urban": 1
+      },
+      "error_classes": {
+        "server_busy": 1
+      }
+    },
+    {
+      "date": "2026-07-05",
+      "tag": "media-exp-2026-07-05",
+      "run_id": "run_20260705_200953",
+      "digest": "34f4a339b3587ee7a46e79643ee5ab1306ea2c02558077759e33b741913a4905",
+      "image_completed": 80,
+      "video_completed": 7,
+      "errors": 0,
+      "success_rate": 1.0,
+      "latency_mean_s": 68.85057471264368,
+      "latency_p50_s": 56.0,
+      "latency_p90_s": 91.40000000000006,
+      "latency_p95_s": 157.80000000000004,
+      "started_at": "2026-07-05T20:09:53+08:00",
+      "finished_at": "2026-07-06T00:04:35+08:00",
+      "source_bytes": 492698591,
+      "file_count": 88,
+      "models": {
+        "agnes-image-2.1-flash": 80,
+        "agnes-video-v2.0": 14
+      },
+      "categories": {
+        "architecture": 28,
+        "educational-video": 1,
+        "fantasy-video": 1,
+        "marketing-video": 1,
+        "nature": 1,
+        "product": 32,
+        "product-video": 1,
+        "sci-fi-video": 1,
+        "taiwan-asia-urban": 1,
+        "ui-app-assets": 20
+      },
+      "error_classes": {}
+    },
+    {
+      "date": "2026-07-11",
+      "tag": "media-exp-2026-07-11",
+      "run_id": "run_20260711_204146",
+      "digest": "dee2dfb881ccb0c2717913d3f5f76250566e24a774bbaebafef401cf8181fe31",
+      "image_completed": 59,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.9672131147540983,
+      "latency_mean_s": 53.459016393442624,
+      "latency_p50_s": 51.0,
+      "latency_p90_s": 62.0,
+      "latency_p95_s": 64.0,
+      "started_at": "2026-07-11T20:41:46+08:00",
+      "finished_at": "2026-07-11T23:04:37+08:00",
+      "source_bytes": 375358477,
+      "file_count": 61,
+      "models": {
+        "agnes-image-2.1-flash": 60,
+        "agnes-video-v2.0": 1
+      },
+      "categories": {
+        "architecture": 27,
+        "product": 32
+      },
+      "error_classes": {
+        "server_busy": 2
+      }
+    },
+    {
+      "date": "2026-07-12",
+      "tag": "media-exp-2026-07-12",
+      "run_id": "run_20260712_175037",
+      "digest": "d35efdf31af02482495a7a21e79850b8da3abd31fd5c0d5788974f10f11b111a",
+      "image_completed": 145,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.9934640522875817,
+      "latency_mean_s": 59.54248366013072,
+      "latency_p50_s": 52.0,
+      "latency_p90_s": 63.0,
+      "latency_p95_s": 81.4,
+      "started_at": "2026-07-12T17:50:37+08:00",
+      "finished_at": "2026-07-13T00:16:19+08:00",
+      "source_bytes": 822318788,
+      "file_count": 154,
+      "models": {
+        "agnes-image-2.1-flash": 146,
+        "agnes-video-v2.0": 14
+      },
+      "categories": {
+        "architecture": 28,
+        "ecommerce": 30,
+        "educational-video": 1,
+        "fantasy-video": 1,
+        "marketing": 23,
+        "marketing-video": 1,
+        "nature": 1,
+        "product": 32,
+        "product-video": 1,
+        "sci-fi-video": 1,
+        "taiwan-asia-urban": 1,
+        "ui-app-assets": 32
+      },
+      "error_classes": {
+        "server_busy": 1
+      }
+    },
+    {
+      "date": "2026-07-13",
+      "tag": "media-exp-2026-07-13",
+      "run_id": "run_20260713_220443",
+      "digest": "ccc7eac43e165a2ab0f647eac16988a80a1059477f25e6cb2356d2591e0ab0ac",
+      "image_completed": 3,
+      "video_completed": 1,
+      "errors": 2,
+      "success_rate": 0.6666666666666666,
+      "latency_mean_s": 111.33333333333333,
+      "latency_p50_s": 57.5,
+      "latency_p90_s": 250.5,
+      "latency_p95_s": 279.25,
+      "started_at": "2026-07-13T22:04:43+08:00",
+      "finished_at": "2026-07-13T22:22:41+08:00",
+      "source_bytes": 18054070,
+      "file_count": 6,
+      "models": {
+        "agnes-image-2.1-flash": 4,
+        "agnes-video-v2.0": 4
+      },
+      "categories": {
+        "product": 3,
+        "product-video": 1
+      },
+      "error_classes": {
+        "server_busy": 1,
+        "transient_or_duplicate": 1
+      }
+    }
+  ],
+  "daily": [
+    {
+      "period": "2026-06-29",
+      "runs": 3,
+      "image_completed": 550,
+      "video_completed": 11,
+      "errors": 0,
+      "success_rate": 1.0,
+      "latency_mean_s": 135.25,
+      "source_bytes": 16386671
+    },
+    {
+      "period": "2026-06-30",
+      "runs": 3,
+      "image_completed": 40,
+      "video_completed": 0,
+      "errors": 6,
+      "success_rate": 0.8695652173913043,
+      "latency_mean_s": 88.92920847268674,
+      "source_bytes": 230082255
+    },
+    {
+      "period": "2026-07-01",
+      "runs": 1,
+      "image_completed": 0,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.0,
+      "latency_mean_s": 22.5,
+      "source_bytes": 2216
+    },
+    {
+      "period": "2026-07-02",
+      "runs": 1,
+      "image_completed": 32,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.975,
+      "latency_mean_s": 84.15,
+      "source_bytes": 210382446
+    },
+    {
+      "period": "2026-07-03",
+      "runs": 1,
+      "image_completed": 28,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.9722222222222222,
+      "latency_mean_s": 84.30555555555556,
+      "source_bytes": 186848705
+    },
+    {
+      "period": "2026-07-05",
+      "runs": 1,
+      "image_completed": 80,
+      "video_completed": 7,
+      "errors": 0,
+      "success_rate": 1.0,
+      "latency_mean_s": 68.85057471264368,
+      "source_bytes": 492698591
+    },
+    {
+      "period": "2026-07-11",
+      "runs": 1,
+      "image_completed": 59,
+      "video_completed": 0,
+      "errors": 2,
+      "success_rate": 0.9672131147540983,
+      "latency_mean_s": 53.459016393442624,
+      "source_bytes": 375358477
+    },
+    {
+      "period": "2026-07-12",
+      "runs": 1,
+      "image_completed": 145,
+      "video_completed": 7,
+      "errors": 1,
+      "success_rate": 0.9934640522875817,
+      "latency_mean_s": 59.54248366013072,
+      "source_bytes": 822318788
+    },
+    {
+      "period": "2026-07-13",
+      "runs": 1,
+      "image_completed": 3,
+      "video_completed": 1,
+      "errors": 2,
+      "success_rate": 0.6666666666666666,
+      "latency_mean_s": 111.33333333333333,
+      "source_bytes": 18054070
+    }
+  ],
+  "monthly": [
+    {
+      "period": "2026-06",
+      "runs": 6,
+      "image_completed": 590,
+      "video_completed": 11,
+      "errors": 6,
+      "success_rate": 0.9901153212520593,
+      "latency_mean_s": 107.45752508361204,
+      "source_bytes": 246468926
+    },
+    {
+      "period": "2026-07",
+      "runs": 7,
+      "image_completed": 347,
+      "video_completed": 29,
+      "errors": 9,
+      "success_rate": 0.9766233766233766,
+      "latency_mean_s": 69.16299480787227,
+      "source_bytes": 2105663293
+    }
+  ],
+  "error_classes": {
+    "server_busy": 14,
+    "transient_or_duplicate": 1
+  },
+  "categories": {
+    "marketing-video": 6,
+    "nature": 33,
+    "product-video": 7,
+    "taiwan-asia-urban": 32,
+    "abstract-concept": 30,
+    "architecture": 111,
+    "ecommerce": 60,
+    "editorial-design": 30,
+    "educational-diagram": 31,
+    "educational-video": 5,
+    "fantasy": 31,
+    "fantasy-video": 5,
+    "fashion": 26,
+    "food": 26,
+    "game-asset": 30,
+    "high-density": 30,
+    "lifestyle": 26,
+    "marketing": 55,
+    "music": 26,
+    "product": 231,
+    "sci-fi": 31,
+    "sci-fi-video": 5,
+    "travel": 26,
+    "ui-app-assets": 84
+  }
 }
