@@ -1,6 +1,7 @@
 # Local generation outputs and runtime state
 results/
 results*.zip
+results.zip.*
 restored-results*.zip
 logs/
 state/
