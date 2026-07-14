@@ -1,0 +1,60 @@
+name: Promote input snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      snapshot_tag:
+        description: Input snapshot tag, for example media-input-2026-07-15-abcdef123456
+        required: true
+        type: string
+      dry_run:
+        description: Reconstruct and validate without creating experiment releases
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: media-input-promotion
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Show available disk
+        run: df -h . /tmp
+
+      - name: Restore and promote snapshot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SNAPSHOT_TAG: ${{ inputs.snapshot_tag }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(promote --tag "$SNAPSHOT_TAG")
+          if [[ "$DRY_RUN" == "true" ]]; then
+            args+=(--dry-run)
+          fi
+          python tools/input_snapshot.py "${args[@]}"
+
+      - name: Refresh analytics after automated releases
+        if: ${{ always() && inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run analytics.yml --ref main -f selection_mode=new_only

@@ -4,11 +4,12 @@ A release-backed ledger for structured media-generation runs. The repository kee
 
 ## What this repository does
 
-- Packages `results/YYYY-MM-DD/run_*` directories from a temporary Codespaces workspace.
+- Accepts one uploaded `results.zip` as the primary Codespaces input while retaining direct `results/` compatibility.
 - Publishes one immutable GitHub Release per experiment date.
 - Stores images and videos in separate ZIP assets, split automatically before the 2 GiB asset boundary.
 - Keeps `outputs.jsonl` and `errors.jsonl` inside every media ZIP part and also publishes them as standalone assets, alongside a SHA-256 manifest.
 - Skips runs that were already published with identical content.
+- Can store a large input archive immediately as split, byte-verifiable snapshot assets and promote it later.
 - Builds daily, monthly, per-run, category, latency, and error analytics.
 - Commits Markdown, CSV, JSON, SVG, and PNG reports to `analytics/`.
 - Publishes an interactive static dashboard through GitHub Pages.
@@ -16,32 +17,48 @@ A release-backed ledger for structured media-generation runs. The repository kee
 ## Fastest publishing path
 
 1. Open this repository in GitHub Codespaces.
-2. Drag the complete local `results/` folder into the repository workspace.
+2. Upload one local `results.zip` file to the repository workspace.
 3. In the Codespaces terminal, run:
+
+```bash
+python tools/publish_from_archive.py results.zip
+```
+
+The archive may contain a top-level `results/`, direct `YYYY-MM-DD` directories, or one additional wrapper directory. The command extracts to a temporary ignored directory, invokes the duplicate-aware date publisher, removes temporary extraction and package files, and leaves the original ZIP untouched.
+
+For a validation-only pass:
+
+```bash
+python tools/publish_from_archive.py results.zip --dry-run
+```
+
+The previous folder command remains supported:
 
 ```bash
 python tools/publish_results.py --source results
 ```
 
-The command scans every date folder, packages only runs not already present in Releases, creates date-scoped Releases, verifies each ZIP, and removes temporary ZIP files after successful publication. The uploaded `results/` folder remains in the Codespace until the Codespace is deleted.
+See [ZIP input and snapshot workflow](docs/INPUT_ARCHIVE_WORKFLOW.md) and [Codespaces publishing](docs/CODESPACES_PUBLISHING.md).
 
-For a packaging-only check:
+## Store first, process later
 
-```bash
-python tools/publish_results.py --source results --dry-run
-```
-
-For one date only:
+When the immediate goal is simply to place the completed upload into Release storage:
 
 ```bash
-python tools/publish_results.py --source results --date 2026-06-29
+python tools/input_snapshot.py publish results.zip
 ```
 
-See [Codespaces publishing](docs/CODESPACES_PUBLISHING.md) for the full operational flow.
+This creates a `media-input-...` Release containing sub-1.8-GiB byte parts and a SHA-256 manifest. Later, use the **Promote input snapshot** Actions workflow or:
+
+```bash
+python tools/input_snapshot.py promote --tag media-input-YYYY-MM-DD-SHA12
+```
+
+Input snapshots are separate from final experiment Releases and are ignored by normal analytics until promoted.
 
 ## Release layout
 
-A primary release uses:
+A primary experiment release uses:
 
 ```text
 Tag:   media-exp-2026-06-29
@@ -62,7 +79,7 @@ If a date was already published and genuinely receives a new run later, the tool
 
 ## Analytics
 
-Every published experiment release triggers `.github/workflows/analytics.yml`. Normal analysis downloads only manifests and JSONL metadata. A manual workflow run can:
+Every manually published experiment release triggers `.github/workflows/analytics.yml`. The snapshot-promotion workflow explicitly dispatches analytics after it creates final Releases. Normal analysis downloads only manifests and JSONL metadata. A manual workflow run can:
 
 - process only unseen releases;
 - process the latest N releases;
@@ -89,7 +106,7 @@ The dashboard is deployed from `site/` with GitHub Pages. See [Analytics and Pag
 
 ## Existing runner
 
-The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger tooling. Large local outputs, logs, state, secrets, and release staging directories are excluded by `.gitignore`.
+The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger tooling. Large local outputs, input archives, logs, state, secrets, extraction directories, and release staging directories are excluded by `.gitignore`.
 
 ## Development
 

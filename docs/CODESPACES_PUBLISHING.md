@@ -2,47 +2,31 @@
 
 ## One-time preparation
 
-Open the repository page and select **Code → Codespaces → Create codespace on main**. Codespaces already includes Python, Git, and GitHub CLI authentication for the current repository.
+Open the repository page and select **Code → Codespaces → Create codespace on main**. Codespaces includes Python, Git, and GitHub CLI authentication for the current repository.
 
-The repository ignores `results/`, `.release-staging/`, logs, state, and environment files, so uploading a local result tree does not add it to Git history.
+The repository ignores `results/`, `results*.zip`, extraction directories, release staging, logs, state, and environment files, so the uploaded inputs do not enter Git history.
 
-## Routine operation
+## Recommended routine operation
 
-### 1. Upload the local folder
+### 1. Upload one archive
 
-Drag the complete local `results/` directory into the Codespaces Explorer at the repository root. The expected structure is:
+Create `results.zip` locally and upload that single file to the Codespaces Explorer. This avoids the browser's less reliable large-directory upload path. Supported archive layouts are documented in [ZIP input and snapshot workflow](INPUT_ARCHIVE_WORKFLOW.md).
 
-```text
-results/
-  2026-06-29/
-    run_20260629_120000/
-      outputs.jsonl
-      errors.jsonl
-      media/
-        images/
-        videos/
-  2026-06-30/
-    run_20260630_090000/
-      ...
-```
-
-It is safe to upload dates that were already published. The publisher compares every `run_id` and SHA-256 content digest against remote manifests.
-
-### 2. Optional validation pass
+If the Codespace was opened before the latest repository changes, run:
 
 ```bash
-python tools/publish_results.py --source results --dry-run
+git pull --ff-only
 ```
 
-This validates JSONL, scans metadata for obvious secret patterns, hashes source files, builds ZIP packages, and tests ZIP integrity without creating releases.
+The ignored `results.zip` does not block this update.
 
-### 3. Publish every new run
+### 2. Publish every new run
 
 ```bash
-python tools/publish_results.py --source results
+python tools/publish_from_archive.py results.zip
 ```
 
-The publisher:
+The wrapper validates the ZIP, extracts it temporarily, detects the results root, and invokes the existing publisher. The publisher then:
 
 1. scans each `YYYY-MM-DD` directory;
 2. loads all existing primary and supplemental manifests for that date;
@@ -53,38 +37,68 @@ The publisher:
 7. includes the run JSONL files in every media ZIP part and also uploads JSONL and manifest assets separately;
 8. creates an immutable date release;
 9. verifies command completion;
-10. removes `.release-staging/` after a fully successful batch.
+10. removes temporary extraction and package files after a successful batch.
 
-The original `results/` directory remains in the Codespace.
+The original `results.zip` remains in the Codespace.
 
-### 4. Review the result
+### 3. Review the result
 
-Open **Releases** and confirm the new date tags. Publishing a release automatically starts the analytics workflow.
+Open **Releases** and confirm the new date tags. Manually created experiment Releases start the analytics workflow automatically.
 
-### 5. Delete the Codespace when finished
+### 4. Delete the Codespace when finished
 
-The Codespace is only a temporary staging environment. Deleting it removes the uploaded local result tree and any temporary workspace content without touching release assets.
+Deleting the Codespace removes the uploaded input and temporary workspace without touching Release assets.
 
-## Useful options
+## Immediate storage fallback
 
-Publish selected dates:
+When a single large ZIP has finished uploading but you prefer to store it before running the full date pipeline:
 
 ```bash
-python tools/publish_results.py --source results \
+python tools/input_snapshot.py publish results.zip
+```
+
+The file is split below the Release asset boundary and uploaded with a SHA-256 manifest. Promote it later through **Actions → Promote input snapshot**, or from a Codespace with:
+
+```bash
+python tools/input_snapshot.py promote --tag media-input-YYYY-MM-DD-SHA12
+```
+
+## Direct folder compatibility
+
+A complete folder already available through terminal transfer or another method can still be used:
+
+```bash
+python tools/publish_results.py --source results
+```
+
+It is safe to include dates that were already published. The publisher compares every `run_id` and SHA-256 content digest against remote manifests.
+
+## Useful archive options
+
+Validation only:
+
+```bash
+python tools/publish_from_archive.py results.zip --dry-run
+```
+
+Selected dates:
+
+```bash
+python tools/publish_from_archive.py results.zip \
   --date 2026-06-29 \
   --date 2026-06-30
 ```
 
-Retain temporary packages for inspection:
+Keep extracted files for inspection:
 
 ```bash
-python tools/publish_results.py --source results --keep-staging
+python tools/publish_from_archive.py results.zip --keep-extracted
 ```
 
-Use a lower part boundary:
+Use a lower final media part boundary:
 
 ```bash
-python tools/publish_results.py --source results --max-part-gib 1.5
+python tools/publish_from_archive.py results.zip --max-part-gib 1.5
 ```
 
 ## Duplicate and conflict behavior
@@ -96,4 +110,4 @@ python tools/publish_results.py --source results --max-part-gib 1.5
 | Same `run_id` and different digest | Present | Stop that date and report conflict |
 | New run on an already published date | Primary release exists | Create supplement `-sNN` |
 
-A failure on one date does not prevent other dates in the same uploaded folder from being evaluated.
+A failure on one date does not prevent other dates in the same input archive from being evaluated.
