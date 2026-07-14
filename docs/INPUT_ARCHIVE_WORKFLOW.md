@@ -114,12 +114,14 @@ python tools/input_snapshot.py publish results.zip
 The script verifies that the ZIP central directory is readable, splits the file into byte-exact parts below 1.8 GiB, calculates SHA-256 for the source and every part, and creates a neutral input snapshot Release such as:
 
 ```text
-Tag: media-input-2026-07-15-abcdef123456
+Tag: media-input-2026-07-15-<first-12-SHA-256-characters>
 Assets:
   results.zip.part001
   results.zip.part002
   input-snapshot-manifest.json
 ```
+
+The text inside angle brackets is descriptive, not a literal tag to paste. The publish command prints the exact real tag after a successful upload.
 
 The original ZIP is not recompressed. Temporary split parts are removed after successful upload.
 
@@ -136,24 +138,38 @@ python tools/input_snapshot.py publish results.zip --dry-run
 1. Open **Actions**.
 2. Select **Promote input snapshot**.
 3. Select **Run workflow**.
-4. Paste the exact `media-input-...` tag.
+4. Leave `snapshot_tag` as `latest` to promote the newest input snapshot.
 5. Leave `dry_run` disabled to create the normal date-scoped Releases.
+
+An exact tag is optional. To list the currently available snapshot tags from Codespaces:
+
+```bash
+gh release list --limit 1000 --json tagName \
+  --jq '.[] | select(.tagName | startswith("media-input-")) | .tagName'
+```
+
+The resolver checks the tag before downloading anything. If a supplied tag does not exist and only one snapshot is present, it automatically uses that one and prints a warning. If multiple snapshots exist, it stops and lists the valid choices.
 
 The workflow downloads and verifies every part, reconstructs the original ZIP byte-for-byte, extracts it safely, runs the normal publisher, and then explicitly starts the analytics workflow.
 
 ### From Codespaces
 
+Promote the latest snapshot:
+
 ```bash
-python tools/input_snapshot.py promote \
-  --tag media-input-2026-07-15-abcdef123456
+python tools/input_snapshot.py promote
 ```
 
-Restore only, without publishing:
+Promote an exact snapshot:
 
 ```bash
-python tools/input_snapshot.py restore \
-  --tag media-input-2026-07-15-abcdef123456 \
-  --output restored-results.zip
+python tools/input_snapshot.py promote --tag media-input-2026-07-15-<real-sha-prefix>
+```
+
+Restore the latest snapshot only, without publishing:
+
+```bash
+python tools/input_snapshot.py restore --output restored-results.zip
 ```
 
 ## Existing folder path remains compatible
