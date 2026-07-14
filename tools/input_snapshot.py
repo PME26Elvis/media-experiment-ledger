@@ -80,6 +80,8 @@ def split_archive(source: Path, destination: Path, max_part_bytes: int) -> tuple
         raise FileNotFoundError(f"Input archive does not exist: {source}")
     if max_part_bytes <= 0:
         raise ValueError("Part size must be positive")
+    if max_part_bytes >= 2 * 1024**3:
+        raise ValueError("Snapshot parts must remain strictly below GitHub's 2 GiB release-asset boundary")
     before = (source.stat().st_size, source.stat().st_mtime_ns)
     if before[0] == 0:
         raise SnapshotError(f"Input archive is empty: {source}")
@@ -281,6 +283,11 @@ def restore_from_directory(manifest: dict[str, Any], directory: Path, output: Pa
 
 def restore_snapshot(tag: str, output: Path, download_root: Path | None, keep_downloads: bool) -> Path:
     if download_root is not None:
+        resolved_download_root = download_root.expanduser().resolve()
+        resolved_output = output.expanduser().resolve()
+        if not keep_downloads and resolved_output.is_relative_to(resolved_download_root):
+            raise SnapshotError("The restored output cannot be placed inside a download directory that will be deleted")
+        download_root = resolved_download_root
         if download_root.exists() and any(download_root.iterdir()):
             raise SnapshotError(f"Download directory must be empty: {download_root}")
         download_root.mkdir(parents=True, exist_ok=True)
