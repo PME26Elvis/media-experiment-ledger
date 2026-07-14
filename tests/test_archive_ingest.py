@@ -77,6 +77,14 @@ class InputSnapshotTests(unittest.TestCase):
             self.assertEqual(output.read_bytes(), payload)
             self.assertEqual(tag, f"media-input-2026-07-15-{digest[:12]}")
 
+    def test_split_rejects_release_boundary_or_larger(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "results.zip"
+            source.write_bytes(b"data")
+            with self.assertRaises(ValueError):
+                snapshot_mod.split_archive(source, root / "parts", 2 * 1024**3)
+
     def test_restore_detects_modified_part(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
