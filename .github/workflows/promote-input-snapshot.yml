@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       snapshot_tag:
-        description: Input snapshot tag, for example media-input-2026-07-15-abcdef123456
-        required: true
+        description: Exact media-input tag; leave as latest to use the newest snapshot
+        required: false
+        default: latest
         type: string
       dry_run:
         description: Reconstruct and validate without creating experiment releases
@@ -47,7 +48,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          args=(promote --tag "$SNAPSHOT_TAG")
+          args=(promote --tag "${SNAPSHOT_TAG:-latest}")
           if [[ "$DRY_RUN" == "true" ]]; then
             args+=(--dry-run)
           fi
