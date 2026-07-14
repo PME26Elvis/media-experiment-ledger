@@ -48,11 +48,13 @@ When the immediate goal is simply to place the completed upload into Release sto
 python tools/input_snapshot.py publish results.zip
 ```
 
-This creates a `media-input-...` Release containing sub-1.8-GiB byte parts and a SHA-256 manifest. Later, use the **Promote input snapshot** Actions workflow or:
+This creates a `media-input-...` Release containing sub-1.8-GiB byte parts and a SHA-256 manifest. Later, use the **Promote input snapshot** Actions workflow with its default `latest` value, or run:
 
 ```bash
-python tools/input_snapshot.py promote --tag media-input-YYYY-MM-DD-SHA12
+python tools/input_snapshot.py promote
 ```
+
+An exact tag remains supported through `--tag`, but example SHA text in documentation is not a literal tag. The resolver validates the requested tag and lists available snapshots when it cannot choose safely.
 
 Input snapshots are separate from final experiment Releases and are ignored by normal analytics until promoted.
 
