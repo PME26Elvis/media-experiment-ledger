@@ -1,9 +1,14 @@
 # Local generation outputs and runtime state
 results/
+results*.zip
+restored-results*.zip
 logs/
 state/
 
-# Release packaging workspace
+# Archive import and Release packaging workspaces
+.archive-imports/
+.input-staging/
+.input-download/
 .release-staging/
 
 # Local secrets and environments
