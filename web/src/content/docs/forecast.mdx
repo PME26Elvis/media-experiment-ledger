@@ -1,0 +1,22 @@
+---
+title: Forecast Lab
+description: Ensemble machine-learning forecasts and Monte Carlo monthly scenarios.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import ForecastDashboard from '../../components/ForecastDashboard.astro';
+import { Aside, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<SectionTabs />
+
+<Aside type="caution" title="Small-sample forecasting">
+The current dataset contains relatively few active dates. The pipeline therefore emphasizes rolling-origin backtests, robust models, empirical residual intervals, and an explicit confidence score instead of presenting a single precise number as certainty.
+</Aside>
+
+<ForecastDashboard />
+
+<Tabs>
+  <TabItem label="Next active day">Predicts the next **observed experiment day**, not necessarily the next calendar day. Historical inter-arrival gaps estimate the date window.</TabItem>
+  <TabItem label="Next month">Runs 10,000 paths for active-day arrivals and target outcomes, producing median and 80% intervals for runs, images, videos, errors, and weighted success.</TabItem>
+  <TabItem label="Model arena">Compares persistence, robust statistics, regularized regression, Huber regression, random forests, extra trees, and gradient boosting using rolling-origin validation.</TabItem>
+</Tabs>
