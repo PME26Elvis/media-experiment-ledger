@@ -11,7 +11,7 @@ export default defineConfig({
       title: 'Media Experiment Ledger',
       description: 'Release-backed analytics, system architecture, and machine-learning forecasts.',
       customCss: ['./src/styles/custom.css'],
-      favicon: '/media-experiment-ledger/favicon.svg',
+      favicon: '/favicon.svg',
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/PME26Elvis/media-experiment-ledger' }
       ],
