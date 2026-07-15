@@ -1,0 +1,1162 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-15T02:22:47+00:00",
+  "data_fingerprint": "5ed4c69f341caa54c851dc8346b4f79fef4a7e413eddcd2ee43f0410704bd12b",
+  "method": {
+    "ensemble": "Inverse-error weighted ensemble after rolling-origin backtesting",
+    "candidate_models": [
+      "Last value",
+      "Rolling median",
+      "Damped drift",
+      "Ridge",
+      "Huber",
+      "Random forest",
+      "Extra trees",
+      "Gradient boost"
+    ],
+    "intervals": "80% empirical residual-bootstrap intervals",
+    "monthly": "10,000 Monte Carlo simulations",
+    "random_seed": 42
+  },
+  "confidence": {
+    "score": 49,
+    "label": "Developing",
+    "observed_dates": 9,
+    "mean_backtest_folds": 5.0,
+    "note": "Intervals describe model and residual uncertainty, not guaranteed future bounds."
+  },
+  "regime": {
+    "label": "Recovering",
+    "tone": "positive",
+    "output_delta": -55.33333333333333,
+    "success_delta": 0.07298337130052768,
+    "coefficient_of_variation": 1.5266229719645419,
+    "recent_mean_errors": 1.6666666666666667
+  },
+  "next_active_day": {
+    "date": {
+      "point_date": "2026-07-14",
+      "earliest_date": "2026-07-14",
+      "latest_date": "2026-07-19",
+      "median_gap_days": 1.0,
+      "historical_gaps_days": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        6,
+        1,
+        1
+      ]
+    },
+    "targets": {
+      "runs": {
+        "label": "Runs",
+        "kind": "count",
+        "point": 1.014808765388042,
+        "median": 0.9836567225992632,
+        "lower_80": 0.8768724965614455,
+        "upper_80": 1.0949026074193524,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 3.0
+          },
+          {
+            "date": "2026-06-30",
+            "value": 3.0
+          },
+          {
+            "date": "2026-07-01",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-02",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-03",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-05",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-11",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-12",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-13",
+            "value": 1.0
+          }
+        ],
+        "models": [
+          {
+            "model": "Last value",
+            "prediction": 1.0,
+            "weight": 0.2166261475755992,
+            "mae": 0.0,
+            "folds": 5
+          },
+          {
+            "model": "Rolling median",
+            "prediction": 1.0,
+            "weight": 0.2166261475755992,
+            "mae": 0.0,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 0.9520211634025637,
+            "weight": 0.11588715557575409,
+            "mae": 0.13039278360835235,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 1.0487191458937462,
+            "weight": 0.10553014990427681,
+            "mae": 0.157911266740492,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 0.9611043401615519,
+            "weight": 0.09611323647122165,
+            "mae": 0.18807957498204997,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 0.8939898133552299,
+            "weight": 0.09089060308323202,
+            "mae": 0.20750584806422667,
+            "folds": 5
+          },
+          {
+            "model": "Gradient boost",
+            "prediction": 1.2241280960682943,
+            "weight": 0.08866130006417358,
+            "mae": 0.21649498837509246,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 1.1253104735650195,
+            "weight": 0.06966525975014347,
+            "mae": 0.3164293545000808,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      },
+      "image_completed": {
+        "label": "Images",
+        "kind": "count",
+        "point": 26.116366623167064,
+        "median": 34.75540335873208,
+        "lower_80": 0.0,
+        "upper_80": 112.47828133075473,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 550.0
+          },
+          {
+            "date": "2026-06-30",
+            "value": 40.0
+          },
+          {
+            "date": "2026-07-01",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-02",
+            "value": 32.0
+          },
+          {
+            "date": "2026-07-03",
+            "value": 28.0
+          },
+          {
+            "date": "2026-07-05",
+            "value": 80.0
+          },
+          {
+            "date": "2026-07-11",
+            "value": 59.0
+          },
+          {
+            "date": "2026-07-12",
+            "value": 145.0
+          },
+          {
+            "date": "2026-07-13",
+            "value": 3.0
+          }
+        ],
+        "models": [
+          {
+            "model": "Rolling median",
+            "prediction": 68.71370023173351,
+            "weight": 0.17076885660633997,
+            "mae": 50.06913522322549,
+            "folds": 5
+          },
+          {
+            "model": "Gradient boost",
+            "prediction": 41.10169273886731,
+            "weight": 0.17004682092063098,
+            "mae": 50.856349791974296,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 15.431686476559852,
+            "weight": 0.16938406482404175,
+            "mae": 51.07705326989479,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 22.648724493691148,
+            "weight": 0.15854595482073738,
+            "mae": 54.94804596217773,
+            "folds": 5
+          },
+          {
+            "model": "Last value",
+            "prediction": 3.0,
+            "weight": 0.1441280309821536,
+            "mae": 61.000000000000014,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 2.3315472213129342,
+            "weight": 0.13470346214390136,
+            "mae": 65.65619106000155,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 10.552477105073725,
+            "weight": 0.0394610252942729,
+            "mae": 237.51820186079652,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 1.958514454445453,
+            "weight": 0.012961784407922061,
+            "mae": 1499.0785529120576,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      },
+      "video_completed": {
+        "label": "Videos",
+        "kind": "count",
+        "point": 2.3347891656717934,
+        "median": 4.39622765761111,
+        "lower_80": 0.0,
+        "upper_80": 6.784464451749792,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 11.0
+          },
+          {
+            "date": "2026-06-30",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-01",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-02",
+            "value": 7.0
+          },
+          {
+            "date": "2026-07-03",
+            "value": 7.0
+          },
+          {
+            "date": "2026-07-05",
+            "value": 7.0
+          },
+          {
+            "date": "2026-07-11",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-12",
+            "value": 7.0
+          },
+          {
+            "date": "2026-07-13",
+            "value": 1.0
+          }
+        ],
+        "models": [
+          {
+            "model": "Last value",
+            "prediction": 1.0,
+            "weight": 0.1814302163537771,
+            "mae": 4.0,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 3.131105138136861,
+            "weight": 0.17770025419586585,
+            "mae": 4.321849585116142,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 3.1495399265922592,
+            "weight": 0.15974310265274602,
+            "mae": 4.875127926432073,
+            "folds": 5
+          },
+          {
+            "model": "Rolling median",
+            "prediction": 3.0,
+            "weight": 0.1552298705971836,
+            "mae": 5.034314575050762,
+            "folds": 5
+          },
+          {
+            "model": "Gradient boost",
+            "prediction": 2.4401865646712193,
+            "weight": 0.1438983578259862,
+            "mae": 5.4779979396749665,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 1.1119437769910403,
+            "weight": 0.11751507129201873,
+            "mae": 6.84256811294941,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 2.732841250630187,
+            "weight": 0.05355045305256051,
+            "mae": 15.732521436009318,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 0.0,
+            "weight": 0.010932674029861941,
+            "mae": 260.6667510460304,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      },
+      "errors": {
+        "label": "Errors",
+        "kind": "count",
+        "point": 1.699599908429527,
+        "median": 1.568138263209513,
+        "lower_80": 0.16891277434432833,
+        "upper_80": 3.3155352085990293,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 0.0
+          },
+          {
+            "date": "2026-06-30",
+            "value": 6.0
+          },
+          {
+            "date": "2026-07-01",
+            "value": 2.0
+          },
+          {
+            "date": "2026-07-02",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-03",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-05",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-11",
+            "value": 2.0
+          },
+          {
+            "date": "2026-07-12",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-13",
+            "value": 2.0
+          }
+        ],
+        "models": [
+          {
+            "model": "Rolling median",
+            "prediction": 1.449489742783178,
+            "weight": 0.1435994059379052,
+            "mae": 0.8898979485566356,
+            "folds": 5
+          },
+          {
+            "model": "Last value",
+            "prediction": 1.9999999999999996,
+            "weight": 0.13917863002314512,
+            "mae": 1.0,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 1.8067827128484684,
+            "weight": 0.13627643794736063,
+            "mae": 1.0244908139471722,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 1.1044977850997033,
+            "weight": 0.12413356230195659,
+            "mae": 1.1393807408610404,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 1.2586624228528274,
+            "weight": 0.1219444288673613,
+            "mae": 1.162527566968302,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 1.098544410326297,
+            "weight": 0.1139930791899508,
+            "mae": 1.2540801920957914,
+            "folds": 5
+          },
+          {
+            "model": "Gradient boost",
+            "prediction": 1.118760090385024,
+            "weight": 0.1130627922130294,
+            "mae": 1.2656330424340259,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 3.9380354758423617,
+            "weight": 0.10781166351929095,
+            "mae": 1.3345835719618395,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      },
+      "success_rate": {
+        "label": "Success rate",
+        "kind": "rate",
+        "point": 0.7464198435359432,
+        "median": 0.8190567675861968,
+        "lower_80": 0.4455357241696506,
+        "upper_80": 0.8816128531268244,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 1.0
+          },
+          {
+            "date": "2026-06-30",
+            "value": 0.8695652173913043
+          },
+          {
+            "date": "2026-07-01",
+            "value": 0.0
+          },
+          {
+            "date": "2026-07-02",
+            "value": 0.975
+          },
+          {
+            "date": "2026-07-03",
+            "value": 0.9722222222222222
+          },
+          {
+            "date": "2026-07-05",
+            "value": 1.0
+          },
+          {
+            "date": "2026-07-11",
+            "value": 0.9672131147540983
+          },
+          {
+            "date": "2026-07-12",
+            "value": 0.9934640522875817
+          },
+          {
+            "date": "2026-07-13",
+            "value": 0.6666666666666666
+          }
+        ],
+        "models": [
+          {
+            "model": "Last value",
+            "prediction": 0.6666666666666666,
+            "weight": 0.1534112336555161,
+            "mae": 0.0828781527911712,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 0.6453243428145166,
+            "weight": 0.15340950477515725,
+            "mae": 0.08288690102062309,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 0.7570500002690007,
+            "weight": 0.14457461925983137,
+            "mae": 0.09711850764058186,
+            "folds": 5
+          },
+          {
+            "model": "Rolling median",
+            "prediction": 0.9852860414518999,
+            "weight": 0.14175612286585287,
+            "mae": 0.1020318941567286,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 0.5346741014122234,
+            "weight": 0.12665025657317913,
+            "mae": 0.13209231564842172,
+            "folds": 5
+          },
+          {
+            "model": "Gradient boost",
+            "prediction": 0.7528513462987114,
+            "weight": 0.11598515552072157,
+            "mae": 0.15803135102760596,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 0.9004639167612076,
+            "weight": 0.08837402854805412,
+            "mae": 0.2542710821400198,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 0.8097730047376578,
+            "weight": 0.07583907880168762,
+            "mae": 0.32109042882255884,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      },
+      "latency_mean_s": {
+        "label": "Mean latency",
+        "kind": "positive",
+        "point": 81.43985699708601,
+        "median": 71.8398306744314,
+        "lower_80": 68.8497073163138,
+        "upper_80": 125.78639258213155,
+        "history": [
+          {
+            "date": "2026-06-29",
+            "value": 135.25
+          },
+          {
+            "date": "2026-06-30",
+            "value": 88.92920847268674
+          },
+          {
+            "date": "2026-07-01",
+            "value": 22.5
+          },
+          {
+            "date": "2026-07-02",
+            "value": 84.15
+          },
+          {
+            "date": "2026-07-03",
+            "value": 84.30555555555556
+          },
+          {
+            "date": "2026-07-05",
+            "value": 68.85057471264368
+          },
+          {
+            "date": "2026-07-11",
+            "value": 53.459016393442624
+          },
+          {
+            "date": "2026-07-12",
+            "value": 59.54248366013072
+          },
+          {
+            "date": "2026-07-13",
+            "value": 111.33333333333333
+          }
+        ],
+        "models": [
+          {
+            "model": "Gradient boost",
+            "prediction": 56.08145548757775,
+            "weight": 0.16833747660772894,
+            "mae": 13.963169542104982,
+            "folds": 5
+          },
+          {
+            "model": "Random forest",
+            "prediction": 68.21939461199543,
+            "weight": 0.1590208258828804,
+            "mae": 17.410913319565918,
+            "folds": 5
+          },
+          {
+            "model": "Last value",
+            "prediction": 111.33333333333329,
+            "weight": 0.15632161992376248,
+            "mae": 17.775282331511846,
+            "folds": 5
+          },
+          {
+            "model": "Damped drift",
+            "prediction": 113.31395876903082,
+            "weight": 0.15187502081471893,
+            "mae": 18.403776195092227,
+            "folds": 5
+          },
+          {
+            "model": "Extra trees",
+            "prediction": 75.77563127594972,
+            "weight": 0.15094133343437835,
+            "mae": 18.54045004204183,
+            "folds": 5
+          },
+          {
+            "model": "Rolling median",
+            "prediction": 64.03020281523787,
+            "weight": 0.1392002983799504,
+            "mae": 20.415602133658336,
+            "folds": 5
+          },
+          {
+            "model": "Ridge",
+            "prediction": 72.61370169150801,
+            "weight": 0.04963160359195548,
+            "mae": 63.920307769508646,
+            "folds": 5
+          },
+          {
+            "model": "Huber",
+            "prediction": 104.6920005969965,
+            "weight": 0.024671821364624997,
+            "mae": 132.32087999480606,
+            "folds": 5
+          }
+        ],
+        "cv_folds": 5
+      }
+    }
+  },
+  "next_month": {
+    "period": "2026-08",
+    "method": "10,000-run Monte Carlo simulation using empirical active-day gaps and bootstrapped ensemble residuals",
+    "active_days": {
+      "lower_80": 12,
+      "median": 17,
+      "upper_80": 22
+    },
+    "runs": {
+      "lower_80": 12,
+      "median": 17,
+      "upper_80": 22
+    },
+    "images": {
+      "lower_80": 452,
+      "median": 762,
+      "upper_80": 1120
+    },
+    "videos": {
+      "lower_80": 35,
+      "median": 56,
+      "upper_80": 81
+    },
+    "errors": {
+      "lower_80": 20,
+      "median": 30,
+      "upper_80": 42
+    },
+    "success_rate": {
+      "lower_80": 0.9479838358476358,
+      "median": 0.9646406179640657,
+      "upper_80": 0.9750173019142824
+    }
+  },
+  "model_arena": {
+    "runs": [
+      {
+        "model": "Last value",
+        "prediction": 1.0,
+        "weight": 0.2166261475755992,
+        "mae": 0.0,
+        "folds": 5
+      },
+      {
+        "model": "Rolling median",
+        "prediction": 1.0,
+        "weight": 0.2166261475755992,
+        "mae": 0.0,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 0.9520211634025637,
+        "weight": 0.11588715557575409,
+        "mae": 0.13039278360835235,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 1.0487191458937462,
+        "weight": 0.10553014990427681,
+        "mae": 0.157911266740492,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 0.9611043401615519,
+        "weight": 0.09611323647122165,
+        "mae": 0.18807957498204997,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 0.8939898133552299,
+        "weight": 0.09089060308323202,
+        "mae": 0.20750584806422667,
+        "folds": 5
+      },
+      {
+        "model": "Gradient boost",
+        "prediction": 1.2241280960682943,
+        "weight": 0.08866130006417358,
+        "mae": 0.21649498837509246,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 1.1253104735650195,
+        "weight": 0.06966525975014347,
+        "mae": 0.3164293545000808,
+        "folds": 5
+      }
+    ],
+    "image_completed": [
+      {
+        "model": "Rolling median",
+        "prediction": 68.71370023173351,
+        "weight": 0.17076885660633997,
+        "mae": 50.06913522322549,
+        "folds": 5
+      },
+      {
+        "model": "Gradient boost",
+        "prediction": 41.10169273886731,
+        "weight": 0.17004682092063098,
+        "mae": 50.856349791974296,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 15.431686476559852,
+        "weight": 0.16938406482404175,
+        "mae": 51.07705326989479,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 22.648724493691148,
+        "weight": 0.15854595482073738,
+        "mae": 54.94804596217773,
+        "folds": 5
+      },
+      {
+        "model": "Last value",
+        "prediction": 3.0,
+        "weight": 0.1441280309821536,
+        "mae": 61.000000000000014,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 2.3315472213129342,
+        "weight": 0.13470346214390136,
+        "mae": 65.65619106000155,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 10.552477105073725,
+        "weight": 0.0394610252942729,
+        "mae": 237.51820186079652,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 1.958514454445453,
+        "weight": 0.012961784407922061,
+        "mae": 1499.0785529120576,
+        "folds": 5
+      }
+    ],
+    "video_completed": [
+      {
+        "model": "Last value",
+        "prediction": 1.0,
+        "weight": 0.1814302163537771,
+        "mae": 4.0,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 3.131105138136861,
+        "weight": 0.17770025419586585,
+        "mae": 4.321849585116142,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 3.1495399265922592,
+        "weight": 0.15974310265274602,
+        "mae": 4.875127926432073,
+        "folds": 5
+      },
+      {
+        "model": "Rolling median",
+        "prediction": 3.0,
+        "weight": 0.1552298705971836,
+        "mae": 5.034314575050762,
+        "folds": 5
+      },
+      {
+        "model": "Gradient boost",
+        "prediction": 2.4401865646712193,
+        "weight": 0.1438983578259862,
+        "mae": 5.4779979396749665,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 1.1119437769910403,
+        "weight": 0.11751507129201873,
+        "mae": 6.84256811294941,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 2.732841250630187,
+        "weight": 0.05355045305256051,
+        "mae": 15.732521436009318,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 0.0,
+        "weight": 0.010932674029861941,
+        "mae": 260.6667510460304,
+        "folds": 5
+      }
+    ],
+    "errors": [
+      {
+        "model": "Rolling median",
+        "prediction": 1.449489742783178,
+        "weight": 0.1435994059379052,
+        "mae": 0.8898979485566356,
+        "folds": 5
+      },
+      {
+        "model": "Last value",
+        "prediction": 1.9999999999999996,
+        "weight": 0.13917863002314512,
+        "mae": 1.0,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 1.8067827128484684,
+        "weight": 0.13627643794736063,
+        "mae": 1.0244908139471722,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 1.1044977850997033,
+        "weight": 0.12413356230195659,
+        "mae": 1.1393807408610404,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 1.2586624228528274,
+        "weight": 0.1219444288673613,
+        "mae": 1.162527566968302,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 1.098544410326297,
+        "weight": 0.1139930791899508,
+        "mae": 1.2540801920957914,
+        "folds": 5
+      },
+      {
+        "model": "Gradient boost",
+        "prediction": 1.118760090385024,
+        "weight": 0.1130627922130294,
+        "mae": 1.2656330424340259,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 3.9380354758423617,
+        "weight": 0.10781166351929095,
+        "mae": 1.3345835719618395,
+        "folds": 5
+      }
+    ],
+    "success_rate": [
+      {
+        "model": "Last value",
+        "prediction": 0.6666666666666666,
+        "weight": 0.1534112336555161,
+        "mae": 0.0828781527911712,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 0.6453243428145166,
+        "weight": 0.15340950477515725,
+        "mae": 0.08288690102062309,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 0.7570500002690007,
+        "weight": 0.14457461925983137,
+        "mae": 0.09711850764058186,
+        "folds": 5
+      },
+      {
+        "model": "Rolling median",
+        "prediction": 0.9852860414518999,
+        "weight": 0.14175612286585287,
+        "mae": 0.1020318941567286,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 0.5346741014122234,
+        "weight": 0.12665025657317913,
+        "mae": 0.13209231564842172,
+        "folds": 5
+      },
+      {
+        "model": "Gradient boost",
+        "prediction": 0.7528513462987114,
+        "weight": 0.11598515552072157,
+        "mae": 0.15803135102760596,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 0.9004639167612076,
+        "weight": 0.08837402854805412,
+        "mae": 0.2542710821400198,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 0.8097730047376578,
+        "weight": 0.07583907880168762,
+        "mae": 0.32109042882255884,
+        "folds": 5
+      }
+    ],
+    "latency_mean_s": [
+      {
+        "model": "Gradient boost",
+        "prediction": 56.08145548757775,
+        "weight": 0.16833747660772894,
+        "mae": 13.963169542104982,
+        "folds": 5
+      },
+      {
+        "model": "Random forest",
+        "prediction": 68.21939461199543,
+        "weight": 0.1590208258828804,
+        "mae": 17.410913319565918,
+        "folds": 5
+      },
+      {
+        "model": "Last value",
+        "prediction": 111.33333333333329,
+        "weight": 0.15632161992376248,
+        "mae": 17.775282331511846,
+        "folds": 5
+      },
+      {
+        "model": "Damped drift",
+        "prediction": 113.31395876903082,
+        "weight": 0.15187502081471893,
+        "mae": 18.403776195092227,
+        "folds": 5
+      },
+      {
+        "model": "Extra trees",
+        "prediction": 75.77563127594972,
+        "weight": 0.15094133343437835,
+        "mae": 18.54045004204183,
+        "folds": 5
+      },
+      {
+        "model": "Rolling median",
+        "prediction": 64.03020281523787,
+        "weight": 0.1392002983799504,
+        "mae": 20.415602133658336,
+        "folds": 5
+      },
+      {
+        "model": "Ridge",
+        "prediction": 72.61370169150801,
+        "weight": 0.04963160359195548,
+        "mae": 63.920307769508646,
+        "folds": 5
+      },
+      {
+        "model": "Huber",
+        "prediction": 104.6920005969965,
+        "weight": 0.024671821364624997,
+        "mae": 132.32087999480606,
+        "folds": 5
+      }
+    ]
+  },
+  "observations": [
+    {
+      "period": "2026-06-29",
+      "date": "2026-06-29",
+      "runs": 3.0,
+      "image_completed": 550.0,
+      "video_completed": 11.0,
+      "errors": 0.0,
+      "success_rate": 1.0,
+      "latency_mean_s": 135.25
+    },
+    {
+      "period": "2026-06-30",
+      "date": "2026-06-30",
+      "runs": 3.0,
+      "image_completed": 40.0,
+      "video_completed": 0.0,
+      "errors": 6.0,
+      "success_rate": 0.8695652173913043,
+      "latency_mean_s": 88.92920847268674
+    },
+    {
+      "period": "2026-07-01",
+      "date": "2026-07-01",
+      "runs": 1.0,
+      "image_completed": 0.0,
+      "video_completed": 0.0,
+      "errors": 2.0,
+      "success_rate": 0.0,
+      "latency_mean_s": 22.5
+    },
+    {
+      "period": "2026-07-02",
+      "date": "2026-07-02",
+      "runs": 1.0,
+      "image_completed": 32.0,
+      "video_completed": 7.0,
+      "errors": 1.0,
+      "success_rate": 0.975,
+      "latency_mean_s": 84.15
+    },
+    {
+      "period": "2026-07-03",
+      "date": "2026-07-03",
+      "runs": 1.0,
+      "image_completed": 28.0,
+      "video_completed": 7.0,
+      "errors": 1.0,
+      "success_rate": 0.9722222222222222,
+      "latency_mean_s": 84.30555555555556
+    },
+    {
+      "period": "2026-07-05",
+      "date": "2026-07-05",
+      "runs": 1.0,
+      "image_completed": 80.0,
+      "video_completed": 7.0,
+      "errors": 0.0,
+      "success_rate": 1.0,
+      "latency_mean_s": 68.85057471264368
+    },
+    {
+      "period": "2026-07-11",
+      "date": "2026-07-11",
+      "runs": 1.0,
+      "image_completed": 59.0,
+      "video_completed": 0.0,
+      "errors": 2.0,
+      "success_rate": 0.9672131147540983,
+      "latency_mean_s": 53.459016393442624
+    },
+    {
+      "period": "2026-07-12",
+      "date": "2026-07-12",
+      "runs": 1.0,
+      "image_completed": 145.0,
+      "video_completed": 7.0,
+      "errors": 1.0,
+      "success_rate": 0.9934640522875817,
+      "latency_mean_s": 59.54248366013072
+    },
+    {
+      "period": "2026-07-13",
+      "date": "2026-07-13",
+      "runs": 1.0,
+      "image_completed": 3.0,
+      "video_completed": 1.0,
+      "errors": 2.0,
+      "success_rate": 0.6666666666666666,
+      "latency_mean_s": 111.33333333333333
+    }
+  ]
+}
