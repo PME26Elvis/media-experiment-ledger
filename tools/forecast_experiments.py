@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""Generate ensemble and Monte Carlo forecasts from canonical analytics."""
+from __future__ import annotations
+
+import argparse
+import sys
+from datetime import date, datetime, timezone
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+
+TOOLS_ROOT = Path(__file__).resolve().parent
+if str(TOOLS_ROOT) not in sys.path:
+    sys.path.insert(0, str(TOOLS_ROOT))
+
+from forecast_model import CANDIDATES, RNG_SEED, TARGETS, clean_rows, daily_rows, fit_target, load_json, next_date_distribution
+from forecast_report import confidence, fingerprint, regime, serialize_forecast, simulate_month, write_outputs
+
+def generate(input_path: Path, output_root: Path) -> dict[str, Any]:
+    payload = load_json(input_path)
+    rows = clean_rows(daily_rows(payload))
+    rng = np.random.default_rng(RNG_SEED)
+    date_forecast = next_date_distribution([row["date"] for row in rows], rng)
+    future_date = date.fromisoformat(date_forecast["point_date"])
+
+    raw_forecasts: dict[str, dict[str, Any]] = {}
+    for target in TARGETS:
+        try:
+            raw_forecasts[target] = fit_target(rows, target, future_date, rng)
+        except ValueError:
+            continue
+    required = {"runs", "image_completed", "video_completed", "errors"}
+    if not required.issubset(raw_forecasts):
+        missing = ", ".join(sorted(required - raw_forecasts.keys()))
+        raise ValueError(f"Missing required target forecasts: {missing}")
+
+    monthly = simulate_month(rows, raw_forecasts, date_forecast, rng)
+    result = {
+        "schema_version": 1,
+        "generated_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "data_fingerprint": fingerprint(rows),
+        "method": {
+            "ensemble": "Inverse-error weighted ensemble after rolling-origin backtesting",
+            "candidate_models": [candidate.name for candidate in CANDIDATES],
+            "intervals": "80% empirical residual-bootstrap intervals",
+            "monthly": "10,000 Monte Carlo simulations",
+            "random_seed": RNG_SEED,
+        },
+        "confidence": confidence(rows, raw_forecasts),
+        "regime": regime(rows),
+        "next_active_day": {
+            "date": date_forecast,
+            "targets": {key: serialize_forecast(value) for key, value in raw_forecasts.items()},
+        },
+        "next_month": monthly,
+        "model_arena": {key: value["models"] for key, value in raw_forecasts.items()},
+        "observations": [
+            {key: (value.isoformat() if isinstance(value, date) else value) for key, value in row.items()}
+            for row in rows
+        ],
+    }
+    write_outputs(output_root, result)
+    return result
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Generate ensemble and Monte Carlo forecasts from analytics data")
+    parser.add_argument("--input", type=Path, default=Path("site/data.json"))
+    parser.add_argument("--output", type=Path, default=Path("forecasts"))
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        result = generate(args.input, args.output)
+        print(
+            f"Forecasted {len(result['observations'])} active dates; "
+            f"confidence={result['confidence']['label']} ({result['confidence']['score']}/100)"
+        )
+        return 0
+    except Exception as exc:
+        print(f"ERROR: {exc}", file=__import__("sys").stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

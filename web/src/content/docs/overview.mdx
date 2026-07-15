@@ -1,0 +1,41 @@
+---
+title: Command Center
+description: A premium overview of the release-backed experiment ledger.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import MetricStrip from '../../components/MetricStrip.astro';
+
+<SectionTabs />
+
+<div class="hero-grid">
+  <section class="hero-panel">
+    <span class="eyebrow">RELEASE-BACKED OBSERVATORY</span>
+    <h2>From raw runs to decision-grade signals.</h2>
+    <p>One pipeline preserves media artifacts, validates structured metadata, rebuilds longitudinal analytics, and produces uncertainty-aware forecasts after every formal experiment release.</p>
+  </section>
+  <div class="hero-side">
+    <article class="panel-surface"><div><span class="eyebrow">INGEST</span><small>ZIP-first Codespaces workflow</small></div><strong>Immutable</strong></article>
+    <article class="panel-surface"><div><span class="eyebrow">OBSERVE</span><small>Daily, monthly, run-level intelligence</small></div><strong>Interactive</strong></article>
+    <article class="panel-surface"><div><span class="eyebrow">PREDICT</span><small>Ensemble ML + Monte Carlo</small></div><strong>Probabilistic</strong></article>
+  </div>
+</div>
+
+<MetricStrip items={[
+  { label: 'Storage plane', value: 'Releases', note: 'large media assets stay outside Git history' },
+  { label: 'Control plane', value: 'Actions', note: 'validation, analytics, forecasting, deployment' },
+  { label: 'Data plane', value: 'JSONL', note: 'standalone metadata for low-cost analysis' },
+  { label: 'Experience', value: 'Starlight', note: 'extensible page and navigation architecture' },
+  { label: 'Charts', value: 'ECharts 6', note: 'zoom, toolbox, export, responsive rendering' },
+  { label: 'Diagrams', value: 'Mermaid 11', note: 'pan, zoom, reset, and fullscreen controls' }
+]} />
+
+## Explore
+
+- **Analytics** turns the canonical release data into interactive, filterable charts and a searchable run ledger.
+- **Forecast Lab** predicts the next observed experiment day and simulates the next calendar month.
+- **System Atlas** documents every script, workflow, validation boundary, and data transition.
+
+## Page architecture
+
+The top tab strip and the Starlight sidebar both read from `web/navigation.mjs`. A future page needs one MDX file and one navigation entry, so new project views do not require rebuilding the shell.

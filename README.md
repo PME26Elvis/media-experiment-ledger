@@ -1,6 +1,6 @@
 # Media Experiment Ledger
 
-A release-backed ledger for structured media-generation runs. The repository keeps source code, prompt banks, immutable release metadata, generated analytics, and a static dashboard in one place without committing large result folders to Git history.
+A release-backed experiment platform for structured media-generation runs. The repository keeps source code, prompt banks, immutable Release metadata, reproducible analytics, machine-learning forecasts, and a polished GitHub Pages observatory without committing large result folders to Git history.
 
 ## What this repository does
 
@@ -10,9 +10,9 @@ A release-backed ledger for structured media-generation runs. The repository kee
 - Keeps `outputs.jsonl` and `errors.jsonl` inside every media ZIP part and also publishes them as standalone assets, alongside a SHA-256 manifest.
 - Skips runs that were already published with identical content.
 - Can store a large input archive immediately as split, byte-verifiable snapshot assets and promote it later.
-- Builds daily, monthly, per-run, category, latency, and error analytics.
-- Commits Markdown, CSV, JSON, SVG, and PNG reports to `analytics/`.
-- Publishes an interactive static dashboard through GitHub Pages.
+- Builds daily, monthly, per-run, category, latency, error, and integrity analytics.
+- Runs an ensemble forecasting laboratory for the next active experiment day and the next calendar month.
+- Publishes an Astro Starlight site with extensible navigation, interactive ECharts, Mermaid system diagrams, search, responsive layouts, and theme support.
 
 ## Fastest publishing path
 
@@ -54,7 +54,7 @@ This creates a `media-input-...` Release containing sub-1.8-GiB byte parts and a
 python tools/input_snapshot.py promote
 ```
 
-An exact tag remains supported through `--tag`, but example SHA text in documentation is not a literal tag. The resolver validates the requested tag and lists available snapshots when it cannot choose safely.
+An exact tag remains supported through `--tag`. The resolver validates the requested tag and lists available snapshots when it cannot choose safely.
 
 Input snapshots are separate from final experiment Releases and are ignored by normal analytics until promoted.
 
@@ -79,16 +79,19 @@ manifest-2026-06-29.json
 
 If a date was already published and genuinely receives a new run later, the tool creates a supplement such as `media-exp-2026-06-29-s01`. Existing releases are not overwritten.
 
-## Analytics
+## Analytics, forecasting, and Pages
 
-Every manually published experiment release triggers `.github/workflows/analytics.yml`. The snapshot-promotion workflow explicitly dispatches analytics after it creates final Releases. Normal analysis downloads only manifests and JSONL metadata. A manual workflow run can:
+Every formal `media-exp-*` Release enters the analytics pipeline. Snapshot promotion explicitly dispatches the same workflow after creating final Releases. A manual workflow run can process unseen releases, select the latest N, use a date range, ingest one exact tag, rebuild everything, or optionally verify media ZIPs.
 
-- process only unseen releases;
-- process the latest N releases;
-- process a date range;
-- process one exact tag;
-- rebuild all reports;
-- optionally download and verify media ZIP files.
+The pipeline now performs three stages:
+
+```text
+Release metadata
+  → canonical analytics and reports
+  → ensemble machine-learning forecasts
+  → Astro Starlight production build
+  → GitHub Pages deployment
+```
 
 Generated outputs appear under:
 
@@ -101,19 +104,48 @@ analytics/
   errors/
   data/
   charts/
+forecasts/
+  forecast.json
+  report.md
+  model-card.md
+  history.jsonl
+  logs/
 site/
+  built Astro/Starlight website
 ```
 
-The dashboard is deployed from `site/` with GitHub Pages. See [Analytics and Pages](docs/ANALYTICS_AND_PAGES.md).
+The Pages experience contains top-level tabs for:
+
+- **Overview** — portfolio status and experiment navigation.
+- **Analytics** — interactive output, quality, category, error, monthly, and run-ledger views.
+- **Forecast Lab** — next-active-day forecasts, next-month Monte Carlo projections, confidence intervals, regimes, backtests, and ensemble weights.
+- **System Atlas** — detailed tool logic and Mermaid process diagrams with zoom, pan, reset, and fullscreen controls.
+
+Adding another primary page requires one navigation registry entry and one MDX page. See [Web experience and forecasts](docs/WEB_EXPERIENCE_AND_FORECASTS.md).
+
+## Forecasting design
+
+`tools/forecast_experiments.py` trains multiple lightweight CPU models on active experiment dates rather than assuming every calendar day is observed. It forecasts runs, images, videos, errors, success rate, and latency using transformed features, lags, rolling statistics, cyclic calendar features, rolling-origin validation, weighted ensembles, residual bootstrap intervals, and a 10,000-simulation next-month Monte Carlo model.
+
+This is deliberately presented as an experimental forecasting laboratory. With a small and irregular dataset, uncertainty bands, backtest error, regime labels, and confidence diagnostics are more informative than a single point estimate.
 
 ## Existing runner
 
-The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger tooling. Large local outputs, input archives, logs, state, secrets, extraction directories, and release staging directories are excluded by `.gitignore`.
+The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger, forecast, and web tooling. Large local outputs, input archives, logs, state, secrets, extraction directories, and release staging directories are excluded by `.gitignore`.
 
 ## Development
 
+Python validation:
+
 ```bash
-python -m pip install -r requirements-analytics.txt
+python -m pip install -r requirements-analytics.txt -r requirements-forecast.txt
 python -m compileall tools tests
 python -m unittest discover -s tests -v
+```
+
+Web build:
+
+```bash
+npm install --prefix web --package-lock=false --no-audit --no-fund
+npm run build --prefix web
 ```

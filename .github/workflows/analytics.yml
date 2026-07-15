@@ -1,4 +1,4 @@
-name: Build analytics and dashboard
+name: Build analytics, forecasts, and Pages
 
 on:
   release:
@@ -49,9 +49,10 @@ permissions:
   id-token: write
 
 jobs:
-  analyze-and-deploy:
+  analyze-forecast-and-deploy:
     if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'media-exp-')
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -68,12 +69,14 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements-analytics.txt
+          cache-dependency-path: |
+            requirements-analytics.txt
+            requirements-forecast.txt
 
-      - name: Install analytics dependencies
-        run: python -m pip install -r requirements-analytics.txt
+      - name: Install analytics and forecast dependencies
+        run: python -m pip install -r requirements-analytics.txt -r requirements-forecast.txt
 
-      - name: Select releases and build analytics
+      - name: Select releases and build canonical analytics
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
@@ -109,18 +112,40 @@ jobs:
           fi
           python tools/analyze_releases.py "${args[@]}"
 
-      - name: Commit generated analytics
+      - name: Run ensemble forecasting laboratory
+        run: python tools/forecast_experiments.py --input site/data.json --output forecasts
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install web dependencies
+        run: npm install --prefix web --package-lock=false --no-audit --no-fund
+
+      - name: Stage generated data for the site
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "$(git status --porcelain -- analytics site)" ]]; then
+          mkdir -p web/public/data
+          cp site/data.json web/public/data/analytics.json
+          cp forecasts/forecast.json web/public/data/forecast.json
+
+      - name: Build Astro Starlight site
+        run: npm run build --prefix web
+
+      - name: Commit analytics, forecast artifacts, and generated site
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain -- analytics forecasts site)" ]]; then
             echo "No generated changes"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add analytics site
-          git commit -m "analytics: refresh experiment ledger"
+          git add analytics forecasts site
+          git commit -m "analytics: refresh intelligence and forecast site"
           git push origin HEAD:main
 
       - name: Configure Pages

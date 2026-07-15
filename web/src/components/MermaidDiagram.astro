@@ -1,0 +1,73 @@
+---
+const { diagram, title = 'System diagram', caption = '' } = Astro.props;
+---
+<figure class="mermaid-shell" data-mermaid-shell>
+  <div class="diagram-head">
+    <div><span class="eyebrow">INTERACTIVE MAP</span><strong>{title}</strong>{caption && <small>{caption}</small>}</div>
+    <div class="diagram-tools" aria-label="Diagram controls">
+      <button type="button" data-action="zoom-in" title="Zoom in">＋</button>
+      <button type="button" data-action="zoom-out" title="Zoom out">−</button>
+      <button type="button" data-action="reset" title="Reset view">↺</button>
+      <button type="button" data-action="fullscreen" title="Fullscreen">⛶</button>
+    </div>
+  </div>
+  <div class="mermaid-viewport" data-mermaid-viewport>
+    <pre class="mermaid-source" data-mermaid-source>{diagram}</pre>
+    <div class="mermaid-canvas" data-mermaid-canvas aria-label={title}></div>
+  </div>
+</figure>
+
+<script>
+  import mermaid from 'mermaid';
+  import Panzoom from '@panzoom/panzoom';
+
+  const theme = document.documentElement.dataset.theme === 'light' ? 'neutral' : 'dark';
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme,
+    fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif',
+    flowchart: { htmlLabels: true, curve: 'basis', padding: 18 },
+    themeVariables: {
+      primaryColor: theme === 'dark' ? '#12233b' : '#eaf5ff',
+      primaryTextColor: theme === 'dark' ? '#eef7ff' : '#0b1c2d',
+      primaryBorderColor: '#52d3ff',
+      lineColor: theme === 'dark' ? '#7893b2' : '#47617d',
+      secondaryColor: theme === 'dark' ? '#211d39' : '#f2edff',
+      tertiaryColor: theme === 'dark' ? '#0c1728' : '#f7fbff'
+    }
+  });
+
+  const shells = document.querySelectorAll('[data-mermaid-shell]:not([data-ready])');
+  let counter = 0;
+  for (const shell of shells) {
+    shell.setAttribute('data-ready', 'true');
+    const source = shell.querySelector('[data-mermaid-source]')?.textContent?.trim() || '';
+    const canvas = shell.querySelector('[data-mermaid-canvas]');
+    const viewport = shell.querySelector('[data-mermaid-viewport]');
+    if (!source || !canvas || !viewport) continue;
+    try {
+      const rendered = await mermaid.render(`ledger-mermaid-${Date.now()}-${counter++}`, source);
+      canvas.innerHTML = rendered.svg;
+      const svg = canvas.querySelector('svg');
+      if (!svg) continue;
+      svg.removeAttribute('height');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.maxWidth = 'none';
+      const panzoom = Panzoom(svg, { maxScale: 6, minScale: 0.55, contain: 'outside', cursor: 'grab' });
+      viewport.addEventListener('wheel', (event) => {
+        if (event.ctrlKey || event.metaKey || event.shiftKey) {
+          event.preventDefault();
+          panzoom.zoomWithWheel(event);
+        }
+      }, { passive: false });
+      shell.querySelector('[data-action="zoom-in"]')?.addEventListener('click', () => panzoom.zoomIn());
+      shell.querySelector('[data-action="zoom-out"]')?.addEventListener('click', () => panzoom.zoomOut());
+      shell.querySelector('[data-action="reset"]')?.addEventListener('click', () => panzoom.reset());
+      shell.querySelector('[data-action="fullscreen"]')?.addEventListener('click', () => shell.requestFullscreen?.());
+    } catch (error) {
+      canvas.innerHTML = `<div class="diagram-error">Diagram rendering failed: ${String(error)}</div>`;
+    }
+  }
+</script>

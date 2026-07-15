@@ -1,0 +1,12 @@
+---
+const { items = [] } = Astro.props;
+---
+<div class="metric-strip">
+  {items.map((item) => (
+    <article class="metric-tile">
+      <span class="metric-kicker">{item.label}</span>
+      <strong>{item.value}</strong>
+      {item.note && <small>{item.note}</small>}
+    </article>
+  ))}
+</div>

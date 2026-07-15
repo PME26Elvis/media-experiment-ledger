@@ -1,0 +1,28 @@
+---
+title: Adding a new page
+description: Extend the Starlight page system without rebuilding the navigation shell.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+
+<SectionTabs />
+
+## Add a primary tab
+
+1. Create `web/src/content/docs/your-page.mdx`.
+2. Add one object to `web/navigation.mjs`.
+3. Import and render `<SectionTabs />` near the top of the page.
+4. Run `npm run build --prefix web`.
+
+The same registry generates the horizontal tab strip and Starlight sidebar entries.
+
+## Add a reference page
+
+Create the MDX file and add its slug to the `Reference` group in `web/astro.config.mjs`. Reference pages do not need to occupy the primary tab strip.
+
+## Add a data-driven page
+
+- Generate a small JSON artifact in GitHub Actions.
+- Copy it into `web/public/data/` before the Astro build.
+- Build an Astro component that loads the JSON using `import.meta.env.BASE_URL`.
+- Commit the source artifact and generated site in the analytics workflow.

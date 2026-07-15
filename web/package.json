@@ -1,0 +1,17 @@
+{
+  "name": "media-experiment-ledger-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "dev": "astro dev",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.41.3",
+    "@panzoom/panzoom": "4.6.0",
+    "astro": "7.0.8",
+    "echarts": "6.1.0",
+    "mermaid": "11.16.0"
+  }
+}

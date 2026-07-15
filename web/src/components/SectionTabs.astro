@@ -1,0 +1,13 @@
+---
+import { primaryPages } from '../../navigation.mjs';
+const current = Astro.url.pathname.split('/').filter(Boolean).at(-1) || 'overview';
+const base = import.meta.env.BASE_URL;
+---
+<nav class="section-tabs" aria-label="Primary pages">
+  {primaryPages.map((page) => (
+    <a class:list={["section-tab", { active: current === page.slug }]} href={`${base}${page.slug}/`}>
+      <span class="tab-icon" aria-hidden="true">{page.icon}</span>
+      <span><strong>{page.label}</strong><small>{page.description}</small></span>
+    </a>
+  ))}
+</nav>

@@ -1,0 +1,166 @@
+---
+title: System Atlas
+description: Every script, workflow, state transition, and validation boundary.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import MermaidDiagram from '../../components/MermaidDiagram.astro';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+<SectionTabs />
+
+The atlas describes the current repository as a four-plane system: generation, transport/storage, analytics/forecasting, and presentation.
+
+<MermaidDiagram
+  title="End-to-end system"
+  caption="Formal releases are the durable boundary between media production and downstream intelligence."
+  diagram={`flowchart LR
+    subgraph Local[Local / WSL]
+      H[Media harvester] --> R[results/YYYY-MM-DD/run_*]
+      R --> Z[results.zip]
+    end
+    subgraph Codespace[Temporary Codespaces staging]
+      Z --> A[publish_from_archive.py]
+      Z --> S[input_snapshot.py publish]
+      A --> P[publish_results.py]
+      S --> SR[(Input snapshot Release)]
+    end
+    subgraph GitHub[GitHub durable plane]
+      P --> ER[(Date-scoped experiment Releases)]
+      SR --> W[Promote input snapshot workflow]
+      W --> ER
+      ER --> AN[analyze_releases.py]
+      AN --> ML[forecast_experiments.py]
+      ML --> B[Astro Starlight build]
+      AN --> B
+      B --> GP[GitHub Pages]
+    end
+    classDef storage fill:#211d39,stroke:#9d7cff,color:#fff;
+    classDef process fill:#10243a,stroke:#52d3ff,color:#fff;
+    class SR,ER storage;
+    class H,A,S,P,W,AN,ML,B process;`}
+/>
+
+## Tool inventory
+
+<div class="tool-card-grid">
+  <article class="tool-card"><code>agnes_media_harvester.py</code><p>Calls image/video APIs at conservative intervals and writes structured run metadata.</p><ul><li>Loads YAML and prompt banks</li><li>Resumes from state</li><li>Writes outputs/errors JSONL</li><li>Downloads completed media</li></ul></article>
+  <article class="tool-card"><code>tools/publish_from_archive.py</code><p>ZIP-first ingress wrapper for Codespaces.</p><ul><li>Validates ZIP64 structure</li><li>Rejects traversal and unsafe links</li><li>Checks disk capacity</li><li>Finds the results root</li></ul></article>
+  <article class="tool-card"><code>tools/input_snapshot.py</code><p>Stores a large input archive immediately and promotes it later.</p><ul><li>Byte-exact 1.8 GiB splitting</li><li>Part/source SHA-256</li><li>Restore and promote modes</li><li>Latest-tag resolution</li></ul></article>
+  <article class="tool-card"><code>tools/publish_results.py</code><p>Creates immutable, date-scoped experiment Releases.</p><ul><li>Run-level digest comparison</li><li>Images/videos separated</li><li>Automatic asset partitioning</li><li>Supplemental Release handling</li></ul></article>
+  <article class="tool-card"><code>tools/analyze_releases.py</code><p>Builds the canonical longitudinal dataset.</p><ul><li>Downloads metadata only</li><li>Normalizes runs and errors</li><li>Daily/monthly aggregation</li><li>Markdown, CSV, JSON, SVG, PNG</li></ul></article>
+  <article class="tool-card"><code>tools/forecast_experiments.py</code><p>Runs the predictive intelligence layer.</p><ul><li>Rolling-origin model arena</li><li>Weighted ensemble</li><li>Residual-bootstrap intervals</li><li>10,000-path monthly simulation</li></ul></article>
+</div>
+
+## Generation runner
+
+<Tabs>
+  <TabItem label="Inputs">
+  `agnes_media_config.yaml`, environment variables, and two JSONL prompt banks define models, quotas, intervals, output sizes, and prompt content.
+  </TabItem>
+  <TabItem label="Execution">
+  Video and image phases submit jobs, poll asynchronous video status, classify provider/network errors, throttle requests, and stop a phase when policy rules require it.
+  </TabItem>
+  <TabItem label="Outputs">
+  Each run contains `outputs.jsonl`, `errors.jsonl`, and `media/images` / `media/videos`. These files become the atomic input for publishing and analysis.
+  </TabItem>
+</Tabs>
+
+<MermaidDiagram
+  title="Harvester run lifecycle"
+  diagram={`stateDiagram-v2
+    [*] --> LoadConfig
+    LoadConfig --> ResumeState
+    ResumeState --> VideoPhase
+    VideoPhase --> SubmitVideo
+    SubmitVideo --> PollVideo
+    PollVideo --> SaveVideo: completed
+    PollVideo --> PollVideo: in progress
+    PollVideo --> RecordError: failed / timeout
+    SaveVideo --> VideoPhase: target not reached
+    RecordError --> VideoPhase: recoverable
+    RecordError --> ImagePhase: terminal video stop
+    VideoPhase --> ImagePhase: target reached
+    ImagePhase --> CreateImage
+    CreateImage --> SaveImage: completed
+    CreateImage --> RecordImageError: failed
+    SaveImage --> ImagePhase: target not reached
+    RecordImageError --> ImagePhase: recoverable
+    ImagePhase --> Finalize: target reached / terminal stop
+    Finalize --> [*]`}
+/>
+
+## ZIP ingress and snapshot promotion
+
+<MermaidDiagram
+  title="ZIP-first and store-first paths"
+  caption="Both paths converge on the same duplicate-aware date publisher."
+  diagram={`flowchart TB
+    U[Upload results.zip] --> C{Priority?}
+    C -->|Publish now| V[Inspect central directory]
+    V --> X[Safe extraction]
+    X --> D[Detect results root]
+    D --> PR[publish_results.py]
+    C -->|Store first| SP[Split byte stream]
+    SP --> HM[Hash every part + source]
+    HM --> IR[(media-input-* Release)]
+    IR --> PW[Promote workflow]
+    PW --> DL[Download parts]
+    DL --> VH[Verify sizes + hashes]
+    VH --> RE[Reassemble exact ZIP]
+    RE --> V
+    PR --> FR[(media-exp-YYYY-MM-DD Releases)]`}
+/>
+
+## Duplicate and conflict state machine
+
+<MermaidDiagram
+  title="Run identity and immutability"
+  diagram={`flowchart TD
+    L[Inspect local run] --> H[Compute digest from sorted file manifest]
+    H --> Q{run_id exists remotely?}
+    Q -->|No| N[Package and publish]
+    Q -->|Yes| E{Digest equal?}
+    E -->|Yes| K[Skip identical run]
+    E -->|No| B[Block that date and report conflict]
+    N --> T{Primary date Release exists?}
+    T -->|No| P[Create media-exp-date]
+    T -->|Yes| S[Create media-exp-date-sNN]
+    K --> Z[Continue scanning]
+    B --> Z`}
+/>
+
+## Analytics and forecast workflow
+
+<MermaidDiagram
+  title="Metadata-to-Pages build graph"
+  diagram={`flowchart LR
+    R[(Experiment Releases)] --> M[Download manifests + JSONL]
+    M --> N[Normalize runs/errors]
+    N --> DA[Daily aggregates]
+    N --> MO[Monthly aggregates]
+    N --> CA[Canonical JSON/CSV]
+    DA --> F[Feature engineering]
+    F --> CV[Rolling-origin backtests]
+    CV --> EN[Inverse-error ensemble]
+    EN --> PI[Residual-bootstrap intervals]
+    PI --> MC[10k monthly Monte Carlo]
+    CA --> DATA[analytics.json]
+    MC --> PRED[forecast.json]
+    DATA --> ASTRO[Astro Starlight build]
+    PRED --> ASTRO
+    ASTRO --> SITE[site/ artifact]
+    SITE --> PAGES[GitHub Pages]`}
+/>
+
+## GitHub Actions
+
+| Workflow | Trigger | Responsibility |
+|---|---|---|
+| `validate.yml` | PR and relevant pushes | Python compile/tests plus production site build |
+| `analytics.yml` | Formal Release or manual dispatch | Ingest metadata, regenerate analytics, forecast, build and deploy Pages |
+| `promote-input-snapshot.yml` | Manual dispatch | Reconstruct one snapshot, publish formal Releases, dispatch analytics |
+
+<Aside type="tip" title="Adding another automated page">
+Generate a JSON artifact after analytics, copy it into `web/public/data/`, add a component and MDX file, then register the page in `web/navigation.mjs`. The shell, sidebar, search, responsive behavior, and theme support remain shared.
+</Aside>

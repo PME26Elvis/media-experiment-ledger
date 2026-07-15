@@ -5,14 +5,18 @@ on:
     paths:
       - "tools/**"
       - "tests/**"
+      - "web/**"
       - "requirements-analytics.txt"
+      - "requirements-forecast.txt"
       - ".github/workflows/**"
   push:
     branches: [main]
     paths:
       - "tools/**"
       - "tests/**"
+      - "web/**"
       - "requirements-analytics.txt"
+      - "requirements-forecast.txt"
       - ".github/workflows/**"
 
 permissions:
@@ -27,7 +31,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: requirements-analytics.txt
-      - run: python -m pip install -r requirements-analytics.txt
+          cache-dependency-path: |
+            requirements-analytics.txt
+            requirements-forecast.txt
+      - run: python -m pip install -r requirements-analytics.txt -r requirements-forecast.txt
       - run: python -m compileall tools tests
       - run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install web dependencies
+        run: npm install --prefix web --package-lock=false --no-audit --no-fund
+      - name: Build production Pages site
+        run: npm run build --prefix web
