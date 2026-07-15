@@ -44,3 +44,5 @@ jobs:
         run: npm install --prefix web --package-lock=false --no-audit --no-fund
       - name: Build production Pages site
         run: npm run build --prefix web
+      - name: Validate Pages routes and artifact URLs
+        run: python tools/validate_site_build.py
