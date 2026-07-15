@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-07-15T02:28:25+00:00",
+  "generated_at_utc": "2026-07-15T02:35:54+00:00",
+  "as_of_date_taipei": "2026-07-15",
   "data_fingerprint": "5ed4c69f341caa54c851dc8346b4f79fef4a7e413eddcd2ee43f0410704bd12b",
   "method": {
     "ensemble": "Inverse-error weighted ensemble after rolling-origin backtesting",
@@ -35,9 +36,9 @@
   },
   "next_active_day": {
     "date": {
-      "point_date": "2026-07-14",
-      "earliest_date": "2026-07-14",
-      "latest_date": "2026-07-19",
+      "point_date": "2026-07-16",
+      "earliest_date": "2026-07-16",
+      "latest_date": "2026-07-21",
       "median_gap_days": 1.0,
       "historical_gaps_days": [
         1,
@@ -48,16 +49,18 @@
         6,
         1,
         1
-      ]
+      ],
+      "as_of_date_taipei": "2026-07-15",
+      "anchor_date": "2026-07-15"
     },
     "targets": {
       "runs": {
         "label": "Runs",
         "kind": "count",
-        "point": 1.014808765388042,
-        "median": 0.9836567225992632,
-        "lower_80": 0.8768724965614455,
-        "upper_80": 1.0949026074193524,
+        "point": 0.9680323449199315,
+        "median": 0.9368803021311527,
+        "lower_80": 0.830096076093335,
+        "upper_80": 1.048126186951242,
         "history": [
           {
             "date": "2026-06-29",
@@ -113,21 +116,21 @@
           },
           {
             "model": "Ridge",
-            "prediction": 0.9520211634025637,
+            "prediction": 0.8635270397225577,
             "weight": 0.1158871555757541,
             "mae": 0.13039278360835235,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 1.0487191458937462,
-            "weight": 0.10553014990427677,
-            "mae": 0.15791126674049213,
+            "prediction": 1.0048193192357948,
+            "weight": 0.10553014990427678,
+            "mae": 0.1579112667404921,
             "folds": 5
           },
           {
             "model": "Huber",
-            "prediction": 0.9611043401615519,
+            "prediction": 0.9108546058886241,
             "weight": 0.09611323647122165,
             "mae": 0.18807957498204997,
             "folds": 5
@@ -141,14 +144,14 @@
           },
           {
             "model": "Gradient boost",
-            "prediction": 1.2241280960682943,
+            "prediction": 0.9897372507659791,
             "weight": 0.08866130006417358,
             "mae": 0.21649498837509246,
             "folds": 5
           },
           {
             "model": "Random forest",
-            "prediction": 1.1253104735650195,
+            "prediction": 1.0352042819889014,
             "weight": 0.06966525975014343,
             "mae": 0.31642935450008103,
             "folds": 5
@@ -159,10 +162,10 @@
       "image_completed": {
         "label": "Images",
         "kind": "count",
-        "point": 26.116366623167064,
-        "median": 34.75540335873208,
+        "point": 26.58822823635891,
+        "median": 35.22726497192393,
         "lower_80": 0.0,
-        "upper_80": 112.47828133075473,
+        "upper_80": 112.95014294394656,
         "history": [
           {
             "date": "2026-06-29",
@@ -211,21 +214,21 @@
           },
           {
             "model": "Gradient boost",
-            "prediction": 41.10169273886731,
+            "prediction": 37.31605590705961,
             "weight": 0.17004682092063098,
             "mae": 50.856349791974296,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 15.431686476559852,
+            "prediction": 18.432332954205755,
             "weight": 0.16938406482404175,
             "mae": 51.07705326989479,
             "folds": 5
           },
           {
             "model": "Random forest",
-            "prediction": 22.648724493691148,
+            "prediction": 23.658478813417414,
             "weight": 0.15854595482073738,
             "mae": 54.94804596217773,
             "folds": 5
@@ -246,14 +249,14 @@
           },
           {
             "model": "Ridge",
-            "prediction": 10.552477105073725,
+            "prediction": 18.343840150419577,
             "weight": 0.0394610252942729,
             "mae": 237.51820186079652,
             "folds": 5
           },
           {
             "model": "Huber",
-            "prediction": 1.958514454445453,
+            "prediction": 12.743124254553686,
             "weight": 0.012961784407922061,
             "mae": 1499.0785529120576,
             "folds": 5
@@ -264,10 +267,10 @@
       "video_completed": {
         "label": "Videos",
         "kind": "count",
-        "point": 2.3347891656717934,
-        "median": 4.39622765761111,
+        "point": 2.755289925051865,
+        "median": 4.816728416991182,
         "lower_80": 0.0,
-        "upper_80": 6.784464451749792,
+        "upper_80": 7.204965211129864,
         "history": [
           {
             "date": "2026-06-29",
@@ -316,14 +319,14 @@
           },
           {
             "model": "Random forest",
-            "prediction": 3.131105138136861,
+            "prediction": 3.3962844107948746,
             "weight": 0.17770025419586585,
             "mae": 4.321849585116142,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 3.1495399265922592,
+            "prediction": 4.522332586026199,
             "weight": 0.15974310265274602,
             "mae": 4.875127926432073,
             "folds": 5
@@ -337,7 +340,7 @@
           },
           {
             "model": "Gradient boost",
-            "prediction": 2.4401865646712193,
+            "prediction": 3.5020084422818125,
             "weight": 0.1438983578259862,
             "mae": 5.4779979396749665,
             "folds": 5
@@ -351,7 +354,7 @@
           },
           {
             "model": "Ridge",
-            "prediction": 2.732841250630187,
+            "prediction": 2.7569260517660497,
             "weight": 0.05355045305256051,
             "mae": 15.732521436009318,
             "folds": 5
@@ -369,10 +372,10 @@
       "errors": {
         "label": "Errors",
         "kind": "count",
-        "point": 1.699599908429527,
-        "median": 1.568138263209513,
-        "lower_80": 0.16891277434432855,
-        "upper_80": 3.3155352085990293,
+        "point": 1.778874122857298,
+        "median": 1.647412477637284,
+        "lower_80": 0.24818698877209927,
+        "upper_80": 3.3948094230268,
         "history": [
           {
             "date": "2026-06-29",
@@ -435,35 +438,35 @@
           },
           {
             "model": "Random forest",
-            "prediction": 1.1044977850997033,
-            "weight": 0.12413356230195657,
-            "mae": 1.1393807408610406,
+            "prediction": 0.9928705128705919,
+            "weight": 0.12413356230195659,
+            "mae": 1.1393807408610404,
             "folds": 5
           },
           {
             "model": "Ridge",
-            "prediction": 1.2586624228528274,
+            "prediction": 1.6427384043210405,
             "weight": 0.1219444288673613,
             "mae": 1.162527566968302,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 1.098544410326297,
+            "prediction": 0.9673576956282983,
             "weight": 0.11399307918995083,
             "mae": 1.2540801920957911,
             "folds": 5
           },
           {
             "model": "Gradient boost",
-            "prediction": 1.118760090385024,
+            "prediction": 0.6023231248381852,
             "weight": 0.1130627922130294,
             "mae": 1.2656330424340259,
             "folds": 5
           },
           {
             "model": "Huber",
-            "prediction": 3.9380354758423617,
+            "prediction": 5.047740661315075,
             "weight": 0.10781166351929095,
             "mae": 1.3345835719618395,
             "folds": 5
@@ -474,10 +477,10 @@
       "success_rate": {
         "label": "Success rate",
         "kind": "rate",
-        "point": 0.7464198435359432,
-        "median": 0.8190567675861968,
-        "lower_80": 0.4455357241696506,
-        "upper_80": 0.8816128531268244,
+        "point": 0.7982441471256738,
+        "median": 0.8708810711759275,
+        "lower_80": 0.49736002775938126,
+        "upper_80": 0.933437156716555,
         "history": [
           {
             "date": "2026-06-29",
@@ -533,7 +536,7 @@
           },
           {
             "model": "Ridge",
-            "prediction": 0.7570500002690007,
+            "prediction": 0.8143850247874109,
             "weight": 0.14457461925983137,
             "mae": 0.09711850764058186,
             "folds": 5
@@ -547,28 +550,28 @@
           },
           {
             "model": "Huber",
-            "prediction": 0.5346741014122234,
+            "prediction": 0.7693964677641859,
             "weight": 0.12665025657317913,
             "mae": 0.13209231564842172,
             "folds": 5
           },
           {
             "model": "Gradient boost",
-            "prediction": 0.7528513462987114,
+            "prediction": 0.7858125157486794,
             "weight": 0.11598515552072157,
             "mae": 0.15803135102760596,
             "folds": 5
           },
           {
             "model": "Random forest",
-            "prediction": 0.9004639167612076,
+            "prediction": 0.9276032011885245,
             "weight": 0.08837402854805415,
             "mae": 0.25427108214001976,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 0.8097730047376578,
+            "prediction": 0.9098012775766859,
             "weight": 0.07583907880168762,
             "mae": 0.32109042882255884,
             "folds": 5
@@ -579,10 +582,10 @@
       "latency_mean_s": {
         "label": "Mean latency",
         "kind": "positive",
-        "point": 81.43985699708603,
-        "median": 71.83983067443141,
-        "lower_80": 68.8497073163138,
-        "upper_80": 125.78639258213157,
+        "point": 75.10284556730797,
+        "median": 65.50281924465335,
+        "lower_80": 62.51269588653576,
+        "upper_80": 119.4493811523535,
         "history": [
           {
             "date": "2026-06-29",
@@ -624,57 +627,57 @@
         "models": [
           {
             "model": "Gradient boost",
-            "prediction": 56.08145548757775,
-            "weight": 0.1683374766077289,
+            "prediction": 36.532202256491765,
+            "weight": 0.168337476607729,
             "mae": 13.963169542104982,
             "folds": 5
           },
           {
             "model": "Random forest",
-            "prediction": 68.21939461199543,
-            "weight": 0.15902082588288038,
-            "mae": 17.41091331956593,
+            "prediction": 56.679991830474435,
+            "weight": 0.1590208258828805,
+            "mae": 17.410913319565903,
             "folds": 5
           },
           {
             "model": "Last value",
             "prediction": 111.33333333333329,
-            "weight": 0.1563216199237625,
+            "weight": 0.15632161992376245,
             "mae": 17.775282331511846,
             "folds": 5
           },
           {
             "model": "Damped drift",
             "prediction": 113.31395876903082,
-            "weight": 0.15187502081471896,
+            "weight": 0.1518750208147189,
             "mae": 18.403776195092227,
             "folds": 5
           },
           {
             "model": "Extra trees",
-            "prediction": 75.77563127594972,
-            "weight": 0.15094133343437838,
-            "mae": 18.54045004204183,
+            "prediction": 74.03663165950668,
+            "weight": 0.1509413334343784,
+            "mae": 18.54045004204182,
             "folds": 5
           },
           {
             "model": "Rolling median",
             "prediction": 64.03020281523787,
-            "weight": 0.13920029837995043,
+            "weight": 0.13920029837995038,
             "mae": 20.415602133658336,
             "folds": 5
           },
           {
             "model": "Ridge",
-            "prediction": 72.61370169150801,
-            "weight": 0.04963160359195549,
+            "prediction": 61.6687588689801,
+            "weight": 0.04963160359195547,
             "mae": 63.920307769508646,
             "folds": 5
           },
           {
             "model": "Huber",
-            "prediction": 104.6920005969965,
-            "weight": 0.024671821364625,
+            "prediction": 88.25899711764717,
+            "weight": 0.02467182136462499,
             "mae": 132.32087999480606,
             "folds": 5
           }
@@ -692,29 +695,29 @@
       "upper_80": 22
     },
     "runs": {
-      "lower_80": 12,
-      "median": 17,
-      "upper_80": 22
+      "lower_80": 11,
+      "median": 16,
+      "upper_80": 21
     },
     "images": {
-      "lower_80": 452,
-      "median": 762,
-      "upper_80": 1120
+      "lower_80": 453,
+      "median": 766,
+      "upper_80": 1133
     },
     "videos": {
-      "lower_80": 35,
-      "median": 56,
-      "upper_80": 81
+      "lower_80": 38,
+      "median": 60,
+      "upper_80": 86
     },
     "errors": {
-      "lower_80": 20,
-      "median": 30,
-      "upper_80": 42
+      "lower_80": 21,
+      "median": 31,
+      "upper_80": 43
     },
     "success_rate": {
-      "lower_80": 0.9479838358476358,
-      "median": 0.9646406179640657,
-      "upper_80": 0.9750173019142824
+      "lower_80": 0.9466925560183664,
+      "median": 0.9636645936470596,
+      "upper_80": 0.9738711735174425
     }
   },
   "model_arena": {
@@ -735,21 +738,21 @@
       },
       {
         "model": "Ridge",
-        "prediction": 0.9520211634025637,
+        "prediction": 0.8635270397225577,
         "weight": 0.1158871555757541,
         "mae": 0.13039278360835235,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 1.0487191458937462,
-        "weight": 0.10553014990427677,
-        "mae": 0.15791126674049213,
+        "prediction": 1.0048193192357948,
+        "weight": 0.10553014990427678,
+        "mae": 0.1579112667404921,
         "folds": 5
       },
       {
         "model": "Huber",
-        "prediction": 0.9611043401615519,
+        "prediction": 0.9108546058886241,
         "weight": 0.09611323647122165,
         "mae": 0.18807957498204997,
         "folds": 5
@@ -763,14 +766,14 @@
       },
       {
         "model": "Gradient boost",
-        "prediction": 1.2241280960682943,
+        "prediction": 0.9897372507659791,
         "weight": 0.08866130006417358,
         "mae": 0.21649498837509246,
         "folds": 5
       },
       {
         "model": "Random forest",
-        "prediction": 1.1253104735650195,
+        "prediction": 1.0352042819889014,
         "weight": 0.06966525975014343,
         "mae": 0.31642935450008103,
         "folds": 5
@@ -786,21 +789,21 @@
       },
       {
         "model": "Gradient boost",
-        "prediction": 41.10169273886731,
+        "prediction": 37.31605590705961,
         "weight": 0.17004682092063098,
         "mae": 50.856349791974296,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 15.431686476559852,
+        "prediction": 18.432332954205755,
         "weight": 0.16938406482404175,
         "mae": 51.07705326989479,
         "folds": 5
       },
       {
         "model": "Random forest",
-        "prediction": 22.648724493691148,
+        "prediction": 23.658478813417414,
         "weight": 0.15854595482073738,
         "mae": 54.94804596217773,
         "folds": 5
@@ -821,14 +824,14 @@
       },
       {
         "model": "Ridge",
-        "prediction": 10.552477105073725,
+        "prediction": 18.343840150419577,
         "weight": 0.0394610252942729,
         "mae": 237.51820186079652,
         "folds": 5
       },
       {
         "model": "Huber",
-        "prediction": 1.958514454445453,
+        "prediction": 12.743124254553686,
         "weight": 0.012961784407922061,
         "mae": 1499.0785529120576,
         "folds": 5
@@ -844,14 +847,14 @@
       },
       {
         "model": "Random forest",
-        "prediction": 3.131105138136861,
+        "prediction": 3.3962844107948746,
         "weight": 0.17770025419586585,
         "mae": 4.321849585116142,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 3.1495399265922592,
+        "prediction": 4.522332586026199,
         "weight": 0.15974310265274602,
         "mae": 4.875127926432073,
         "folds": 5
@@ -865,7 +868,7 @@
       },
       {
         "model": "Gradient boost",
-        "prediction": 2.4401865646712193,
+        "prediction": 3.5020084422818125,
         "weight": 0.1438983578259862,
         "mae": 5.4779979396749665,
         "folds": 5
@@ -879,7 +882,7 @@
       },
       {
         "model": "Ridge",
-        "prediction": 2.732841250630187,
+        "prediction": 2.7569260517660497,
         "weight": 0.05355045305256051,
         "mae": 15.732521436009318,
         "folds": 5
@@ -916,35 +919,35 @@
       },
       {
         "model": "Random forest",
-        "prediction": 1.1044977850997033,
-        "weight": 0.12413356230195657,
-        "mae": 1.1393807408610406,
+        "prediction": 0.9928705128705919,
+        "weight": 0.12413356230195659,
+        "mae": 1.1393807408610404,
         "folds": 5
       },
       {
         "model": "Ridge",
-        "prediction": 1.2586624228528274,
+        "prediction": 1.6427384043210405,
         "weight": 0.1219444288673613,
         "mae": 1.162527566968302,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 1.098544410326297,
+        "prediction": 0.9673576956282983,
         "weight": 0.11399307918995083,
         "mae": 1.2540801920957911,
         "folds": 5
       },
       {
         "model": "Gradient boost",
-        "prediction": 1.118760090385024,
+        "prediction": 0.6023231248381852,
         "weight": 0.1130627922130294,
         "mae": 1.2656330424340259,
         "folds": 5
       },
       {
         "model": "Huber",
-        "prediction": 3.9380354758423617,
+        "prediction": 5.047740661315075,
         "weight": 0.10781166351929095,
         "mae": 1.3345835719618395,
         "folds": 5
@@ -967,7 +970,7 @@
       },
       {
         "model": "Ridge",
-        "prediction": 0.7570500002690007,
+        "prediction": 0.8143850247874109,
         "weight": 0.14457461925983137,
         "mae": 0.09711850764058186,
         "folds": 5
@@ -981,28 +984,28 @@
       },
       {
         "model": "Huber",
-        "prediction": 0.5346741014122234,
+        "prediction": 0.7693964677641859,
         "weight": 0.12665025657317913,
         "mae": 0.13209231564842172,
         "folds": 5
       },
       {
         "model": "Gradient boost",
-        "prediction": 0.7528513462987114,
+        "prediction": 0.7858125157486794,
         "weight": 0.11598515552072157,
         "mae": 0.15803135102760596,
         "folds": 5
       },
       {
         "model": "Random forest",
-        "prediction": 0.9004639167612076,
+        "prediction": 0.9276032011885245,
         "weight": 0.08837402854805415,
         "mae": 0.25427108214001976,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 0.8097730047376578,
+        "prediction": 0.9098012775766859,
         "weight": 0.07583907880168762,
         "mae": 0.32109042882255884,
         "folds": 5
@@ -1011,57 +1014,57 @@
     "latency_mean_s": [
       {
         "model": "Gradient boost",
-        "prediction": 56.08145548757775,
-        "weight": 0.1683374766077289,
+        "prediction": 36.532202256491765,
+        "weight": 0.168337476607729,
         "mae": 13.963169542104982,
         "folds": 5
       },
       {
         "model": "Random forest",
-        "prediction": 68.21939461199543,
-        "weight": 0.15902082588288038,
-        "mae": 17.41091331956593,
+        "prediction": 56.679991830474435,
+        "weight": 0.1590208258828805,
+        "mae": 17.410913319565903,
         "folds": 5
       },
       {
         "model": "Last value",
         "prediction": 111.33333333333329,
-        "weight": 0.1563216199237625,
+        "weight": 0.15632161992376245,
         "mae": 17.775282331511846,
         "folds": 5
       },
       {
         "model": "Damped drift",
         "prediction": 113.31395876903082,
-        "weight": 0.15187502081471896,
+        "weight": 0.1518750208147189,
         "mae": 18.403776195092227,
         "folds": 5
       },
       {
         "model": "Extra trees",
-        "prediction": 75.77563127594972,
-        "weight": 0.15094133343437838,
-        "mae": 18.54045004204183,
+        "prediction": 74.03663165950668,
+        "weight": 0.1509413334343784,
+        "mae": 18.54045004204182,
         "folds": 5
       },
       {
         "model": "Rolling median",
         "prediction": 64.03020281523787,
-        "weight": 0.13920029837995043,
+        "weight": 0.13920029837995038,
         "mae": 20.415602133658336,
         "folds": 5
       },
       {
         "model": "Ridge",
-        "prediction": 72.61370169150801,
-        "weight": 0.04963160359195549,
+        "prediction": 61.6687588689801,
+        "weight": 0.04963160359195547,
         "mae": 63.920307769508646,
         "folds": 5
       },
       {
         "model": "Huber",
-        "prediction": 104.6920005969965,
-        "weight": 0.024671821364625,
+        "prediction": 88.25899711764717,
+        "weight": 0.02467182136462499,
         "mae": 132.32087999480606,
         "folds": 5
       }
