@@ -3,6 +3,7 @@ import json
 import sys
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
@@ -33,9 +34,14 @@ class ForecastTests(unittest.TestCase):
             source = root / "data.json"
             source.write_text(json.dumps({"daily": daily}), encoding="utf-8")
             output = root / "forecasts"
-            result = mod.generate(source, output)
+            as_of = date(2026, 7, 15)
+            result = mod.generate(source, output, as_of)
 
             self.assertEqual(result["schema_version"], 1)
+            self.assertEqual(result["as_of_date_taipei"], "2026-07-15")
+            self.assertGreater(date.fromisoformat(result["next_active_day"]["date"]["point_date"]), as_of)
+            self.assertGreater(date.fromisoformat(result["next_active_day"]["date"]["earliest_date"]), as_of)
+            self.assertEqual(result["next_month"]["period"], "2026-08")
             self.assertGreaterEqual(result["confidence"]["score"], 5)
             self.assertLessEqual(result["confidence"]["score"], 95)
             success = result["next_active_day"]["targets"]["success_rate"]
@@ -46,6 +52,20 @@ class ForecastTests(unittest.TestCase):
             self.assertTrue((output / "report.md").exists())
             self.assertTrue((output / "model-card.md").exists())
             self.assertTrue((output / "history.jsonl").exists())
+
+    def test_anchor_date_forecast_never_returns_past_date(self):
+        raw = {
+            "point_date": "2026-07-14",
+            "earliest_date": "2026-07-14",
+            "latest_date": "2026-07-19",
+            "median_gap_days": 1.0,
+            "historical_gaps_days": [1, 1, 6],
+        }
+        anchored = mod.anchor_date_forecast(raw, date(2026, 7, 13), date(2026, 7, 15))
+        self.assertEqual(anchored["point_date"], "2026-07-16")
+        self.assertEqual(anchored["earliest_date"], "2026-07-16")
+        self.assertEqual(anchored["latest_date"], "2026-07-21")
+        self.assertEqual(anchored["anchor_date"], "2026-07-15")
 
     def test_clean_rows_requires_four_dates(self):
         with self.assertRaises(ValueError):
