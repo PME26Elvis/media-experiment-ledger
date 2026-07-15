@@ -1,4 +1,9 @@
-<section class="dashboard-shell" data-analytics-dashboard>
+---
+import { sitePath } from '../lib/sitePath';
+
+const analyticsUrl = sitePath('data/analytics.json');
+---
+<section class="dashboard-shell" data-analytics-dashboard data-analytics-url={analyticsUrl}>
   <div class="dashboard-toolbar panel-surface">
     <div><span class="eyebrow">LIVE RELEASE DATA</span><h2>Run intelligence</h2></div>
     <div class="filter-row">
@@ -26,7 +31,7 @@
   import * as echarts from 'echarts';
   const root = document.querySelector('[data-analytics-dashboard]');
   if (root) {
-    const base = import.meta.env.BASE_URL;
+    const artifactUrl = root.dataset.analyticsUrl;
     const status = root.querySelector('[data-status]');
     const formatPct = (value) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
     const formatNum = (value) => new Intl.NumberFormat().format(Math.round(value || 0));
@@ -46,8 +51,9 @@
       return chart;
     };
     try {
-      const response = await fetch(`${base}data/analytics.json`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!artifactUrl) throw new Error('Analytics artifact URL is missing');
+      const response = await fetch(artifactUrl, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status} from ${artifactUrl}`);
       const data = await response.json();
       let runs = [...(data.runs || [])];
       const daily = data.daily || [];
