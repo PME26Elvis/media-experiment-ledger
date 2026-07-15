@@ -3,6 +3,13 @@ name: Build analytics, forecasts, and Pages
 on:
   release:
     types: [published]
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "tools/forecast_*.py"
+      - "requirements-forecast.txt"
+      - ".github/workflows/analytics.yml"
   workflow_dispatch:
     inputs:
       selection_mode:
