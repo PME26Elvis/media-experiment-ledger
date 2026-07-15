@@ -10,7 +10,7 @@ export default defineConfig({
     starlight({
       title: 'Media Experiment Ledger',
       description: 'Release-backed analytics, system architecture, and machine-learning forecasts.',
-      customCss: ['./src/styles/custom.css'],
+      customCss: ['./src/styles/custom.css', './src/styles/frontend-stack.css'],
       favicon: '/favicon.svg',
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/PME26Elvis/media-experiment-ledger' }

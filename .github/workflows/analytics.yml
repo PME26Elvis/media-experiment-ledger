@@ -8,6 +8,7 @@ on:
     paths:
       - "web/**"
       - "tools/forecast_*.py"
+      - "tools/validate_site_build.py"
       - "requirements-forecast.txt"
       - ".github/workflows/analytics.yml"
   workflow_dispatch:
@@ -140,6 +141,9 @@ jobs:
 
       - name: Build Astro Starlight site
         run: npm run build --prefix web
+
+      - name: Validate Pages routes and artifact URLs
+        run: python tools/validate_site_build.py
 
       - name: Commit analytics, forecast artifacts, and generated site
         shell: bash

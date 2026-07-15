@@ -1,0 +1,205 @@
+---
+title: Frontend Stack
+description: The framework, rendering libraries, routing rules, data contracts, and deployment architecture behind the GitHub Pages experience.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import MetricStrip from '../../components/MetricStrip.astro';
+import MermaidDiagram from '../../components/MermaidDiagram.astro';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+<SectionTabs />
+
+<div class="hero-grid">
+  <section class="hero-panel">
+    <span class="eyebrow">FRONTEND ENGINEERING</span>
+    <h2>A static site with application-grade interaction.</h2>
+    <p>Astro and Starlight own routing, content, search, accessibility, and the documentation shell. Focused client-side islands load release analytics, render ECharts dashboards, and turn Mermaid source into navigable system maps.</p>
+  </section>
+  <div class="hero-side">
+    <article class="panel-surface"><div><span class="eyebrow">DELIVERY</span><small>Pre-rendered HTML on GitHub Pages</small></div><strong>Static</strong></article>
+    <article class="panel-surface"><div><span class="eyebrow">INTERACTION</span><small>Bundled charts and diagrams</small></div><strong>Client-side</strong></article>
+    <article class="panel-surface"><div><span class="eyebrow">CONTENT</span><small>Typed MDX and shared components</small></div><strong>Composable</strong></article>
+  </div>
+</div>
+
+<MetricStrip items={[
+  { label: 'Framework', value: 'Astro 7.0.8', note: 'static generation and optimized asset bundling' },
+  { label: 'Docs shell', value: 'Starlight 0.41.3', note: 'navigation, search, themes, and accessible layout' },
+  { label: 'Charts', value: 'ECharts 6.1.0', note: 'interactive canvas-based analytical views' },
+  { label: 'Diagrams', value: 'Mermaid 11.16', note: 'architecture diagrams generated from text' },
+  { label: 'Viewport', value: 'Panzoom 4.6', note: 'drag, wheel zoom, reset, and fullscreen maps' },
+  { label: 'Content', value: 'MDX', note: 'Markdown structure with reusable Astro components' }
+]} />
+
+## Runtime architecture
+
+<MermaidDiagram
+  title="Frontend rendering pipeline"
+  caption="The build emits complete pages first; only dashboards and diagram controls hydrate in the browser."
+  diagram={`flowchart LR
+    subgraph Build[GitHub Actions build]
+      MDX[MDX pages] --> Astro[Astro static renderer]
+      Nav[Shared navigation registry] --> Astro
+      CSS[Design tokens and custom CSS] --> Astro
+      Analytics[(analytics.json)] --> Public[web/public/data]
+      Forecast[(forecast.json)] --> Public
+      Public --> Astro
+    end
+    subgraph Output[Generated site directory]
+      Astro --> HTML[Pre-rendered HTML routes]
+      Astro --> JS[Bundled interaction modules]
+      Astro --> Assets[CSS, icons, and JSON artifacts]
+    end
+    subgraph Browser[GitHub Pages browser runtime]
+      HTML --> Shell[Starlight shell]
+      JS --> Charts[ECharts dashboards]
+      JS --> Maps[Mermaid + Panzoom maps]
+      Assets --> Charts
+      Assets --> Maps
+    end
+    classDef framework fill:#10243a,stroke:#52d3ff,color:#fff;
+    classDef data fill:#211d39,stroke:#9d7cff,color:#fff;
+    class Astro,Shell,Charts,Maps framework;
+    class Analytics,Forecast,Public data;`}
+/>
+
+## Technology responsibilities
+
+<div class="tool-card-grid frontend-tool-grid">
+  <article class="tool-card">
+    <span class="eyebrow">ASTRO</span>
+    <h3>Static application compiler</h3>
+    <p>Astro resolves the repository base path, turns every MDX document into a real directory route, bundles component scripts, fingerprints assets, and writes the final output to <code>site/</code>.</p>
+    <ul>
+      <li>File-based routes under <code>web/src/content/docs/</code></li>
+      <li>Build-time environment values such as <code>BASE_URL</code></li>
+      <li>Minimal JavaScript outside interactive components</li>
+    </ul>
+  </article>
+  <article class="tool-card">
+    <span class="eyebrow">STARLIGHT</span>
+    <h3>Documentation product shell</h3>
+    <p>Starlight supplies the durable UX primitives that a hand-built page usually omits: responsive navigation, local search, dark and light themes, table of contents, semantic markup, keyboard behavior, and content typography.</p>
+    <ul>
+      <li>Primary sidebar generated from the shared page registry</li>
+      <li>Reference pages for methodology and extension guides</li>
+      <li>Accessible defaults retained under custom visual styling</li>
+    </ul>
+  </article>
+  <article class="tool-card">
+    <span class="eyebrow">MDX + ASTRO COMPONENTS</span>
+    <h3>Composable content layer</h3>
+    <p>MDX keeps long-form documentation readable while allowing reusable interface elements such as the tab bar, metric strip, forecast dashboard, analytics dashboard, and interactive Mermaid viewer.</p>
+    <ul>
+      <li>Documentation remains reviewable as text</li>
+      <li>Complex visual components stay isolated</li>
+      <li>New pages do not duplicate the site shell</li>
+    </ul>
+  </article>
+  <article class="tool-card">
+    <span class="eyebrow">ECHARTS</span>
+    <h3>Analytical visualization engine</h3>
+    <p>ECharts renders the high-density visual layer after JSON artifacts load. Canvas rendering keeps larger time series responsive while the toolbox adds data zoom, restore, legends, tooltips, and image export.</p>
+    <ul>
+      <li>Daily and monthly throughput</li>
+      <li>Reliability and latency trends</li>
+      <li>Forecast intervals and model weights</li>
+    </ul>
+  </article>
+  <article class="tool-card">
+    <span class="eyebrow">MERMAID + PANZOOM</span>
+    <h3>Executable architecture documentation</h3>
+    <p>Mermaid compiles text diagrams into SVG. Panzoom is attached to the generated SVG so dense process maps support dragging, controlled wheel zoom, reset, and fullscreen inspection.</p>
+    <ul>
+      <li>Strict Mermaid security mode</li>
+      <li>Theme-aware SVG generation</li>
+      <li>No hand-maintained diagram images</li>
+    </ul>
+  </article>
+  <article class="tool-card">
+    <span class="eyebrow">CUSTOM CSS</span>
+    <h3>Product-specific visual system</h3>
+    <p>The site extends rather than replaces Starlight. Shared tokens define panels, accents, spacing, charts, bento grids, tabs, mobile breakpoints, light mode, and reduced-motion behavior.</p>
+    <ul>
+      <li>One visual language across docs and dashboards</li>
+      <li>Responsive five-tab navigation</li>
+      <li>System colors reused by ECharts and Mermaid</li>
+    </ul>
+  </article>
+</div>
+
+## Routing and artifact URLs
+
+GitHub project Pages is hosted below a repository prefix rather than at the domain root. Every internal page and generated data artifact therefore passes through one build-time helper:
+
+```ts
+sitePath('forecast/')
+sitePath('data/forecast.json')
+```
+
+The helper normalizes the Astro base to exactly one trailing slash. The final HTML receives explicit values such as:
+
+```text
+/media-experiment-ledger/forecast/
+/media-experiment-ledger/data/forecast.json
+```
+
+<Aside type="note" title="Why build-time URLs?">
+A data endpoint stored in a `data-*` attribute can be inspected in generated HTML and validated in CI. It also avoids relying on client-side assumptions about whether `BASE_URL` contains a trailing slash.
+</Aside>
+
+## Data boundary
+
+<Tabs>
+  <TabItem label="Analytics">
+    <code>AnalyticsDashboard.astro</code> fetches <code>analytics.json</code>, then derives filtered headline metrics and renders daily, monthly, reliability, error, and run-ledger views. Release media is never downloaded by the browser.
+  </TabItem>
+  <TabItem label="Forecast">
+    <code>ForecastDashboard.astro</code> fetches <code>forecast.json</code>, then renders the next active-day ensemble, 80% intervals, operating regime, monthly Monte Carlo summaries, and model leaderboard.
+  </TabItem>
+  <TabItem label="Architecture">
+    <code>MermaidDiagram.astro</code> receives diagram source directly from MDX. Mermaid renders an SVG locally in the browser and Panzoom adds navigation controls without external services.
+  </TabItem>
+</Tabs>
+
+## Repository layout
+
+```text
+web/
+  astro.config.mjs          Astro, Starlight, base path, sidebar
+  navigation.mjs            primary-page registry
+  package.json              pinned frontend dependencies
+  public/data/              build inputs for analytics and forecasts
+  src/
+    components/             dashboards, tabs, metrics, Mermaid renderer
+    content/docs/           MDX routes
+    lib/sitePath.ts         base-safe internal URL builder
+    styles/custom.css       visual system and responsive behavior
+site/                       production output deployed to Pages
+```
+
+## Build and deployment
+
+<MermaidDiagram
+  title="Pages release path"
+  caption="Source changes and formal experiment releases converge on the same reproducible build."
+  diagram={`sequenceDiagram
+    participant Dev as Source or Release event
+    participant Action as GitHub Actions
+    participant Python as Analytics + forecast tools
+    participant Astro as Astro build
+    participant Check as Site route validator
+    participant Pages as GitHub Pages
+    Dev->>Action: trigger workflow
+    Action->>Python: produce canonical JSON artifacts
+    Python-->>Action: analytics.json + forecast.json
+    Action->>Astro: npm install and astro build
+    Astro-->>Action: site/ static output
+    Action->>Check: verify routes and base-safe data URLs
+    Check-->>Action: pass or fail deployment
+    Action->>Pages: upload and deploy site/
+  `}
+/>
+
+The CI validator checks that every registered primary route exists in the production output, that Overview links include the repository base, and that both dashboard components expose valid base-prefixed JSON artifact URLs. This makes the routing contract part of the build rather than a manual browser check.
