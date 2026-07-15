@@ -1,0 +1,108 @@
+<section class="dashboard-shell" data-analytics-dashboard>
+  <div class="dashboard-toolbar panel-surface">
+    <div><span class="eyebrow">LIVE RELEASE DATA</span><h2>Run intelligence</h2></div>
+    <div class="filter-row">
+      <label>From<input type="date" data-filter="from"></label>
+      <label>To<input type="date" data-filter="to"></label>
+      <label>Search<input type="search" placeholder="run id or tag" data-filter="query"></label>
+      <button type="button" data-reset>Reset</button>
+    </div>
+  </div>
+  <div class="metric-grid" data-metrics></div>
+  <div class="bento-grid">
+    <article class="panel-surface span-8"><div class="panel-title"><span>Output velocity</span><small>Images, videos, and errors by active day</small></div><div class="chart-lg" data-chart="outputs"></div></article>
+    <article class="panel-surface span-4"><div class="panel-title"><span>Reliability pulse</span><small>Success rate and latency</small></div><div class="chart-lg" data-chart="quality"></div></article>
+    <article class="panel-surface span-5"><div class="panel-title"><span>Error taxonomy</span><small>Normalized failure classes</small></div><div class="chart-md" data-chart="errors"></div></article>
+    <article class="panel-surface span-7"><div class="panel-title"><span>Monthly throughput</span><small>Calendar rollups</small></div><div class="chart-md" data-chart="monthly"></div></article>
+  </div>
+  <article class="panel-surface ledger-panel">
+    <div class="panel-title"><span>Run ledger</span><small data-run-count></small></div>
+    <div class="table-scroll"><table class="data-table"><thead><tr><th>Date</th><th>Run</th><th>Images</th><th>Videos</th><th>Errors</th><th>Success</th><th>P95</th><th>Release</th></tr></thead><tbody data-run-table></tbody></table></div>
+  </article>
+  <p class="dashboard-status" data-status>Loading analytics…</p>
+</section>
+
+<script>
+  import * as echarts from 'echarts';
+  const root = document.querySelector('[data-analytics-dashboard]');
+  if (root) {
+    const base = import.meta.env.BASE_URL;
+    const status = root.querySelector('[data-status]');
+    const formatPct = (value) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
+    const formatNum = (value) => new Intl.NumberFormat().format(Math.round(value || 0));
+    const themeText = () => getComputedStyle(document.documentElement).getPropertyValue('--sl-color-text').trim() || '#dbeafe';
+    const chartInstances = [];
+    const common = () => ({
+      textStyle: { color: themeText(), fontFamily: 'Inter, system-ui, sans-serif' },
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(6,15,28,.94)', borderColor: '#28445f', textStyle: { color: '#eff8ff' } },
+      toolbox: { right: 8, feature: { dataZoom: {}, restore: {}, saveAsImage: { pixelRatio: 2 } }, iconStyle: { borderColor: themeText() } },
+      grid: { left: 48, right: 22, top: 42, bottom: 52 },
+      dataZoom: [{ type: 'inside' }, { type: 'slider', height: 16, bottom: 8 }]
+    });
+    const initChart = (selector) => {
+      const element = root.querySelector(selector);
+      const chart = echarts.init(element, null, { renderer: 'canvas' });
+      chartInstances.push(chart);
+      return chart;
+    };
+    try {
+      const response = await fetch(`${base}data/analytics.json`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const data = await response.json();
+      let runs = [...(data.runs || [])];
+      const daily = data.daily || [];
+      const monthly = data.monthly || [];
+      const errors = data.errors || [];
+
+      const render = () => {
+        const from = root.querySelector('[data-filter="from"]').value;
+        const to = root.querySelector('[data-filter="to"]').value;
+        const query = root.querySelector('[data-filter="query"]').value.toLowerCase().trim();
+        const filtered = runs.filter((run) => (!from || run.date >= from) && (!to || run.date <= to) && (!query || `${run.run_id} ${run.tag}`.toLowerCase().includes(query)));
+        const images = filtered.reduce((sum, run) => sum + (run.image_completed || 0), 0);
+        const videos = filtered.reduce((sum, run) => sum + (run.video_completed || 0), 0);
+        const failures = filtered.reduce((sum, run) => sum + (run.errors || 0), 0);
+        const attempts = images + videos + failures;
+        const latency = filtered.map((run) => run.latency_mean_s).filter((value) => value != null);
+        root.querySelector('[data-metrics]').innerHTML = [
+          ['Runs', filtered.length, 'published run records'],
+          ['Images', formatNum(images), 'completed generations'],
+          ['Videos', formatNum(videos), 'completed clips'],
+          ['Success', attempts ? formatPct((images + videos) / attempts) : '—', 'weighted by attempts'],
+          ['Mean latency', latency.length ? `${(latency.reduce((a,b)=>a+b,0)/latency.length).toFixed(1)}s` : '—', 'run-level mean'],
+          ['Errors', failures, 'terminal and non-terminal']
+        ].map(([label,value,note]) => `<article class="metric-card"><span>${label}</span><strong>${value}</strong><small>${note}</small></article>`).join('');
+        const body = root.querySelector('[data-run-table]');
+        body.innerHTML = filtered.sort((a,b) => b.date.localeCompare(a.date)).map((run) => `<tr><td>${run.date}</td><td><code>${run.run_id}</code></td><td>${formatNum(run.image_completed)}</td><td>${formatNum(run.video_completed)}</td><td><span class="status-dot ${run.errors ? 'bad' : 'good'}"></span>${run.errors}</td><td>${formatPct(run.success_rate)}</td><td>${run.latency_p95_s == null ? '—' : `${run.latency_p95_s.toFixed(1)}s`}</td><td><a href="https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/${run.tag}">${run.tag}</a></td></tr>`).join('');
+        root.querySelector('[data-run-count]').textContent = `${filtered.length} visible runs`;
+      };
+
+      const outputChart = initChart('[data-chart="outputs"]');
+      outputChart.setOption({ ...common(), legend: { top: 4, textStyle: { color: themeText() } }, xAxis: { type: 'category', data: daily.map(d => d.period), axisLabel: { color: themeText(), rotate: 28 } }, yAxis: { type: 'value', axisLabel: { color: themeText() }, splitLine: { lineStyle: { color: 'rgba(116,150,184,.16)' } } }, series: [
+        { name: 'Images', type: 'bar', stack: 'outputs', data: daily.map(d => d.image_completed), itemStyle: { borderRadius: [5,5,0,0] } },
+        { name: 'Videos', type: 'bar', stack: 'outputs', data: daily.map(d => d.video_completed) },
+        { name: 'Errors', type: 'line', yAxisIndex: 0, smooth: true, symbolSize: 7, data: daily.map(d => d.errors), lineStyle: { width: 3 } }
+      ]});
+      const qualityChart = initChart('[data-chart="quality"]');
+      qualityChart.setOption({ ...common(), xAxis: { type: 'category', data: daily.map(d => d.period), axisLabel: { color: themeText(), rotate: 30 } }, yAxis: [{ type: 'value', min: 0, max: 1, axisLabel: { formatter: v => `${v*100}%`, color: themeText() } }, { type: 'value', axisLabel: { formatter: '{value}s', color: themeText() }, splitLine: { show: false } }], series: [
+        { name: 'Success', type: 'line', smooth: true, areaStyle: { opacity: .14 }, data: daily.map(d => d.success_rate), symbolSize: 7 },
+        { name: 'Latency', type: 'line', yAxisIndex: 1, smooth: true, data: daily.map(d => d.latency_mean_s), symbol: 'none' }
+      ]});
+      const errorCounts = {};
+      for (const row of errors) errorCounts[row.error_class || 'unknown'] = (errorCounts[row.error_class || 'unknown'] || 0) + 1;
+      const errorChart = initChart('[data-chart="errors"]');
+      errorChart.setOption({ ...common(), dataZoom: [], grid: { left: 110, right: 20, top: 22, bottom: 28 }, xAxis: { type: 'value', axisLabel: { color: themeText() } }, yAxis: { type: 'category', data: Object.keys(errorCounts), axisLabel: { color: themeText() } }, series: [{ type: 'bar', data: Object.values(errorCounts), itemStyle: { borderRadius: [0,8,8,0] } }] });
+      const monthlyChart = initChart('[data-chart="monthly"]');
+      monthlyChart.setOption({ ...common(), xAxis: { type: 'category', data: monthly.map(m => m.period), axisLabel: { color: themeText() } }, yAxis: { type: 'value', axisLabel: { color: themeText() } }, series: [{ name: 'Images', type: 'bar', data: monthly.map(m => m.image_completed) }, { name: 'Videos', type: 'bar', data: monthly.map(m => m.video_completed) }, { name: 'Runs', type: 'line', data: monthly.map(m => m.runs), smooth: true }] });
+
+      root.querySelectorAll('input').forEach((input) => input.addEventListener('input', render));
+      root.querySelector('[data-reset]').addEventListener('click', () => { root.querySelectorAll('input').forEach(input => input.value = ''); render(); });
+      render();
+      status.textContent = `Updated ${data.generated_at ? new Date(data.generated_at).toLocaleString() : 'from release metadata'}`;
+      window.addEventListener('resize', () => chartInstances.forEach(chart => chart.resize()));
+    } catch (error) {
+      status.textContent = `Analytics could not be loaded: ${String(error)}`;
+      status.classList.add('error');
+    }
+  }
+</script>
