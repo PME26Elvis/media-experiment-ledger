@@ -1,0 +1,45 @@
+---
+title: Forecast methodology
+description: Statistical and machine-learning design of the forecast pipeline.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import { Tabs, TabItem, Aside } from '@astrojs/starlight/components';
+
+<SectionTabs />
+
+## Design goals
+
+The forecaster is built for a sparse, irregular sequence of **active experiment days**. It must remain useful before a classical long time series exists, avoid fitting one fashionable model blindly, and expose uncertainty and backtest evidence.
+
+<Tabs>
+  <TabItem label="Features">
+  Each target receives ordinal time, gap since the previous active date, cyclic weekday/month encodings, three lags, rolling mean, rolling standard deviation, and an exponentially weighted history feature.
+  </TabItem>
+  <TabItem label="Transforms">
+  Counts and latency use `log1p`; success rate uses a clipped logit transform. Predictions are inverted and constrained to valid domains.
+  </TabItem>
+  <TabItem label="Validation">
+  Candidate models are evaluated using rolling-origin backtests. Their inverse normalized MAE becomes an ensemble weight.
+  </TabItem>
+  <TabItem label="Uncertainty">
+  The next-day interval bootstraps out-of-sample ensemble residuals. The monthly interval simulates 10,000 paths using empirical active-day gaps and forecast residual distributions.
+  </TabItem>
+</Tabs>
+
+## Candidate models
+
+1. Last-value persistence
+2. Rolling median
+3. Damped drift
+4. Ridge regression
+5. Huber robust regression
+6. Random forest
+7. Extra trees
+8. Huber-loss gradient boosting
+
+## Confidence score
+
+The displayed score combines the number of observed dates, available backtest folds, and normalized top-model error. It is a communication aid, not a probability that the forecast is correct.
+
+<Aside type="note">Prediction intervals quantify modeled uncertainty under observed conditions. They cannot include unobserved API policy changes, provider outages, prompt-bank changes, or deliberate run-strategy changes.</Aside>
