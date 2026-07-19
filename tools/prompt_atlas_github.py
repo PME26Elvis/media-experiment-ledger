@@ -10,6 +10,7 @@ import textwrap
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Sequence
+from urllib.parse import quote
 
 from PIL import Image
 
@@ -200,17 +201,58 @@ def next_analysis_tag(source_tag: str, existing_tags: Iterable[str]) -> str:
     return f"{base}-v{max(versions, default=0) + 1}"
 
 
+def analysis_tag_for_run(source_tag: str, releases: Sequence[dict[str, Any]]) -> tuple[str, bool]:
+    """Resume the newest matching draft; otherwise allocate the next immutable version."""
+    base = source_tag.replace("media-exp-", "media-analysis-", 1)
+    matching_drafts: list[tuple[int, str]] = []
+    all_tags: list[str] = []
+    for release in releases:
+        tag = str(release.get("tagName") or "")
+        if not tag:
+            continue
+        all_tags.append(tag)
+        if not release.get("isDraft") or not tag.startswith(base + "-v"):
+            continue
+        match = ANALYSIS_VERSION_RE.search(tag)
+        if match:
+            matching_drafts.append((int(match.group(1)), tag))
+    if matching_drafts:
+        return max(matching_drafts)[1], True
+    return next_analysis_tag(source_tag, all_tags), False
+
+
+def release_asset_url(repo: str, tag: str, asset_name: str) -> str:
+    return f"https://github.com/{repo}/releases/download/{quote(tag, safe='')}/{quote(asset_name, safe='')}"
+
+
+def release_page_url(repo: str, tag: str) -> str:
+    return f"https://github.com/{repo}/releases/tag/{quote(tag, safe='')}"
+
+
 def asset_map(repo: str, tag: str) -> tuple[dict[str, str], str]:
+    # This endpoint intentionally runs only after publication. GitHub's
+    # releases/tags endpoint returns published releases, not drafts.
     release = json.loads(command(["gh", "api", f"repos/{repo}/releases/tags/{tag}"]).stdout)
     return ({str(asset["name"]): str(asset["browser_download_url"]) for asset in release.get("assets", [])}, str(release.get("html_url") or ""))
 
 
 def publish_release(repo: str, source_tag: str, output_root: Path, entries: list[AtlasEntry], config: dict[str, Any]) -> dict[str, Any]:
-    listed = json.loads(command(["gh", "release", "list", "--limit", "1000", "--json", "tagName"]).stdout or "[]")
-    tag = next_analysis_tag(source_tag, [str(row.get("tagName") or "") for row in listed])
+    listed = json.loads(command([
+        "gh", "release", "list", "--repo", repo, "--limit", "1000", "--json", "tagName,isDraft,publishedAt"
+    ]).stdout or "[]")
+    tag, resumed = analysis_tag_for_run(source_tag, listed)
+    title = f"Prompt Repeatability Atlas — {source_tag}"
+
     preliminary = output_root / "release-notes-preliminary.md"
-    preliminary.write_text("# Prompt Repeatability Atlas\n\nAssets are being attached.\n", encoding="utf-8")
-    command(["gh", "release", "create", tag, "--repo", repo, "--title", f"Prompt Repeatability Atlas — {source_tag}", "--notes-file", str(preliminary), "--draft", "--latest=false"])
+    preliminary.write_text(
+        "# Prompt Repeatability Atlas\n\nRendering is complete. Assets and inline previews are being finalized.\n",
+        encoding="utf-8",
+    )
+    if not resumed:
+        command([
+            "gh", "release", "create", tag, "--repo", repo, "--title", title,
+            "--notes-file", str(preliminary), "--draft", "--latest=false",
+        ])
 
     archive = output_root / "prompt-repeatability-atlas.zip"
     report = output_root / "atlas-report.json"
@@ -218,11 +260,15 @@ def publish_release(repo: str, source_tag: str, output_root: Path, entries: list
     files = [*(output_root / "primary" / entry.primary_file for entry in entries), report, archive, gallery]
     chunk_size = int(config.get("upload_chunk_size", 80))
     for start in range(0, len(files), chunk_size):
-        command(["gh", "release", "upload", tag, "--repo", repo, *map(str, files[start : start + chunk_size])])
+        upload = ["gh", "release", "upload", tag, "--repo", repo, *map(str, files[start : start + chunk_size])]
+        if resumed:
+            upload.append("--clobber")
+        command(upload)
 
-    assets, release_url = asset_map(repo, tag)
     highlights = choose_highlights(entries, int(config.get("release_notes_highlights", 4)))
-    source_url = f"https://github.com/{repo}/releases/tag/{source_tag}"
+    source_url = release_page_url(repo, source_tag)
+    planned_assets = {path.name: release_asset_url(repo, tag, path.name) for path in files}
+    release_url = release_page_url(repo, tag)
     notes = [
         "# Prompt Repeatability Atlas",
         "",
@@ -232,21 +278,21 @@ def publish_release(repo: str, source_tag: str, output_root: Path, entries: list
         f"- Embedded highlights: **{len(highlights)}**",
         "- Complete ZIP includes all primary cards, extended temporal sheets, JSON sidecars, and an offline gallery.",
         "",
-        f"[Download the complete atlas ZIP]({assets.get(archive.name, release_url)}) · [Machine-readable report]({assets.get(report.name, release_url)})",
+        f"[Download the complete atlas ZIP]({planned_assets[archive.name]}) · [Machine-readable report]({planned_assets[report.name]})",
         "",
         "## Highlights",
         "",
     ]
     for entry in highlights:
-        if url := assets.get(entry.primary_file):
-            notes.extend([
-                f"### {entry.prompt_id} · {entry.category} · {entry.sample_count} samples",
-                "",
-                textwrap.shorten(entry.prompt, width=220, placeholder="…"),
-                "",
-                f"![{entry.prompt_id} repeatability comparison]({url})",
-                "",
-            ])
+        url = planned_assets[entry.primary_file]
+        notes.extend([
+            f"### {entry.prompt_id} · {entry.category} · {entry.sample_count} samples",
+            "",
+            textwrap.shorten(entry.prompt, width=220, placeholder="…"),
+            "",
+            f"[![{entry.prompt_id} repeatability comparison]({url})]({url})",
+            "",
+        ])
     notes.extend([
         "## Interpretation",
         "",
@@ -254,11 +300,26 @@ def publish_release(repo: str, source_tag: str, output_root: Path, entries: list
     ])
     final_notes = output_root / "release-notes.md"
     final_notes.write_text("\n".join(notes) + "\n", encoding="utf-8")
-    command(["gh", "release", "edit", tag, "--repo", repo, "--notes-file", str(final_notes), "--draft=false", "--latest=false"])
-    assets, release_url = asset_map(repo, tag)
+
+    # Publish only after the final notes already reference every uploaded image.
+    # The URLs are deterministic and become public atomically with the release.
+    command([
+        "gh", "release", "edit", tag, "--repo", repo, "--title", title,
+        "--notes-file", str(final_notes), "--draft=false", "--latest=false",
+    ])
+
+    assets, verified_release_url = asset_map(repo, tag)
+    expected = {path.name for path in files}
+    missing = sorted(expected.difference(assets))
+    if missing:
+        raise RuntimeError(f"Published release {tag} is missing assets: {', '.join(missing)}")
+    for entry in highlights:
+        if entry.primary_file not in assets:
+            raise RuntimeError(f"Published release {tag} is missing highlight asset {entry.primary_file}")
+
     return {
         "analysis_tag": tag,
-        "analysis_url": release_url,
+        "analysis_url": verified_release_url or release_url,
         "source_tag": source_tag,
         "source_url": source_url,
         "archive_url": assets.get(archive.name),
@@ -266,4 +327,5 @@ def publish_release(repo: str, source_tag: str, output_root: Path, entries: list
         "gallery_url": assets.get(gallery.name),
         "highlights": [entry.prompt_id for entry in highlights],
         "assets": assets,
+        "resumed_draft": resumed,
     }
