@@ -1,6 +1,6 @@
 # Media Experiment Ledger
 
-A release-backed experiment platform for structured media-generation runs. The repository keeps source code, prompt banks, immutable Release metadata, reproducible analytics, machine-learning forecasts, and a polished GitHub Pages observatory without committing large result folders to Git history.
+A release-backed experiment platform for structured media-generation runs. The repository keeps source code, prompt banks, immutable Release metadata, reproducible analytics, prompt-repeatability atlases, machine-learning forecasts, and a polished GitHub Pages observatory without committing large result folders to Git history.
 
 ## What this repository does
 
@@ -11,8 +11,9 @@ A release-backed experiment platform for structured media-generation runs. The r
 - Skips runs that were already published with identical content.
 - Can store a large input archive immediately as split, byte-verifiable snapshot assets and promote it later.
 - Builds daily, monthly, per-run, category, latency, error, and integrity analytics.
+- Builds a Prompt Repeatability Atlas for every eligible same-prompt cohort, embeds selected comparison cards in companion Release notes, and stores the complete atlas as assets.
 - Runs an ensemble forecasting laboratory for the next active experiment day and the next calendar month.
-- Publishes an Astro Starlight site with extensible navigation, interactive ECharts, Mermaid system diagrams, search, responsive layouts, and theme support.
+- Publishes an Astro Starlight site with extensible navigation, interactive ECharts, searchable visual comparisons, Mermaid system diagrams, responsive layouts, and theme support.
 
 ## Fastest publishing path
 
@@ -79,15 +80,31 @@ manifest-2026-06-29.json
 
 If a date was already published and genuinely receives a new run later, the tool creates a supplement such as `media-exp-2026-06-29-s01`. Existing releases are not overwritten.
 
+## Prompt Repeatability Atlas
+
+Every published `media-exp-*` Release also triggers **Publish Prompt Repeatability Atlas**. The workflow scans release-backed metadata, groups controlled cohorts by prompt ID, model, and appearance-relevant settings, verifies actual image members, removes exact byte duplicates, and renders every prompt with at least two usable unique samples.
+
+- Two samples render as `1×2`.
+- Three samples render as `2×2` with an explicit empty cell.
+- Four or more samples render a deterministic primary `2×2` card.
+- Five or more samples also receive an extended temporal sheet with up to eight samples.
+- Four category-diverse cards are embedded in Release notes by default.
+- The complete ZIP contains every primary card, extended sheet, JSON sidecar, report, and offline gallery.
+- Companion releases use `media-analysis-...-vN`; raw experiment Releases stay immutable.
+- GitHub Pages exposes the latest published index through **Visual Lab**.
+
+See [Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md) for the complete cohort, selection, rendering, Release, and timeout contract.
+
 ## Analytics, forecasting, and Pages
 
 Every formal `media-exp-*` Release enters the analytics pipeline. Snapshot promotion explicitly dispatches the same workflow after creating final Releases. A manual workflow run can process unseen releases, select the latest N, use a date range, ingest one exact tag, rebuild everything, or optionally verify media ZIPs.
 
-The pipeline now performs three stages:
+The pipelines now provide:
 
 ```text
 Release metadata
   → canonical analytics and reports
+  → prompt-repeatability atlas + companion analysis Release
   → ensemble machine-learning forecasts
   → Astro Starlight production build
   → GitHub Pages deployment
@@ -110,6 +127,8 @@ forecasts/
   model-card.md
   history.jsonl
   logs/
+visual-analysis/
+  config.json
 site/
   built Astro/Starlight website
 ```
@@ -118,8 +137,10 @@ The Pages experience contains top-level tabs for:
 
 - **Overview** — portfolio status and experiment navigation.
 - **Analytics** — interactive output, quality, category, error, monthly, and run-ledger views.
+- **Visual Lab** — searchable same-prompt comparison cards backed by companion Releases.
 - **Forecast Lab** — next-active-day forecasts, next-month Monte Carlo projections, confidence intervals, regimes, backtests, and ensemble weights.
 - **System Atlas** — detailed tool logic and Mermaid process diagrams with zoom, pan, reset, and fullscreen controls.
+- **Frontend Stack** — web framework, navigation, routing, visualization, build, and Pages deployment architecture.
 
 Adding another primary page requires one navigation registry entry and one MDX page. See [Web experience and forecasts](docs/WEB_EXPERIENCE_AND_FORECASTS.md).
 
@@ -131,14 +152,14 @@ This is deliberately presented as an experimental forecasting laboratory. With a
 
 ## Existing runner
 
-The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger, forecast, and web tooling. Large local outputs, input archives, logs, state, secrets, extraction directories, and release staging directories are excluded by `.gitignore`.
+The existing generation runner and prompt banks remain available in this repository. Its execution behavior is unchanged by the ledger, visual-analysis, forecast, and web tooling. Large local outputs, input archives, logs, state, secrets, extraction directories, atlas output directories, and release staging directories are excluded by `.gitignore`.
 
 ## Development
 
 Python validation:
 
 ```bash
-python -m pip install -r requirements-analytics.txt -r requirements-forecast.txt
+python -m pip install -r requirements-analytics.txt -r requirements-forecast.txt -r requirements-visual-analysis.txt
 python -m compileall tools tests
 python -m unittest discover -s tests -v
 ```
