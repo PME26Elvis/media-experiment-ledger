@@ -1,6 +1,6 @@
 ---
 title: Visual Lab
-description: Search every controlled prompt-repeatability comparison and open the complete release-backed atlas.
+description: Search the global prompt-repeatability index and download ZIP-packaged primary, temporal, and complete histories.
 ---
 
 import SectionTabs from '../../components/SectionTabs.astro';
@@ -12,12 +12,16 @@ import VisualAtlas from '../../components/VisualAtlas.astro';
 
 ## Reading the cards
 
-Each card contains only one controlled cohort: the same `prompt_id`, model, and appearance-relevant settings. Two and three-sample prompts use smaller dynamic layouts; prompts with richer history use deterministic historical anchors, while extended temporal sheets remain in the complete ZIP.
+Each row represents one controlled cohort: identical `prompt_id`, model, and appearance-relevant settings. The global index includes cohorts from every published `media-exp-*` Release, even when the most recent upload did not contain that prompt.
 
-The atlas preserves full frames with `contain` fitting. Differences visible inside a card are therefore not artifacts of presentation cropping. Exact duplicate image bytes are removed before selection.
+A primary card summarizes temporal anchors. An extended sheet selects up to 16 temporal quantiles. Full contact sheets include every verified byte-unique sample and paginate at 16 samples per page. Exact duplicates are removed before any layout is rendered.
+
+Only the small Release-note highlight set is mirrored as inline web previews. Every cohort still exposes its prompt ZIP, which contains the primary card, extended overview, all full pages, sidecars, and source index.
 
 ## Publication contract
 
-Raw `media-exp-*` Releases remain immutable. Every atlas is a companion `media-analysis-*` Release with individually addressable primary cards for this page and Release Markdown, plus one complete ZIP containing all primary cards, extended sheets, JSON sidecars, and an offline gallery.
+Raw experiment Releases remain immutable. The common multi-date publisher dispatches one global rebuild after the whole batch succeeds. Derived tags use `media-analysis-all-<dataset-fingerprint>-vN`.
 
-See [Prompt Repeatability Atlas specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/PROMPT_REPEATABILITY_ATLAS.md) for cohorting, dynamic selection, timeout, and recovery details.
+The companion Release asset list is ZIP-only: one package per prompt, metadata and offline-gallery packages, and multipart complete packages below the configured asset boundary. Inline Notes previews are served from versioned repository/Pages paths rather than naked Release assets.
+
+See [Prompt Repeatability Atlas specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/PROMPT_REPEATABILITY_ATLAS.md) for ingestion paths, batch triggers, cohorting, full-page selection, packaging, and recovery details.
