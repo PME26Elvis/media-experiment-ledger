@@ -45,13 +45,13 @@
 
 | Model | Weight | MAE | Folds |
 |---|---:|---:|---:|
-| Rolling median | 14.4% | 0.890 | 5 |
+| Rolling median | 14.3% | 0.890 | 5 |
 | Last value | 13.9% | 1.000 | 5 |
 | Damped drift | 13.6% | 1.024 | 5 |
-| Random forest | 12.4% | 1.139 | 5 |
+| Random forest | 12.4% | 1.138 | 5 |
 | Ridge | 12.2% | 1.163 | 5 |
-| Extra trees | 11.4% | 1.254 | 5 |
-| Gradient boost | 11.3% | 1.266 | 5 |
+| Extra trees | 11.6% | 1.229 | 5 |
+| Gradient boost | 11.2% | 1.272 | 5 |
 | Huber | 10.8% | 1.335 | 5 |
 
 ### Success rate
@@ -72,10 +72,10 @@
 | Model | Weight | MAE | Folds |
 |---|---:|---:|---:|
 | Gradient boost | 16.8% | 13.963 | 5 |
-| Random forest | 15.9% | 17.411 | 5 |
-| Last value | 15.6% | 17.775 | 5 |
-| Damped drift | 15.2% | 18.404 | 5 |
-| Extra trees | 15.1% | 18.540 | 5 |
-| Rolling median | 13.9% | 20.416 | 5 |
-| Ridge | 5.0% | 63.920 | 5 |
+| Random forest | 15.9% | 17.319 | 5 |
+| Last value | 15.5% | 17.775 | 5 |
+| Extra trees | 15.4% | 17.949 | 5 |
+| Damped drift | 15.1% | 18.404 | 5 |
+| Rolling median | 13.8% | 20.416 | 5 |
+| Ridge | 4.9% | 63.920 | 5 |
 | Huber | 2.5% | 132.321 | 5 |

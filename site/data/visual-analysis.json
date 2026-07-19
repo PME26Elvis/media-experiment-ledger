@@ -1,13 +1,48 @@
 {
   "schema_version": 1,
-  "status": "waiting_for_first_run",
-  "generated_at_utc": null,
-  "source_tag": null,
-  "comparable_prompts": 0,
-  "analysis_tag": null,
-  "analysis_url": null,
-  "archive_url": null,
-  "report_url": null,
-  "highlights": [],
-  "entries": []
+  "status": "published",
+  "generated_at_utc": "2026-07-19T15:25:21+00:00",
+  "source_tag": "media-exp-2026-07-13",
+  "comparable_prompts": 3,
+  "analysis_tag": "media-analysis-2026-07-13-v1",
+  "analysis_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1",
+  "archive_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-2026-07-13-v1/prompt-repeatability-atlas.zip",
+  "report_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-2026-07-13-v1/atlas-report.json",
+  "highlights": [
+    "i0001",
+    "i0002",
+    "i0003"
+  ],
+  "entries": [
+    {
+      "prompt_id": "i0001",
+      "category": "product",
+      "prompt": "Matte ceramic smart mug on walnut desk beside steam and morning notebook, warm window light, shallow depth of field, three-quarter product view, clean contemporary styling, crisp 2K detail.",
+      "model": "agnes-image-2.1-flash",
+      "cohort_id": "bb7adbfd12e867eb",
+      "sample_count": 9,
+      "primary_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-2026-07-13-v1/atlas-i0001-bb7adbfd12e867eb-n4.jpg",
+      "has_extended": true
+    },
+    {
+      "prompt_id": "i0002",
+      "category": "product",
+      "prompt": "Transparent reusable water bottle with citrus slices inside, perched on pale stone counter, bright spa lighting, minimal shadows, centered composition, premium lifestyle product photography.",
+      "model": "agnes-image-2.1-flash",
+      "cohort_id": "7505d139a8ee561c",
+      "sample_count": 9,
+      "primary_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-2026-07-13-v1/atlas-i0002-7505d139a8ee561c-n4.jpg",
+      "has_extended": true
+    },
+    {
+      "prompt_id": "i0003",
+      "category": "product",
+      "prompt": "Compact wireless earbuds in brushed graphite case, resting on folded charcoal fabric, cool studio rim light, macro perspective, sleek tech product rendering, high detail.",
+      "model": "agnes-image-2.1-flash",
+      "cohort_id": "9ee3fb56660fc2c6",
+      "sample_count": 9,
+      "primary_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-2026-07-13-v1/atlas-i0003-9ee3fb56660fc2c6-n4.jpg",
+      "has_extended": true
+    }
+  ]
 }
