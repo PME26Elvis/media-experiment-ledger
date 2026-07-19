@@ -1,0 +1,113 @@
+name: Publish Prompt Repeatability Atlas
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      source_tag:
+        description: Exact media-exp-* release tag, or latest
+        required: true
+        default: latest
+        type: string
+
+concurrency:
+  group: prompt-repeatability-atlas
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.release.tag_name, 'media-exp-')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install renderer and free CJK font
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install -r requirements-visual-analysis.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+
+      - name: Resolve source release
+        id: source
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.source_tag }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "release" ]]; then
+            tag="$EVENT_TAG"
+          else
+            tag="${INPUT_TAG:-latest}"
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Build and publish complete atlas
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          python tools/build_prompt_atlas.py \
+            --source-tag '${{ steps.source.outputs.tag }}' \
+            --repo '${{ github.repository }}' \
+            --config visual-analysis/config.json \
+            --output-dir visual-analysis/output \
+            --pages-index web/public/data/visual-analysis.json \
+            --publish
+
+      - name: Upload reproducible workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompt-repeatability-atlas-${{ steps.source.outputs.tag }}
+          path: |
+            visual-analysis/output/
+            web/public/data/visual-analysis.json
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 0
+
+      - name: Publish Visual Lab index to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain -- web/public/data/visual-analysis.json)" ]]; then
+            echo "Visual Lab index is unchanged"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add web/public/data/visual-analysis.json
+          git commit -m 'visual: refresh prompt repeatability atlas index'
+
+          # Analytics may commit generated site files concurrently. Rebase immediately
+          # rather than sleeping or polling for long periods.
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt $attempt raced with another workflow; retrying after rebase"
+          done
+          echo 'Unable to publish the Visual Lab index after three conflict-safe attempts' >&2
+          exit 1
