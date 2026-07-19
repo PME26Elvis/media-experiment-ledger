@@ -63,6 +63,8 @@ class AtlasEntry:
     extended_file: str | None
     selected_primary: list[dict[str, Any]] = field(default_factory=list)
     selected_extended: list[dict[str, Any]] = field(default_factory=list)
+    full_files: list[str] = field(default_factory=list)
+    bundle_file: str | None = None
 
 
 def canonical(value: Any) -> str:
@@ -100,7 +102,7 @@ def member_matches(member: str, prompt_id: str) -> bool:
 
 
 def deduplicate_samples(samples: Sequence[Sample], preferred_tag: str | None = None) -> list[Sample]:
-    """Keep one verified sample per byte digest, preferring the source Release on ties."""
+    """Keep one verified sample per byte digest, preferring a requested Release on ties."""
     groups: dict[str, list[Sample]] = {}
     for sample in sorted(samples, key=lambda item: item.sort_key):
         if sample.extracted_path and sample.sha256:
@@ -114,6 +116,8 @@ def deduplicate_samples(samples: Sequence[Sample], preferred_tag: str | None = N
 
 def temporal_quantiles(samples: Sequence[Sample], count: int) -> list[Sample]:
     ordered = sorted(samples, key=lambda item: item.sort_key)
+    if not ordered:
+        return []
     if count >= len(ordered):
         return ordered
     if count <= 1:
@@ -131,11 +135,12 @@ def temporal_quantiles(samples: Sequence[Sample], count: int) -> list[Sample]:
     return sorted(selected[:count], key=lambda item: item.sort_key)
 
 
-def select_primary(samples: Sequence[Sample], source_tag: str) -> list[Sample]:
+def select_primary(samples: Sequence[Sample], preferred_tag: str | None = None) -> list[Sample]:
+    """Choose temporal anchors and always keep the latest relevant sample."""
     ordered = sorted(samples, key=lambda item: item.sort_key)
     if len(ordered) <= 3:
         return ordered
-    current = ([item for item in ordered if item.source_tag == source_tag] or [ordered[-1]])[-1]
+    current = ([item for item in ordered if preferred_tag and item.source_tag == preferred_tag] or [ordered[-1]])[-1]
     history = [item for item in ordered if item is not current]
     selected = temporal_quantiles(history, min(3, len(history))) + [current]
     unique: list[Sample] = []
@@ -151,17 +156,23 @@ def select_primary(samples: Sequence[Sample], source_tag: str) -> list[Sample]:
     return unique
 
 
-def primary_roles(samples: Sequence[Sample], source_tag: str) -> list[str]:
+def primary_roles(samples: Sequence[Sample], preferred_tag: str | None = None) -> list[str]:
+    latest_role = "Current" if preferred_tag and samples and samples[-1].source_tag == preferred_tag else "Latest"
     if len(samples) == 2:
-        return ["Historical", "Current" if samples[-1].source_tag == source_tag else "Latest"]
+        return ["Historical", latest_role]
     if len(samples) == 3:
-        return ["Earliest", "Historical", "Current" if samples[-1].source_tag == source_tag else "Latest"]
-    return ["Earliest", "Mid-history", "Latest prior", "Current"]
+        return ["Earliest", "Historical", latest_role]
+    return ["Earliest", "Mid-history", "Latest prior", latest_role]
 
 
-def grid_shape(sample_count: int, *, extended: bool = False) -> tuple[int, int, int]:
+def grid_shape(
+    sample_count: int,
+    *,
+    extended: bool = False,
+    extended_max_samples: int = 16,
+) -> tuple[int, int, int]:
     if extended:
-        visible = min(8, max(1, sample_count))
+        visible = min(max(1, int(extended_max_samples)), max(1, sample_count))
         columns = min(4, visible)
         return columns, math.ceil(visible / columns), visible
     return (2, 1, sample_count) if sample_count <= 2 else (2, 2, min(4, sample_count))
@@ -174,7 +185,7 @@ def locate_font(config: dict[str, Any]) -> Path | None:
         "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
         "/usr/share/fonts/opentype/noto/NotoSansCJKtc-Regular.otf",
         "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+        "/usr/share/fonts/truetype/dejavuSans.ttf",
     ]
     return next((Path(str(item)) for item in candidates if item and Path(str(item)).exists()), None)
 
@@ -188,7 +199,13 @@ def _font(path: Path | None, size: int) -> ImageFont.ImageFont:
     return ImageFont.load_default()
 
 
-def _wrap_pixels(draw: ImageDraw.ImageDraw, text: str, chosen_font: ImageFont.ImageFont, width: int, max_lines: int) -> list[str]:
+def _wrap_pixels(
+    draw: ImageDraw.ImageDraw,
+    text: str,
+    chosen_font: ImageFont.ImageFont,
+    width: int,
+    max_lines: int,
+) -> list[str]:
     words = text.split() or ["Prompt", "text", "unavailable"]
     lines: list[str] = []
     current = ""
@@ -239,8 +256,13 @@ def render_card(
     config: dict[str, Any],
     extended: bool = False,
 ) -> None:
-    columns, rows, _ = grid_shape(len(samples), extended=extended)
-    cell = int(config.get("cell_size", 960))
+    max_visible = int(config.get("extended_page_samples", 16)) if extended else 4
+    columns, rows, _ = grid_shape(
+        len(samples),
+        extended=extended,
+        extended_max_samples=max_visible,
+    )
+    cell = int(config.get("extended_cell_size", 640) if extended else config.get("cell_size", 960))
     gap = int(config.get("gap", 24))
     margin = int(config.get("margin", 48))
     header = int(config.get("header_height", 260))
@@ -251,17 +273,28 @@ def render_card(
     canvas = Image.new("RGB", (width, height), (7, 16, 29))
     draw = ImageDraw.Draw(canvas)
     font_path = locate_font(config)
-    title_font = _font(font_path, 48 if extended else 42)
-    meta_font = _font(font_path, 24)
-    prompt_font = _font(font_path, 32 if extended else 30)
-    label_font = _font(font_path, 25)
-    small_font = _font(font_path, 19)
+    title_font = _font(font_path, 44 if extended else 42)
+    meta_font = _font(font_path, 23)
+    prompt_font = _font(font_path, 29 if extended else 30)
+    label_font = _font(font_path, 23 if extended else 25)
+    small_font = _font(font_path, 17 if extended else 19)
     cyan, soft, white = (82, 211, 255), (156, 181, 204), (239, 248, 255)
 
     draw.text((margin, 32), f"{prompt_id} · {category}", font=title_font, fill=cyan)
-    draw.text((margin, 88), f"{model} · cohort {cohort_id} · {len(samples)} displayed samples", font=meta_font, fill=soft)
+    draw.text(
+        (margin, 88),
+        f"{model} · cohort {cohort_id} · {len(samples)} displayed samples",
+        font=meta_font,
+        fill=soft,
+    )
     y = 130
-    for line in _wrap_pixels(draw, prompt, prompt_font, width - margin * 2, int(config.get("prompt_max_lines", 3))):
+    for line in _wrap_pixels(
+        draw,
+        prompt,
+        prompt_font,
+        width - margin * 2,
+        int(config.get("prompt_max_lines", 3)),
+    ):
         draw.text((margin, y), line, font=prompt_font, fill=white)
         y += 38
 
@@ -269,25 +302,58 @@ def render_card(
         row, column = divmod(index, columns)
         x = margin + column * (cell + gap)
         y = header + row * (cell + gap)
-        draw.rounded_rectangle((x, y, x + cell, y + cell), radius=22, fill=(13, 28, 47), outline=(49, 84, 112), width=2)
+        draw.rounded_rectangle(
+            (x, y, x + cell, y + cell),
+            radius=22,
+            fill=(13, 28, 47),
+            outline=(49, 84, 112),
+            width=2,
+        )
         if index >= len(samples):
             message = "Not enough historical samples"
-            placeholder = _font(font_path, 32)
+            placeholder = _font(font_path, 30)
             box = draw.textbbox((0, 0), message, font=placeholder)
-            draw.text((x + (cell - box[2]) / 2, y + (cell - box[3]) / 2), message, font=placeholder, fill=soft)
+            draw.text(
+                (x + (cell - box[2]) / 2, y + (cell - box[3]) / 2),
+                message,
+                font=placeholder,
+                fill=soft,
+            )
             continue
         sample = samples[index]
         with Image.open(Path(sample.extracted_path or "")) as source:
             fitted = _contain(source, (cell - 4, cell - label_height - 4))
         canvas.paste(fitted, (x + 2, y + 2))
-        role, details = _sample_label(sample, roles[index] if index < len(roles) else f"Sample {index + 1}")
+        role, details = _sample_label(
+            sample,
+            roles[index] if index < len(roles) else f"Sample {index + 1}",
+        )
         label_y = y + cell - label_height
-        draw.rectangle((x + 2, label_y, x + cell - 2, y + cell - 2), fill=(10, 23, 39))
-        draw.text((x + 20, label_y + 10), role, font=label_font, fill=cyan if role == "Current" else white)
-        draw.text((x + 20, label_y + 44), textwrap.shorten(details, width=95 if extended else 72, placeholder="…"), font=small_font, fill=soft)
+        draw.rectangle(
+            (x + 2, label_y, x + cell - 2, y + cell - 2),
+            fill=(10, 23, 39),
+        )
+        draw.text(
+            (x + 20, label_y + 10),
+            role,
+            font=label_font,
+            fill=cyan if role in {"Current", "Latest"} else white,
+        )
+        draw.text(
+            (x + 20, label_y + 44),
+            textwrap.shorten(details, width=86 if extended else 72, placeholder="…"),
+            font=small_font,
+            fill=soft,
+        )
 
     destination.parent.mkdir(parents=True, exist_ok=True)
-    canvas.save(destination, "JPEG", quality=int(config.get("jpeg_quality", 90)), optimize=True, progressive=True)
+    canvas.save(
+        destination,
+        "JPEG",
+        quality=int(config.get("jpeg_quality", 90)),
+        optimize=True,
+        progressive=True,
+    )
 
 
 def sample_public_dict(sample: Sample) -> dict[str, Any]:
