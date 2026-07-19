@@ -1,0 +1,23 @@
+---
+title: Visual Lab
+description: Search every controlled prompt-repeatability comparison and open the complete release-backed atlas.
+---
+
+import SectionTabs from '../../components/SectionTabs.astro';
+import VisualAtlas from '../../components/VisualAtlas.astro';
+
+<SectionTabs />
+
+<VisualAtlas />
+
+## Reading the cards
+
+Each card contains only one controlled cohort: the same `prompt_id`, model, and appearance-relevant settings. Two and three-sample prompts use smaller dynamic layouts; prompts with richer history use deterministic historical anchors, while extended temporal sheets remain in the complete ZIP.
+
+The atlas preserves full frames with `contain` fitting. Differences visible inside a card are therefore not artifacts of presentation cropping. Exact duplicate image bytes are removed before selection.
+
+## Publication contract
+
+Raw `media-exp-*` Releases remain immutable. Every atlas is a companion `media-analysis-*` Release with individually addressable primary cards for this page and Release Markdown, plus one complete ZIP containing all primary cards, extended sheets, JSON sidecars, and an offline gallery.
+
+See [Prompt Repeatability Atlas specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/PROMPT_REPEATABILITY_ATLAS.md) for cohorting, dynamic selection, timeout, and recovery details.
