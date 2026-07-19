@@ -11,6 +11,7 @@ state/
 .input-staging/
 .input-download/
 .release-staging/
+visual-analysis/output/
 
 # Local secrets and environments
 .env
