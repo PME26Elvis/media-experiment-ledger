@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from PIL import Image
 
-from tools.prompt_atlas_core import (
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "tools"))
+
+from prompt_atlas_core import (
     Sample,
     cohort_identity,
     deduplicate_samples,
@@ -17,7 +21,7 @@ from tools.prompt_atlas_core import (
     select_primary,
     temporal_quantiles,
 )
-from tools.prompt_atlas_github import next_analysis_tag
+from prompt_atlas_github import next_analysis_tag
 
 
 def sample(index: int, *, source_tag: str = "media-exp-2026-07-01", digest: str | None = None) -> Sample:
