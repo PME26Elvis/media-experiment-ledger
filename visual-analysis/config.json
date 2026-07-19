@@ -1,0 +1,13 @@
+{
+  "release_notes_highlights": 4,
+  "extended_min_samples": 5,
+  "extended_max_samples": 8,
+  "cell_size": 960,
+  "margin": 48,
+  "gap": 24,
+  "header_height": 260,
+  "label_height": 82,
+  "prompt_max_lines": 3,
+  "jpeg_quality": 90,
+  "upload_chunk_size": 80
+}

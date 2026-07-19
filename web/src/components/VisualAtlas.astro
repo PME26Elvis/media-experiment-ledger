@@ -1,0 +1,142 @@
+---
+import { sitePath } from '../lib/sitePath';
+const dataUrl = sitePath('data/visual-analysis.json');
+---
+
+<section class="visual-atlas" data-atlas-root data-url={dataUrl}>
+  <div class="atlas-toolbar panel-surface">
+    <div>
+      <span class="eyebrow">PROMPT REPEATABILITY ATLAS</span>
+      <h2>Controlled visual variation across runs.</h2>
+      <p>Every eligible prompt is rendered; only a small category-diverse set appears in Release notes. Search the full primary-card index here and download the complete ZIP for extended sheets and JSON sidecars.</p>
+    </div>
+    <div class="atlas-actions">
+      <label>Prompt or text<input type="search" data-atlas-search placeholder="i0001, product, ceramic…" /></label>
+      <label>Category<select data-atlas-category><option value="">All categories</option></select></label>
+      <a class="atlas-download" data-atlas-download hidden>Complete atlas ZIP</a>
+    </div>
+  </div>
+
+  <div class="atlas-metrics" data-atlas-metrics>
+    <article><span>Status</span><strong>Loading</strong><small>Reading the latest published analysis index</small></article>
+    <article><span>Source</span><strong>—</strong><small>Experiment release</small></article>
+    <article><span>Comparisons</span><strong>—</strong><small>Controlled prompt cohorts</small></article>
+    <article><span>Analysis</span><strong>—</strong><small>Companion Release</small></article>
+  </div>
+
+  <p class="atlas-status" data-atlas-status>Loading Visual Lab data…</p>
+  <div class="atlas-grid" data-atlas-grid></div>
+</section>
+
+<script>
+  const roots = document.querySelectorAll('[data-atlas-root]');
+  for (const root of roots) {
+    const dataUrl = root.dataset.url;
+    const grid = root.querySelector('[data-atlas-grid]');
+    const status = root.querySelector('[data-atlas-status]');
+    const search = root.querySelector('[data-atlas-search]');
+    const category = root.querySelector('[data-atlas-category]');
+    const download = root.querySelector('[data-atlas-download]');
+    const metrics = [...root.querySelectorAll('[data-atlas-metrics] article')];
+    let entries = [];
+
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;'
+    }[character]));
+
+    const render = () => {
+      const needle = search.value.trim().toLowerCase();
+      const selectedCategory = category.value;
+      const filtered = entries.filter((entry) => {
+        const haystack = `${entry.prompt_id} ${entry.category} ${entry.model} ${entry.prompt}`.toLowerCase();
+        return (!needle || haystack.includes(needle)) && (!selectedCategory || entry.category === selectedCategory);
+      });
+      status.textContent = `${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} controlled comparisons`;
+      grid.innerHTML = filtered.map((entry) => `
+        <article class="atlas-card">
+          <a class="atlas-image-link" href="${escapeHtml(entry.primary_url || '#')}" target="_blank" rel="noreferrer">
+            ${entry.primary_url ? `<img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} repeatability comparison" />` : '<div class="atlas-image-missing">Card URL unavailable</div>'}
+          </a>
+          <div class="atlas-card-body">
+            <div class="atlas-card-head"><strong>${escapeHtml(entry.prompt_id)}</strong><span>${escapeHtml(entry.sample_count)} samples</span></div>
+            <small>${escapeHtml(entry.category)} · ${escapeHtml(entry.model)}</small>
+            <p>${escapeHtml(entry.prompt)}</p>
+            <div class="atlas-tags"><code>${escapeHtml(entry.cohort_id)}</code>${entry.has_extended ? '<span>Extended sheet in ZIP</span>' : '<span>Primary only</span>'}</div>
+          </div>
+        </article>`).join('');
+      if (!filtered.length) grid.innerHTML = '<div class="atlas-empty panel-surface">No comparisons match the current filters.</div>';
+    };
+
+    fetch(dataUrl, { cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((data) => {
+        entries = Array.isArray(data.entries) ? data.entries : [];
+        const categories = [...new Set(entries.map((entry) => entry.category).filter(Boolean))].sort();
+        category.insertAdjacentHTML('beforeend', categories.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join(''));
+        if (data.archive_url) {
+          download.href = data.archive_url;
+          download.hidden = false;
+        }
+        const metricValues = [
+          [data.status === 'published' ? 'Published' : 'Waiting', data.generated_at_utc ? `Generated ${new Date(data.generated_at_utc).toLocaleString()}` : 'No generated atlas yet'],
+          [data.source_tag || '—', 'Experiment release'],
+          [Number(data.comparable_prompts || 0).toLocaleString(), 'Controlled prompt cohorts'],
+          [data.analysis_tag || '—', data.analysis_url ? 'Companion Release published' : 'Companion Release']
+        ];
+        metrics.forEach((tile, index) => {
+          tile.querySelector('strong').textContent = metricValues[index][0];
+          tile.querySelector('small').textContent = metricValues[index][1];
+        });
+        render();
+      })
+      .catch((error) => {
+        status.textContent = `Visual Lab data could not be loaded: ${error.message}`;
+        status.classList.add('error');
+        grid.innerHTML = '<div class="atlas-empty panel-surface">Run the Prompt Repeatability Atlas workflow to publish the first index.</div>';
+      });
+
+    search.addEventListener('input', render);
+    category.addEventListener('change', render);
+  }
+</script>
+
+<style>
+  .visual-atlas { margin-top: 1rem; }
+  .atlas-toolbar { display:grid; grid-template-columns:1.25fr .75fr; gap:1.25rem; align-items:end; }
+  .atlas-toolbar h2 { margin:.2rem 0 .45rem; font-size:clamp(1.7rem,3vw,2.7rem); letter-spacing:-.045em; }
+  .atlas-toolbar p { margin:0; color:var(--soft-text); max-width:68ch; }
+  .atlas-actions { display:grid; grid-template-columns:1fr 1fr; gap:.65rem; }
+  .atlas-actions label { color:var(--soft-text); font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+  .atlas-actions input,.atlas-actions select { width:100%; display:block; margin-top:.3rem; min-height:2.65rem; border-radius:.7rem; border:1px solid var(--panel-border); color:inherit; background:rgba(5,14,25,.72); padding:.55rem .7rem; }
+  :root[data-theme='light'] .atlas-actions input,:root[data-theme='light'] .atlas-actions select { background:#fff; }
+  .atlas-download { grid-column:1/-1; display:flex; justify-content:center; align-items:center; min-height:2.7rem; border-radius:.72rem; text-decoration:none; color:#07101d; background:linear-gradient(135deg,var(--cyan),#8ae7ff); font-weight:850; }
+  .atlas-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; margin:1rem 0; }
+  .atlas-metrics article { padding:1rem; border-radius:1rem; background:var(--panel-bg); border:1px solid var(--panel-border); min-width:0; }
+  .atlas-metrics span,.atlas-metrics small { display:block; color:var(--soft-text); }
+  .atlas-metrics span { font-size:.65rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+  .atlas-metrics strong { display:block; margin:.3rem 0; font-size:clamp(1.2rem,2.2vw,1.8rem); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .atlas-metrics small { font-size:.7rem; }
+  .atlas-status { color:var(--soft-text); font-size:.78rem; }
+  .atlas-status.error { color:var(--pink); }
+  .atlas-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .atlas-card { overflow:hidden; border:1px solid var(--panel-border); border-radius:1.1rem; background:var(--panel-bg); box-shadow:0 18px 50px rgba(0,0,0,.15); }
+  .atlas-image-link { display:block; background:#07101d; aspect-ratio:2048/2304; overflow:hidden; }
+  .atlas-image-link img { width:100%; height:100%; display:block; object-fit:contain; transition:transform .25s ease; }
+  .atlas-image-link:hover img { transform:scale(1.012); }
+  .atlas-image-missing { height:100%; display:grid; place-items:center; color:var(--soft-text); }
+  .atlas-card-body { padding:1rem; }
+  .atlas-card-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  .atlas-card-head strong { color:var(--cyan); font-size:1.15rem; }
+  .atlas-card-head span { color:var(--green); font-size:.72rem; font-weight:800; }
+  .atlas-card-body small { color:var(--soft-text); }
+  .atlas-card-body p { color:var(--soft-text); font-size:.83rem; line-height:1.55; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .atlas-tags { display:flex; justify-content:space-between; gap:.75rem; align-items:center; }
+  .atlas-tags code { font-size:.66rem; color:var(--cyan); }
+  .atlas-tags span { color:var(--soft-text); font-size:.67rem; }
+  .atlas-empty { grid-column:1/-1; text-align:center; color:var(--soft-text); padding:2rem; }
+  @media (max-width:75rem) { .atlas-toolbar { grid-template-columns:1fr; } .atlas-metrics { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:48rem) { .atlas-actions,.atlas-grid { grid-template-columns:1fr; } .atlas-metrics { grid-template-columns:1fr 1fr; } }
+</style>
