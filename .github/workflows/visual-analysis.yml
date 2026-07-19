@@ -1,8 +1,18 @@
 name: Publish Prompt Repeatability Atlas
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+    inputs:
+      batch_id:
+        description: Optional batch label; production publishers fill this automatically
+        required: false
+        default: manual
+        type: string
+      force:
+        description: Publish a new version even when the full-data fingerprint already exists
+        required: false
+        default: false
+        type: boolean
   push:
     branches: [main]
     paths:
@@ -10,15 +20,14 @@ on:
       - 'tools/build_prompt_atlas.py'
       - 'tools/prompt_atlas_core.py'
       - 'tools/prompt_atlas_github.py'
+      - 'tools/prompt_atlas_data.py'
+      - 'tools/prompt_atlas_publish.py'
+      - 'tools/prompt_atlas_build.py'
+      - 'tools/prompt_atlas_packages.py'
+      - 'tools/release_packaging.py'
+      - 'tools/release_publishing.py'
       - 'requirements-visual-analysis.txt'
       - 'visual-analysis/config.json'
-  workflow_dispatch:
-    inputs:
-      source_tag:
-        description: Exact media-exp-* release tag, or latest
-        required: true
-        default: latest
-        type: string
 
 concurrency:
   group: prompt-repeatability-atlas
@@ -29,9 +38,7 @@ permissions:
 
 jobs:
   build-and-publish:
-    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'media-exp-')
     runs-on: ubuntu-latest
-    timeout-minutes: 90
 
     steps:
       - name: Checkout main
@@ -53,63 +60,81 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends fonts-noto-cjk
 
-      - name: Resolve source release
-        id: source
+      - name: Resolve full-corpus build identity
+        id: build
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_TAG: ${{ github.event.release.tag_name }}
-          INPUT_TAG: ${{ inputs.source_tag }}
+          INPUT_BATCH_ID: ${{ inputs.batch_id }}
+          INPUT_FORCE: ${{ inputs.force }}
+          COMMIT_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "release" ]]; then
-            tag="$EVENT_TAG"
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            batch_id="code-${COMMIT_SHA:0:12}"
+            force="true"
           else
-            tag="${INPUT_TAG:-latest}"
+            batch_id="${INPUT_BATCH_ID:-manual}"
+            force="${INPUT_FORCE:-false}"
           fi
-          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          batch_id="$(printf '%s' "$batch_id" | tr -c 'A-Za-z0-9._-' '-')"
+          echo "batch_id=$batch_id" >> "$GITHUB_OUTPUT"
+          echo "force=$force" >> "$GITHUB_OUTPUT"
 
-      - name: Build and publish complete atlas
+      - name: Build and publish all-data Atlas
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-        run: |
-          set -euo pipefail
-          python tools/build_prompt_atlas.py \
-            --source-tag '${{ steps.source.outputs.tag }}' \
-            --repo '${{ github.repository }}' \
-            --config visual-analysis/config.json \
-            --output-dir visual-analysis/output \
-            --pages-index web/public/data/visual-analysis.json \
-            --publish
-
-      - name: Upload reproducible workflow artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: prompt-repeatability-atlas-${{ steps.source.outputs.tag }}
-          path: |
-            visual-analysis/output/
-            web/public/data/visual-analysis.json
-          if-no-files-found: warn
-          retention-days: 14
-          compression-level: 0
-
-      - name: Publish Visual Lab index to main
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "$(git status --porcelain -- web/public/data/visual-analysis.json)" ]]; then
-            echo "Visual Lab index is unchanged"
+          args=(
+            --scope all
+            --batch-id '${{ steps.build.outputs.batch_id }}'
+            --repo '${{ github.repository }}'
+            --config visual-analysis/config.json
+            --output-dir visual-analysis/output
+            --pages-index web/public/data/visual-analysis.json
+            --preview-root web/public/data/visual-analysis/previews
+            --publish
+          )
+          if [[ '${{ steps.build.outputs.force }}' == 'true' ]]; then
+            args+=(--force)
+          fi
+          python tools/build_prompt_atlas.py "${args[@]}"
+
+      - name: Upload failure recovery artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-prompt-atlas-${{ steps.build.outputs.batch_id }}
+          path: |
+            visual-analysis/output/
+            web/public/data/visual-analysis.json
+            web/public/data/visual-analysis/previews/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+
+      - name: Publish Visual Lab index and versioned note previews
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(
+            web/public/data/visual-analysis.json
+            web/public/data/visual-analysis/previews
+          )
+          if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
+            echo "Visual Lab index and previews are unchanged"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add web/public/data/visual-analysis.json
-          git commit -m 'visual: refresh prompt repeatability atlas index'
+          git add "${paths[@]}"
+          git commit -m 'visual: publish full-corpus prompt atlas index'
 
-          # Analytics may commit generated site files concurrently. Rebase immediately
-          # rather than sleeping or polling for long periods.
+          # Analytics may update generated site files concurrently. Rebase and
+          # retry immediately; no sleep/poll loop or persistent state is used.
           for attempt in 1 2 3; do
             git fetch origin main
             git rebase origin/main
