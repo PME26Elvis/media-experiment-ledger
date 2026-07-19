@@ -21,7 +21,7 @@ from prompt_atlas_core import (
     select_primary,
     temporal_quantiles,
 )
-from prompt_atlas_github import next_analysis_tag
+from prompt_atlas_github import analysis_tag_for_run, next_analysis_tag, release_asset_url
 
 
 def sample(index: int, *, source_tag: str = "media-exp-2026-07-01", digest: str | None = None) -> Sample:
@@ -90,6 +90,28 @@ class PromptAtlasTests(unittest.TestCase):
         existing = ["media-analysis-2026-07-12-v1", "media-analysis-2026-07-12-v3"]
         self.assertEqual(next_analysis_tag("media-exp-2026-07-12", existing), "media-analysis-2026-07-12-v4")
         self.assertEqual(next_analysis_tag("media-exp-2026-07-12-s01", existing), "media-analysis-2026-07-12-s01-v1")
+
+    def test_analysis_run_resumes_newest_matching_draft(self) -> None:
+        releases = [
+            {"tagName": "media-analysis-2026-07-12-v1", "isDraft": True},
+            {"tagName": "media-analysis-2026-07-12-v2", "isDraft": False},
+            {"tagName": "media-analysis-2026-07-12-v3", "isDraft": True},
+            {"tagName": "media-analysis-2026-07-13-v9", "isDraft": True},
+        ]
+        self.assertEqual(
+            analysis_tag_for_run("media-exp-2026-07-12", releases),
+            ("media-analysis-2026-07-12-v3", True),
+        )
+        self.assertEqual(
+            analysis_tag_for_run("media-exp-2026-07-12-s01", releases),
+            ("media-analysis-2026-07-12-s01-v1", False),
+        )
+
+    def test_release_asset_url_is_safe_and_predictable(self) -> None:
+        self.assertEqual(
+            release_asset_url("owner/repo", "media-analysis-2026-07-12-v1", "i0001 cohort.jpg"),
+            "https://github.com/owner/repo/releases/download/media-analysis-2026-07-12-v1/i0001%20cohort.jpg",
+        )
 
     def test_render_two_and_three_sample_cards(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
