@@ -2,76 +2,82 @@
 
 ## One-time preparation
 
-Open the repository page and select **Code → Codespaces → Create codespace on main**. Codespaces includes Python, Git, and GitHub CLI authentication for the current repository.
+Open the repository page and select **Code → Codespaces → Create codespace on main**. Codespaces includes Python, Git, and GitHub CLI authentication for the repository.
 
-The repository ignores `results/`, `results*.zip`, extraction directories, release staging, logs, state, and environment files, so the uploaded inputs do not enter Git history.
+The repository ignores original result trees, uploaded archives, extraction directories, release staging, logs, state, and secrets.
 
-## Recommended routine operation
+## Recommended operation: one multi-day archive
 
-### 1. Upload one archive
+### 1. Upload
 
-Create `results.zip` locally and upload that single file to the Codespaces Explorer. This avoids the browser's less reliable large-directory upload path. Supported archive layouts are documented in [ZIP input and snapshot workflow](INPUT_ARCHIVE_WORKFLOW.md).
+Create `results.zip` locally and upload that single file. It may contain many `YYYY-MM-DD` directories and many runs per date. Supported layouts are documented in [ZIP input and snapshot workflow](INPUT_ARCHIVE_WORKFLOW.md).
 
-If the Codespace was opened before the latest repository changes, run:
+Update an older Codespace first:
 
 ```bash
 git pull --ff-only
 ```
 
-The ignored `results.zip` does not block this update.
-
-### 2. Publish every new run
+### 2. Publish the complete batch
 
 ```bash
 python tools/publish_from_archive.py results.zip
 ```
 
-The wrapper validates the ZIP, extracts it temporarily, detects the results root, and invokes the existing publisher. The publisher then:
+The wrapper validates and extracts the archive, then calls the shared publisher. The shared publisher:
 
-1. scans each `YYYY-MM-DD` directory;
-2. loads all existing primary and supplemental manifests for that date;
+1. scans every date directory;
+2. loads all primary and supplemental manifests for each date;
 3. skips identical `run_id` plus digest pairs;
-4. blocks only a conflicting `run_id` whose content changed;
+4. blocks conflicting changed content under the same `run_id`;
 5. packages images and videos separately with ZIP store mode;
-6. splits a media group near 1.8 GiB;
-7. includes the run JSONL files in every media ZIP part and also uploads JSONL and manifest assets separately;
-8. creates an immutable date release;
-9. verifies command completion;
-10. removes temporary extraction and package files after a successful batch.
+6. splits media near 1.8 GiB;
+7. publishes standalone JSONL/manifest metadata for inexpensive analytics;
+8. creates as many immutable date Releases as the archive requires;
+9. waits until the entire date loop is complete;
+10. dispatches one Prompt Repeatability Atlas over **all published experiment data**;
+11. removes temporary extraction and package files after a successful batch.
 
-The original `results.zip` remains in the Codespace.
+The Atlas is therefore aligned with the uploaded package, not with an arbitrary individual date Release created midway through processing.
 
-### 3. Review the result
+### 3. Review
 
-Open **Releases** and confirm the new date tags. Manually created experiment Releases start the analytics workflow automatically.
+Open **Releases** and verify:
 
-### 4. Delete the Codespace when finished
+- the expected new `media-exp-*` primary/supplemental tags;
+- one new or reused `media-analysis-all-<fingerprint>-vN` Atlas;
+- a small set of inline Atlas previews in the analysis Notes;
+- ZIP-only Atlas assets, including one prompt bundle per prompt and complete multipart packages.
 
-Deleting the Codespace removes the uploaded input and temporary workspace without touching Release assets.
+### 4. Cleanup
+
+Delete the Codespace when finished. Releases remain intact.
 
 ## Immediate storage fallback
 
-When a single large ZIP has finished uploading but you prefer to store it before running the full date pipeline:
+Store the uploaded archive before processing:
 
 ```bash
 python tools/input_snapshot.py publish results.zip
 ```
 
-The file is split below the Release asset boundary and uploaded with a SHA-256 manifest. Promote it later through **Actions → Promote input snapshot**, or from a Codespace with:
+Promote later through **Actions → Promote input snapshot**, or from Codespaces:
 
 ```bash
-python tools/input_snapshot.py promote --tag media-input-YYYY-MM-DD-SHA12
+python tools/input_snapshot.py promote --tag latest
 ```
+
+Promotion reconstructs the original archive and calls the same common publisher, so the final full-corpus Atlas behavior is identical.
 
 ## Direct folder compatibility
 
-A complete folder already available through terminal transfer or another method can still be used:
+A complete local directory remains supported:
 
 ```bash
 python tools/publish_results.py --source results
 ```
 
-It is safe to include dates that were already published. The publisher compares every `run_id` and SHA-256 content digest against remote manifests.
+Including dates already published is safe. Remote manifests determine whether each run is new, identical, or conflicting. A successful invocation dispatches one full-corpus Atlas after all date Releases are finished.
 
 ## Useful archive options
 
@@ -89,25 +95,33 @@ python tools/publish_from_archive.py results.zip \
   --date 2026-06-30
 ```
 
-Keep extracted files for inspection:
+Keep extracted files:
 
 ```bash
 python tools/publish_from_archive.py results.zip --keep-extracted
 ```
 
-Use a lower final media part boundary:
+Use a lower final media-part boundary:
 
 ```bash
 python tools/publish_from_archive.py results.zip --max-part-gib 1.5
 ```
 
-## Duplicate and conflict behavior
+Skip the automatic Atlas only for exceptional maintenance:
 
-| Local state | Remote state | Result |
-|---|---|---|
-| New `run_id` | Missing | Publish |
-| Same `run_id` and same digest | Present | Skip |
-| Same `run_id` and different digest | Present | Stop that date and report conflict |
-| New run on an already published date | Primary release exists | Create supplement `-sNN` |
+```bash
+python tools/publish_results.py \
+  --source results \
+  --skip-atlas-dispatch
+```
 
-A failure on one date does not prevent other dates in the same input archive from being evaluated.
+## Atlas execution policy
+
+- Primary trigger: one workflow dispatch at the end of a successful common-publisher batch.
+- Manual trigger: **Publish Prompt Repeatability Atlas** with optional `force`.
+- Code/configuration trigger: Atlas implementation changes on `main` force a new version.
+- Fallback trigger: manual full-corpus run after any externally created or repaired experiment Release.
+- Scope: all published `media-exp-*` Releases every time.
+- Cache/state: none.
+- Repository timeout: no 90-minute limit.
+- Assets: ZIP-only; inline Notes previews use versioned repository/Pages paths.

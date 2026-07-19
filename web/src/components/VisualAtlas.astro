@@ -7,21 +7,21 @@ const dataUrl = sitePath('data/visual-analysis.json');
   <div class="atlas-toolbar panel-surface">
     <div>
       <span class="eyebrow">PROMPT REPEATABILITY ATLAS</span>
-      <h2>Controlled visual variation across runs.</h2>
-      <p>Every eligible prompt is rendered; only a small category-diverse set appears in Release notes. Search the full primary-card index here and download the complete ZIP for extended sheets and JSON sidecars.</p>
+      <h2>Controlled visual variation across the complete ledger.</h2>
+      <p>Every published <code>media-exp-*</code> Release is rebuilt as one global snapshot. Release notes show only a few previews; every eligible prompt has a ZIP containing its primary card, temporal overview, complete paginated contact sheets, sidecars, and source index.</p>
     </div>
     <div class="atlas-actions">
       <label>Prompt or text<input type="search" data-atlas-search placeholder="i0001, product, ceramic…" /></label>
       <label>Category<select data-atlas-category><option value="">All categories</option></select></label>
-      <a class="atlas-download" data-atlas-download hidden>Complete atlas ZIP</a>
+      <a class="atlas-download" data-atlas-download hidden target="_blank" rel="noreferrer">Open all Atlas ZIP assets</a>
     </div>
   </div>
 
   <div class="atlas-metrics" data-atlas-metrics>
-    <article><span>Status</span><strong>Loading</strong><small>Reading the latest published analysis index</small></article>
-    <article><span>Source</span><strong>—</strong><small>Experiment release</small></article>
+    <article><span>Status</span><strong>Loading</strong><small>Reading the latest global analysis index</small></article>
+    <article><span>Corpus</span><strong>—</strong><small>All published experiment Releases</small></article>
     <article><span>Comparisons</span><strong>—</strong><small>Controlled prompt cohorts</small></article>
-    <article><span>Analysis</span><strong>—</strong><small>Companion Release</small></article>
+    <article><span>Analysis</span><strong>—</strong><small>ZIP-only companion Release</small></article>
   </div>
 
   <p class="atlas-status" data-atlas-status>Loading Visual Lab data…</p>
@@ -52,18 +52,25 @@ const dataUrl = sitePath('data/visual-analysis.json');
         return (!needle || haystack.includes(needle)) && (!selectedCategory || entry.category === selectedCategory);
       });
       status.textContent = `${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} controlled comparisons`;
-      grid.innerHTML = filtered.map((entry) => `
+      grid.innerHTML = filtered.map((entry) => {
+        const image = entry.primary_url
+          ? `<a class="atlas-image-link" href="${escapeHtml(entry.primary_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} repeatability comparison" /></a>`
+          : '<div class="atlas-image-link"><div class="atlas-image-missing">Preview is packaged in the prompt ZIP</div></div>';
+        const bundle = entry.bundle_url
+          ? `<a class="atlas-bundle" href="${escapeHtml(entry.bundle_url)}">Download prompt ZIP</a>`
+          : '<span class="atlas-bundle unavailable">Bundle URL unavailable</span>';
+        return `
         <article class="atlas-card">
-          <a class="atlas-image-link" href="${escapeHtml(entry.primary_url || '#')}" target="_blank" rel="noreferrer">
-            ${entry.primary_url ? `<img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} repeatability comparison" />` : '<div class="atlas-image-missing">Card URL unavailable</div>'}
-          </a>
+          ${image}
           <div class="atlas-card-body">
             <div class="atlas-card-head"><strong>${escapeHtml(entry.prompt_id)}</strong><span>${escapeHtml(entry.sample_count)} samples</span></div>
             <small>${escapeHtml(entry.category)} · ${escapeHtml(entry.model)}</small>
             <p>${escapeHtml(entry.prompt)}</p>
-            <div class="atlas-tags"><code>${escapeHtml(entry.cohort_id)}</code>${entry.has_extended ? '<span>Extended sheet in ZIP</span>' : '<span>Primary only</span>'}</div>
+            <div class="atlas-tags"><code>${escapeHtml(entry.cohort_id)}</code><span>${escapeHtml(entry.full_page_count || 0)} full page(s)</span></div>
+            ${bundle}
           </div>
-        </article>`).join('');
+        </article>`;
+      }).join('');
       if (!filtered.length) grid.innerHTML = '<div class="atlas-empty panel-surface">No comparisons match the current filters.</div>';
     };
 
@@ -76,15 +83,16 @@ const dataUrl = sitePath('data/visual-analysis.json');
         entries = Array.isArray(data.entries) ? data.entries : [];
         const categories = [...new Set(entries.map((entry) => entry.category).filter(Boolean))].sort();
         category.insertAdjacentHTML('beforeend', categories.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join(''));
-        if (data.archive_url) {
-          download.href = data.archive_url;
+        if (data.analysis_url || data.archive_url) {
+          download.href = data.analysis_url || data.archive_url;
           download.hidden = false;
         }
+        const dateRange = data.date_from || data.date_to ? `${data.date_from || '—'} → ${data.date_to || '—'}` : 'Date range unavailable';
         const metricValues = [
           [data.status === 'published' ? 'Published' : 'Waiting', data.generated_at_utc ? `Generated ${new Date(data.generated_at_utc).toLocaleString()}` : 'No generated atlas yet'],
-          [data.source_tag || '—', 'Experiment release'],
+          [`${Number(data.release_count_scanned || 0).toLocaleString()} Releases`, dateRange],
           [Number(data.comparable_prompts || 0).toLocaleString(), 'Controlled prompt cohorts'],
-          [data.analysis_tag || '—', data.analysis_url ? 'Companion Release published' : 'Companion Release']
+          [data.analysis_tag || '—', data.analysis_url ? 'Global ZIP-only Release published' : 'Companion Release']
         ];
         metrics.forEach((tile, index) => {
           tile.querySelector('strong').textContent = metricValues[index][0];
@@ -95,7 +103,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
       .catch((error) => {
         status.textContent = `Visual Lab data could not be loaded: ${error.message}`;
         status.classList.add('error');
-        grid.innerHTML = '<div class="atlas-empty panel-surface">Run the Prompt Repeatability Atlas workflow to publish the first index.</div>';
+        grid.innerHTML = '<div class="atlas-empty panel-surface">Run the full-corpus Prompt Repeatability Atlas workflow to publish the first index.</div>';
       });
 
     search.addEventListener('input', render);
@@ -126,7 +134,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
   .atlas-image-link { display:block; background:#07101d; aspect-ratio:2048/2304; overflow:hidden; }
   .atlas-image-link img { width:100%; height:100%; display:block; object-fit:contain; transition:transform .25s ease; }
   .atlas-image-link:hover img { transform:scale(1.012); }
-  .atlas-image-missing { height:100%; display:grid; place-items:center; color:var(--soft-text); }
+  .atlas-image-missing { height:100%; display:grid; place-items:center; color:var(--soft-text); padding:1rem; text-align:center; }
   .atlas-card-body { padding:1rem; }
   .atlas-card-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
   .atlas-card-head strong { color:var(--cyan); font-size:1.15rem; }
@@ -136,6 +144,8 @@ const dataUrl = sitePath('data/visual-analysis.json');
   .atlas-tags { display:flex; justify-content:space-between; gap:.75rem; align-items:center; }
   .atlas-tags code { font-size:.66rem; color:var(--cyan); }
   .atlas-tags span { color:var(--soft-text); font-size:.67rem; }
+  .atlas-bundle { display:flex; justify-content:center; margin-top:.8rem; padding:.62rem .75rem; border-radius:.65rem; border:1px solid rgba(82,211,255,.3); text-decoration:none; color:var(--cyan); font-size:.75rem; font-weight:800; }
+  .atlas-bundle.unavailable { color:var(--soft-text); border-color:var(--panel-border); }
   .atlas-empty { grid-column:1/-1; text-align:center; color:var(--soft-text); padding:2rem; }
   @media (max-width:75rem) { .atlas-toolbar { grid-template-columns:1fr; } .atlas-metrics { grid-template-columns:repeat(2,1fr); } }
   @media (max-width:48rem) { .atlas-actions,.atlas-grid { grid-template-columns:1fr; } .atlas-metrics { grid-template-columns:1fr 1fr; } }

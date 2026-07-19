@@ -1,10 +1,24 @@
 # ZIP input and snapshot workflow
 
-The browser-based Codespaces Explorer can be unreliable when a large directory contains many media files. The supported primary input is therefore one `results.zip` file. Direct `results/` folder input remains compatible, but it is no longer the recommended browser-upload path.
+The browser-based Codespaces Explorer can be unreliable when a large directory contains many media files. The recommended input is therefore one `results.zip`. Direct `results/` input remains supported, and an input-snapshot route is available when storage should happen before processing.
 
-## Primary path: upload one ZIP and publish meaningful releases
+## One common publishing core
 
-Create a ZIP locally with either of these layouts:
+All production paths converge on `tools/publish_results.py`:
+
+```text
+multi-day results.zip ─┐
+direct results/ ───────┼─→ publish_results.py
+media-input promotion ─┘     ├─ one immutable Release per new date
+                              ├─ supplements for new runs on old dates
+                              └─ one full-corpus Atlas dispatch after batch success
+```
+
+The final Atlas dispatch happens once after the whole batch, not once per date Release. It scans all currently published `media-exp-*` data.
+
+## Primary path: upload one ZIP and publish every date
+
+Create a ZIP locally with either layout:
 
 ```text
 results.zip
@@ -15,6 +29,8 @@ results.zip
         errors.jsonl
         media/images/...
         media/videos/...
+    2026-06-30/
+      run_20260630_120000/...
 ```
 
 or:
@@ -23,19 +39,19 @@ or:
 results.zip
   2026-06-29/
     run_20260629_120000/...
+  2026-06-30/
+    run_20260630_120000/...
 ```
 
-One extra wrapper directory is also accepted. ZIP64 archives larger than 2 GiB are supported.
+One extra wrapper directory is accepted. ZIP64 archives larger than 2 GiB are supported.
 
 1. Open a Codespace on `main`.
-2. Upload `results.zip` to the repository workspace.
-3. If the Codespace was already open before this feature was merged, update the tracked code:
+2. Upload `results.zip`.
+3. Update tracked code when the Codespace predates the latest repository changes:
 
 ```bash
 git pull --ff-only
 ```
-
-`results.zip` is ignored by Git, so its presence does not enter Git history or prevent a normal fast-forward pull.
 
 4. Publish every new date and run:
 
@@ -45,14 +61,16 @@ python tools/publish_from_archive.py results.zip
 
 The command:
 
-- rejects incomplete or unsafe ZIP members;
-- checks whether the uploaded archive changes during processing;
-- estimates required free disk space;
-- extracts to `.archive-imports/` temporarily;
-- accepts a top-level `results/`, direct date directories, or one wrapper directory;
-- invokes the existing SHA-256 duplicate-aware date publisher;
-- removes extracted files after completion;
-- leaves the original `results.zip` in the Codespace.
+- rejects unsafe or incomplete ZIP members;
+- checks whether the upload changes during inspection or extraction;
+- estimates required disk space;
+- extracts temporarily under `.archive-imports/`;
+- accepts a top-level `results/`, direct date directories, or one wrapper;
+- invokes the SHA-256 duplicate-aware date publisher;
+- creates as many primary/supplemental `media-exp-*` Releases as needed;
+- dispatches one all-data Atlas only after all dates succeed;
+- removes temporary extraction/package files;
+- leaves the original `results.zip` untouched.
 
 Dry run:
 
@@ -68,24 +86,24 @@ python tools/publish_from_archive.py results.zip \
   --date 2026-06-30
 ```
 
-Keep the extracted tree for inspection:
+Keep the extracted tree:
 
 ```bash
 python tools/publish_from_archive.py results.zip --keep-extracted
 ```
 
-## Last-resort browser transfer: upload two ordinary files
+The internal publisher also supports `--skip-atlas-dispatch` for exceptional maintenance operations, but normal ingestion should leave the automatic full-corpus rebuild enabled.
 
-If the browser also fails to upload one 2+ GiB ZIP, split it locally in WSL and upload the resulting files one at a time. This only changes the transport into Codespaces; the reconstructed ZIP and all later Releases remain identical.
+## Last-resort browser transfer: upload ordinary split files
 
-In WSL, beside `results.zip`:
+If one 2+ GiB ZIP cannot be transferred through the browser, split it locally in WSL:
 
 ```bash
 sha256sum results.zip > results.zip.sha256
 split -b 1500M -d -a 3 results.zip results.zip.upload-part-
 ```
 
-Upload these files individually:
+Upload:
 
 ```text
 results.zip.upload-part-000
@@ -93,7 +111,7 @@ results.zip.upload-part-001
 results.zip.sha256
 ```
 
-Then reconstruct and verify inside Codespaces:
+Reconstruct and verify inside Codespaces:
 
 ```bash
 cat results.zip.upload-part-* > results.zip
@@ -101,31 +119,29 @@ sha256sum -c results.zip.sha256
 python tools/publish_from_archive.py results.zip
 ```
 
-The upload parts and reconstructed archive are ignored by Git.
+This changes only the browser transport. The reconstructed archive, date Releases, and final Atlas trigger are identical to the primary path.
 
 ## Fast storage path: publish an input snapshot first
 
-Use this when the priority is to get the uploaded archive into Release storage immediately, before spending time extracting, analyzing, and repackaging every date.
+Use this when the priority is to place a completed upload into Release storage immediately:
 
 ```bash
 python tools/input_snapshot.py publish results.zip
 ```
 
-The script verifies that the ZIP central directory is readable, splits the file into byte-exact parts below 1.8 GiB, calculates SHA-256 for the source and every part, and creates a neutral input snapshot Release such as:
+The script verifies the ZIP central directory, splits the file into byte-exact parts below 1.8 GiB, calculates SHA-256 for the source and every part, and creates a neutral Release such as:
 
 ```text
-Tag: media-input-2026-07-15-<first-12-SHA-256-characters>
+Tag: media-input-2026-07-15-<sha12>
 Assets:
   results.zip.part001
   results.zip.part002
   input-snapshot-manifest.json
 ```
 
-The text inside angle brackets is descriptive, not a literal tag to paste. The publish command prints the exact real tag after a successful upload.
+The source is not recompressed. Temporary split parts are removed after upload.
 
-The original ZIP is not recompressed. Temporary split parts are removed after successful upload.
-
-A packaging-only test is available:
+Packaging-only test:
 
 ```bash
 python tools/input_snapshot.py publish results.zip --dry-run
@@ -133,26 +149,17 @@ python tools/input_snapshot.py publish results.zip --dry-run
 
 ## Promote a stored snapshot later
 
-### From GitHub Actions
+### GitHub Actions
 
 1. Open **Actions**.
 2. Select **Promote input snapshot**.
-3. Select **Run workflow**.
-4. Leave `snapshot_tag` as `latest` to promote the newest input snapshot.
-5. Leave `dry_run` disabled to create the normal date-scoped Releases.
+3. Run the workflow.
+4. Leave `snapshot_tag` as `latest`, or provide an exact `media-input-*` tag.
+5. Leave `dry_run` disabled to create normal experiment Releases.
 
-An exact tag is optional. To list the currently available snapshot tags from Codespaces:
+The workflow downloads and verifies every part, reconstructs the exact ZIP, extracts it safely, and calls the same common publisher. The common publisher dispatches one full-corpus Atlas after the promoted multi-date batch succeeds. The promotion workflow separately refreshes analytics.
 
-```bash
-gh release list --limit 1000 --json tagName \
-  --jq '.[] | select(.tagName | startswith("media-input-")) | .tagName'
-```
-
-The resolver checks the tag before downloading anything. If a supplied tag does not exist and only one snapshot is present, it automatically uses that one and prints a warning. If multiple snapshots exist, it stops and lists the valid choices.
-
-The workflow downloads and verifies every part, reconstructs the original ZIP byte-for-byte, extracts it safely, runs the normal publisher, and then explicitly starts the analytics workflow.
-
-### From Codespaces
+### Codespaces
 
 Promote the latest snapshot:
 
@@ -163,28 +170,41 @@ python tools/input_snapshot.py promote
 Promote an exact snapshot:
 
 ```bash
-python tools/input_snapshot.py promote --tag media-input-2026-07-15-<real-sha-prefix>
+python tools/input_snapshot.py promote \
+  --tag media-input-2026-07-15-<real-sha-prefix>
 ```
 
-Restore the latest snapshot only, without publishing:
+Restore only:
 
 ```bash
-python tools/input_snapshot.py restore --output restored-results.zip
+python tools/input_snapshot.py restore \
+  --output restored-results.zip
 ```
 
-## Existing folder path remains compatible
+## Direct folder compatibility
 
-When a complete `results/` directory is already present in the Codespace, the original command still works:
+When a complete directory is already available through a terminal transfer or a small browser operation:
 
 ```bash
 python tools/publish_results.py --source results
 ```
 
-This path is useful for terminal-based transfer tools or small result trees, but browser directory drag-and-drop is not the preferred path.
+This is a first-class path. It scans every `YYYY-MM-DD` directory, publishes all new runs, and dispatches one all-data Atlas when the batch succeeds.
+
+## Duplicate and conflict behavior
+
+| Local state | Remote state | Result |
+|---|---|---|
+| New `run_id` | Missing | Publish in the date Release batch. |
+| Same `run_id`, same digest | Present | Skip safely. |
+| Same `run_id`, different digest | Present | Fail that date and do not dispatch the final Atlas. |
+| New run on a published date | Primary exists | Create `-sNN` supplement. |
+
+A failure on one date does not prevent other dates from being evaluated, but the one final Atlas dispatch waits for a failure-free batch so it never claims that a partial upload is the completed corpus update.
 
 ## Cleanup
 
-All of these paths are ignored by Git:
+Ignored paths include:
 
 ```text
 results/
@@ -194,6 +214,7 @@ results.zip.*
 .input-staging/
 .input-download/
 .release-staging/
+visual-analysis/output/
 ```
 
-After Releases have been verified, deleting the Codespace removes the uploaded archive and temporary workspace without changing any Release assets.
+After Releases are verified, deleting the Codespace removes local uploads and temporary workspaces without changing Release assets.

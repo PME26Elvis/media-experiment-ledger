@@ -5,8 +5,12 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
-SPEC = importlib.util.spec_from_file_location("publish_results", Path(__file__).parents[1] / "tools" / "publish_results.py")
+SPEC = importlib.util.spec_from_file_location(
+    "publish_results",
+    Path(__file__).parents[1] / "tools" / "publish_results.py",
+)
 mod = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader
 sys.modules[SPEC.name] = mod
@@ -21,7 +25,14 @@ class PublishResultsTests(unittest.TestCase):
             (run / "media" / "images").mkdir(parents=True)
             (run / "media" / "videos").mkdir(parents=True)
             (run / "outputs.jsonl").write_text(
-                json.dumps({"event": "image_completed", "category": "product", "payload": {"model": "m1"}}) + "\n",
+                json.dumps(
+                    {
+                        "event": "image_completed",
+                        "category": "product",
+                        "payload": {"model": "m1"},
+                    }
+                )
+                + "\n",
                 encoding="utf-8",
             )
             (run / "errors.jsonl").write_text("", encoding="utf-8")
@@ -56,6 +67,25 @@ class PublishResultsTests(unittest.TestCase):
                 files.append(path)
             parts = mod.split_files(files, 10)
             self.assertEqual([len(part) for part in parts], [1, 1, 1])
+
+    def test_batch_dispatch_targets_full_corpus_workflow_once(self):
+        tags = ["media-exp-2026-07-01", "media-exp-2026-07-02"]
+        with patch.object(mod, "atlas_batch_id", return_value="batch-fixed"):
+            command = mod.atlas_dispatch_command("owner/repo", tags)
+        self.assertEqual(command.count("visual-analysis.yml"), 1)
+        self.assertIn("batch_id=batch-fixed", command)
+        self.assertIn("force=false", command)
+        self.assertNotIn(tags[0], command)
+        self.assertNotIn(tags[1], command)
+
+    def test_published_message_extracts_release_tag(self):
+        message = (
+            "PUBLISHED 2026-07-02: media-exp-2026-07-02-s01 "
+            "(2 new run(s), 6 asset(s))"
+        )
+        match = mod.PUBLISHED_TAG_RE.match(message)
+        self.assertIsNotNone(match)
+        self.assertEqual(match.group(1), "media-exp-2026-07-02-s01")
 
 
 if __name__ == "__main__":
