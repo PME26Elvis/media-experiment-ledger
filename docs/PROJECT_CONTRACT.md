@@ -55,14 +55,25 @@
 - 影片 seed 保留為 sample evidence，但因 harvester 每次隨機化，seed 不進 repeatability identity。
 - Image Release Notes 最多 15 個、至少 4 unique samples，先覆蓋 category 再按樣本數補滿。
 - Video Release Notes 預設放入所有至少 2 unique samples 的可比較 cohorts。
+- Atlas Release Notes 繼續直接嵌入 image comparison cards 與 eligible video GIF previews；YOLO 的規格、workflow、Notes 或 Release 不得縮減這個行為。
+- Atlas workflow 維持 `.github/workflows/visual-analysis.yml`，Release 家族維持 `media-analysis-*`。
 - Atlas 歷史表通常以 immutable Atlas report 的明確值為準；舊 schema 缺欄位時才讀一般 override。
 - 只有當 report 本身已由 source Release、原始歷史表與 entry evidence 證實錯誤時，override 才可標記 `authoritative: true` 並優先於 report。兩者皆無則顯示未知，絕不以目前 corpus totals 回填舊快照。
 
 ## YOLOX-Tiny object detection status
 
-YOLO 功能目前狀態為 `specified_not_implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)。預設方案是 Apache-2.0 的 YOLOX-Tiny COCO 模型、ONNX Runtime CPU inference、全資料重跑、deterministic matrix sharding，以及與 Atlas 共用同一個 media-analysis companion Release 的 namespaced assets。
+YOLO 功能目前狀態為 `specified_not_implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)。預設方案是 Apache-2.0 的 YOLOX-Tiny COCO 模型與 ONNX Runtime CPU inference，但它不再整合進 Atlas：
 
-在 production implementation 完成前，README 與 UI 不得把它描述成已上線功能。
+- 規劃獨立 workflow：`.github/workflows/yolo-object-detection.yml`；
+- 規劃獨立 Release 家族：`media-yolo-all-<latest-experiment-date>-vN`；
+- v1 使用一個完整 GitHub-hosted CPU job，而不是預先建立 matrix；
+- 以 3000 張圖片作為初始設計規模；
+- 每次 invocation 都從零重跑完整 canonical image corpus；
+- 不使用 persistent state、跨 run cache skip 或 published-result reuse；
+- YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table；
+- 未來 Visual Lab 只能透過 `image_sha256` 關聯兩套獨立資料。
+
+在 production implementation 完成前，README 與 UI 不得把它描述成已上線功能。YOLO implementation 也必須加入 Atlas 非回歸測試，確認既有大量圖片與 GIF Release Notes previews 保持不變。
 
 ## Git and publication behavior
 
