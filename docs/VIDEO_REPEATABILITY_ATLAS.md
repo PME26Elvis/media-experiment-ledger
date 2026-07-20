@@ -1,307 +1,266 @@
-# 影片 Prompt Repeatability Atlas 規劃
+# 影片 Prompt Repeatability Atlas
+
+## 狀態
+
+影片 Prompt Repeatability Atlas 已整合進正式的全資料 Atlas pipeline。圖片與影片共用：
+
+- 所有已發布的 `media-exp-*` Releases；
+- dataset fingerprint；
+- batch completion trigger；
+- 同一個 `media-analysis-all-<fingerprint>-vN` companion Release；
+- ZIP-only asset contract；
+- Visual Lab index；
+- README statistics 與 Atlas history 更新。
+
+主要實作位於：
+
+- `tools/prompt_atlas_video.py`：video metadata、ZIP extraction、FFprobe validation、GIF 與 keyframe rendering；
+- `tools/prompt_atlas_build.py`：image/video 全資料 build；
+- `tools/prompt_atlas_packages.py`：image/video 15-prompt bundles 與 complete packages；
+- `tools/prompt_atlas_publish.py`：同一份 Release Notes 的 JPEG/GIF highlights；
+- `.github/workflows/visual-analysis.yml`：安裝 FFmpeg 並執行 production build；
+- `tests/test_prompt_atlas_video.py`：以真實合成 MP4 驗證 FFmpeg pipeline。
 
 ## 目的
 
-影片版 Prompt Repeatability Atlas 用來回答與圖片版相同的問題：當相同 `prompt_id`、相同模型與相同會影響生成結果的設定，在不同時間／run 重複執行時，生成影片的內容、構圖、動態、時間一致性與 artifact 會如何變化？
+影片 Atlas 回答與圖片 Atlas 相同的問題：相同 prompt、模型及非隨機生成設定在不同日期與 run 重複執行時，輸出的構圖、內容、動態、時間一致性與 artifacts 會如何變化？
 
-這項功能應直接整合進既有的全資料 Atlas workflow，而不是建立另一套 release enumeration、state 或 cache。圖片與影片都來自相同的 immutable `media-exp-*` Releases，也應發布到同一個 `media-analysis-all-<fingerprint>-vN` companion Release。
+Derived Atlas 不修改或複製 raw experiment Release。原始 MP4 仍保存在 immutable `media-exp-*` video ZIP；Atlas 保存來源 tag、asset、member、SHA-256、codec、duration、FPS 與可視化證據。
 
-## 設計原則
+## Cohort identity
 
-1. **同一個 corpus snapshot**：圖片與影片共用所有已發布 `media-exp-*` Releases、日期範圍與 dataset fingerprint。
-2. **媒體類型隔離**：image cohort 與 video cohort 永遠不混合；media type 是 cohort identity 的一部分。
-3. **原始影片保持 immutable**：Atlas 不修改 raw Release，也不需要把原始影片複製到 derived Release；sidecar 保留來源 asset、member、SHA-256 與 Release URL。
-4. **GIF 只作為快速比較 preview**：完整證據仍是 raw video 與 machine-readable metadata。
-5. **ZIP-only assets**：GIF、keyframe sheet、JSON、HTML 都包在 Atlas ZIP 內；只有 Release Notes 精選 GIF 會像圖片 previews 一樣放在版本化 repo 路徑。
-6. **不使用 cache／state**：每次全量掃描與驗證；相同 immutable corpus 由 dataset fingerprint 判斷是否重用已發布 Atlas。
-7. **FFmpeg 是標準 renderer**：GitHub Actions 的 CPU 足以處理目前少量影片；workflow 安裝 `ffmpeg`／`ffprobe` 後直接執行。
+影片 cohort 使用：
 
-## Cohort Identity
-
-影片 cohort 建議包含：
-
-1. `prompt_id`；
-2. `media_type = video`；
-3. provider 與 model；
-4. model revision／version（若 metadata 有提供）；
-5. normalized generation settings：
-   - width／height／aspect ratio；
-   - requested duration；
-   - requested FPS；
-   - seed；
-   - guidance／CFG；
-   - sampler／scheduler；
+1. `media_type = video`；
+2. `prompt_id`；
+3. model；
+4. normalized request settings，例如：
+   - `num_frames`；
+   - requested frame rate；
+   - width／height；
    - negative prompt；
-   - motion／camera／quality mode；
-   - input image、reference video 或 conditioning media 的 SHA-256；
-6. 其他會實質影響輸出的 request payload 欄位。
+   - motion、camera、quality 或 conditioning settings；
+   - model revision（若 metadata 提供）。
 
-Prompt text 不重複進 settings fingerprint，因為 `prompt_id` 是 canonical identity；純 transport 欄位，例如 response format、download URL、request ID，不應改變 cohort。
+### Seed 的處理
 
-## 影片樣本驗證
+Agnes harvester 每次執行都會產生新的 random seed。Seed 會完整保留在每個 sample sidecar 中，但**不放進 cohort identity**。
 
-Metadata row 只有在下列條件全部成立時才能成為可比較樣本：
+若把 seed 放入 cohort key，每一次真實 run 都會成為 singleton，無法形成 repeatability comparison。Atlas 的目的正是比較同一固定 prompt/config 在不同隨機抽樣下的變化；因此 seed 是觀察變數，不是控制分組鍵。
+
+Prompt text 不重複進 settings fingerprint，因為 `prompt_id` 是 canonical prompt identity。Transport-only 欄位也不參與 cohort identity。
+
+## 樣本驗證
+
+Metadata row 只有在以下條件全部成立時才能成為影片證據：
 
 - event 是 `video_completed`；
-- 存在 `prompt_id`；
-- 對應 `run_*-videos*.zip` 中存在相同 prompt stem 的影片 member；
-- `ffprobe` 能正常讀取 container；
-- 至少存在一條可解碼 video stream；
-- duration、width、height、frame rate 能取得合理值；
-- FFmpeg 能實際 decode 開頭、中間與結尾附近的 frames；
-- 檔案 SHA-256 驗證完成。
+- 有 `prompt_id`；
+- 對應 `run_*-videos*.zip` 存在 `media/videos/<prompt_id>_<task>.mp4` 或同 stem member；
+- `ffprobe` 找到至少一條 video stream；
+- duration、width、height 為合理正值；
+- FFmpeg 能實際 decode 開頭、中間與結尾附近 frame；
+- 完成 SHA-256。
 
-建議 sidecar 記錄：
+支援的 container suffix：
 
-```json
-{
-  "duration_seconds": 6.02,
-  "width": 1280,
-  "height": 720,
-  "average_frame_rate": 24.0,
-  "codec": "h264",
-  "pixel_format": "yuv420p",
-  "container": "mp4",
-  "has_audio": false,
-  "sha256": "...",
-  "source_tag": "media-exp-...",
-  "source_archive": "run_...-videos.zip",
-  "source_member": "media/videos/v0001.mp4"
-}
+```text
+.mp4 .mov .m4v .webm .mkv .avi
 ```
+
+無法 probe、decode 或對應 source member 的 metadata 不會出現在 Atlas。
 
 ## 去除重複
 
-第一階段使用與圖片相同的 exact SHA-256 去重：完全相同 bytes 只保留一份證據。
+使用 exact SHA-256 去除完全相同 bytes。若同一影片透過重複 Release 或 supplement 再次出現，只保留一份證據，並在衝突時優先保留最新來源 Release 的 metadata。
 
-不建議第一版直接使用 perceptual video hash 去除「看起來很像」的影片，因為：
+目前不使用 perceptual video hash 做 hard deduplication。Codec 或 bitrate 差異、細微 motion artifacts 都可能是有價值的 repeatability 證據。
 
-- codec／bitrate 不同可能造成 bytes 不同，但內容相同；
-- 反過來，細微 motion artifact 可能正是 Atlas 想觀察的資訊；
-- 自動 perceptual threshold 容易錯誤刪除有價值樣本。
+## Primary GIF
 
-未來可把 perceptual similarity 當作額外 metric，而不是 hard deduplication。
+Primary selection 與圖片版採相同時間錨點策略：
 
-## Primary GIF：Release Notes 快速預覽
-
-### 樣本數與版面
-
-| 可用唯一影片 | Primary preview |
+| 唯一可用影片 | 版面 |
 |---:|---|
-| 0–1 | 不建立 repeatability preview |
-| 2 | `1 × 2` 同步播放 |
+| 0–1 | 不建立 repeatability entry |
+| 2 | `1 × 2` |
 | 3 | `2 × 2`，第四格顯示樣本不足 |
-| 4+ | 使用 earliest、history anchors、latest 的 `2 × 2` |
+| 4+ | earliest、mid-history、latest prior、latest 的 `2 × 2` |
 
 ### 時間正規化
 
-為確保視覺比較公平：
+- 全部 tiles 從 `t=0` 同步播放；
+- 預設最長 6 秒；
+- 長影片取前 6 秒；
+- 短影片使用 FFmpeg `tpad=stop_mode=clone` 停在最後一幀；
+- 不循環短片來製造額外 motion；
+- contain／letterbox，不裁切；
+- 預設 6 FPS、128 色 palette、無限循環。
 
-- 每格從影片時間 `t=0` 開始；
-- preview 預設最多 6 秒；
-- 較短影片使用 `tpad=stop_mode=clone` 停留在最後一幀，不循環原片來假裝有更多 motion；
-- 較長影片截取前 6 秒；
-- 每格採相同 relative timestamp 同步播放。
+預設 tile 為 `480 × 270`。標題、cohort、sample role、Release、run、尺寸及 duration 由 Pillow 疊加，因此不依賴 FFmpeg drawtext 的字型環境。
 
-第一版不使用「自動找最精彩片段」，因為不同影片若選到不同時間窗，會降低 repeatability 比較的可解釋性。
+## Extended GIF
 
-### 尺寸與 GIF 設定
+當一個 video cohort 至少有 5 個唯一樣本時，Atlas 會建立 extended GIF：
 
-建議預設：
+- 最多 8 個 temporal quantiles；
+- 最多 4 欄；
+- 每格預設 `320 × 180`；
+- 使用相同同步、padding 與 contain policy。
 
-- 每格 logical canvas：`480 × 270`，使用 contain／letterbox，不裁切；
-- 2 × 2 總畫布：`960 × 540`；
-- 6 FPS；
-- 最長 6 秒；
-- 128 或 256 色 palette；
-- 無限循環；
-- 目標檔案約 5–20 MB；
-- 超過設定上限時依序降低 FPS、色數、寬度，不縮短低於 3 秒。
+Extended GIF 主要放在 video bundle，不一定出現在 Release Notes。
 
-建議 FFmpeg filter graph：
+## 完整 keyframe evidence
 
-```text
-每個 input
-  → trim / setpts
-  → fps=6
-  → scale=480:270:force_original_aspect_ratio=decrease
-  → pad=480:270:(ow-iw)/2:(oh-ih)/2
-  → drawtext label
-全部 inputs
-  → xstack
-  → split
-  → palettegen
-  → paletteuse
-  → preview.gif
-```
+所有 verified byte-unique videos 都進入完整 keyframe pages，不是抽樣。
 
-為避免系統字型差異，label 可沿用 workflow 安裝的 Noto Sans CJK；若 FFmpeg drawtext 的字型支援不穩定，也可先用 Pillow 產生 label overlay PNG，再由 FFmpeg 疊加。
+每個影片抽取：
 
-## Extended 與完整輸出
-
-由於目前影片 prompt 數量少，第一版可以比圖片更完整：
-
-### Extended GIF
-
-- 五個以上影片時，最多選 8 個時間分位樣本；
-- 4 × 2 grid；
-- 為控制檔案大小，每格可降到 `320 × 180`、4 FPS、4 秒；
-- 主要用於 bundle 內離線比較，不必全部放進 Release Notes。
-
-### Keyframe Contact Sheet
-
-每個影片至少抽取：
-
-- 0%；
-- 25%；
+- 10%；
 - 50%；
-- 75%；
-- 接近結尾。
+- 90%。
 
-把同一影片的 keyframes 排成一列，不同 runs 排成多列，可在靜態圖中檢查：
+三個時間點排列在同一 tile；每頁最多 16 個影片。這讓靜態檢查可以快速辨識：
 
-- 主體是否漂移；
-- 場景／物件 continuity；
-- 幾何或肢體 artifact；
-- 鏡頭運動差異；
+- subject drift；
+- scene／object continuity；
+- geometry 或 limb artifacts；
+- camera motion 差異；
 - 結尾崩壞。
 
-### Full Index
+原始影片不重複放入 derived bundle；sidecar 指回 raw Release asset/member。
 
-所有可用唯一影片都進 sidecar 與 HTML index。Derived bundle 不重複儲存原始影片本體，而是提供來源 Release／asset／member、hash 與可下載連結；必要時可加一個 `include_original_videos` 的手動選項，但不作預設。
+## Sidecar schema
 
-## 與圖片流程的整合方式
+每個 cohort sidecar 包含：
 
-建議擴充既有模組，而不是建立平行 workflow：
-
-```text
-release_rows()
-  → download image/video metadata
-  → build image cohorts + video cohorts
-  → selective image ZIP download + selective video ZIP download
-  → Pillow image renderer + FFmpeg video renderer
-  → shared report/index/package publication
-  → one companion Release
-  → one README/statistics refresh
+```json
+{
+  "media_type": "video",
+  "prompt_id": "v0001",
+  "model": "agnes-video-v2.0",
+  "cohort_id": "...",
+  "sample_count": 4,
+  "rendering": {
+    "preview_format": "GIF",
+    "preview_seconds": 6,
+    "preview_fps": 6,
+    "fit": "contain/letterbox",
+    "keyframes": [0.1, 0.5, 0.9]
+  },
+  "all_samples": [
+    {
+      "seed": 123,
+      "duration_seconds": 10.04,
+      "width": 1280,
+      "height": 720,
+      "average_frame_rate": 24.0,
+      "codec": "h264",
+      "pixel_format": "yuv420p",
+      "container": "mov,mp4,m4a,3gp,3g2,mj2",
+      "has_audio": false,
+      "sha256": "...",
+      "archive_name": "run_...-videos.zip",
+      "archive_member": "media/videos/v0001_task.mp4"
+    }
+  ]
+}
 ```
 
-建議檔案結構：
+## Release assets
 
-- `tools/prompt_atlas_data.py`
-  - 增加 video metadata collection、archive/member matching、ffprobe validation。
-- `tools/prompt_atlas_core.py`
-  - 增加 `VideoSample` 或共用 base sample schema，以及 video cohort fingerprint。
-- `tools/prompt_atlas_video.py`
-  - 新增 FFmpeg／ffprobe command、GIF、keyframe sheet、video sidecar renderer。
-- `tools/prompt_atlas_build.py`
-  - 同一份 report 同時包含 `image_entries`、`video_entries` 與總數。
-- `tools/prompt_atlas_packages.py`
-  - 圖片維持每 15 prompts 一包；影片 prompt 數量少時可全部放在一個 `video-atlas-bundle-001.zip`，超過 15 prompts 後使用相同分包政策。
-- `.github/workflows/visual-analysis.yml`
-  - 安裝 `ffmpeg`，保持同一個 all-data job 與相同 publication sequence。
-
-## Release Asset 與目錄規格
-
-同一個 analysis Release 建議包含：
+所有 companion Release assets 仍是 ZIP：
 
 ```text
 prompt-atlas-bundle-001-i0001-to-i0015.zip
-...
 video-atlas-bundle-001-v0001-to-v0015.zip
 atlas-metadata.zip
 offline-gallery.zip
 prompt-repeatability-atlas-complete-part001.zip
 ```
 
-Video bundle 內：
+Video bundle 內部：
 
 ```text
-video-primary/
-  atlas-v0001-<cohort>-n4.gif
-video-extended/
-  atlas-v0001-<cohort>-extended-n8.gif
-video-keyframes/
-  atlas-v0001-<cohort>-keyframes.jpg
-video-sidecars/
-  atlas-v0001-<cohort>.json
-bundle-manifests/
-  video-bundle-001.json
+video/primary/*.gif
+video/extended/*.gif
+video/keyframes/<prompt>-<cohort>/page-*.jpg
+video/sidecars/*.json
+video-bundle-manifests/video-prompt-bundle-001.json
 ```
 
-所有 Release assets 仍為 ZIP。Release Notes 精選 GIF 則提交到：
+每包最多 15 個 video prompt IDs；同一 prompt 的多個 model/settings cohorts 不會被拆到不同 bundle。
 
-```text
-web/public/data/visual-analysis/video-previews/<fingerprint>/<batch-id>/
-```
+`atlas-metadata.zip` 同時包含 image/video sidecars 與兩種 bundle manifests。`offline-gallery.zip` 同時包含 image JPEG 與 video GIF primary previews。Complete multipart ZIP 也收錄全部 image/video bundles。
 
-再透過 raw repository URL 嵌入 Notes。
+## Release Notes previews
 
-## README 與 Statistics
+預設 Notes 精選：
 
-README 總表已經從正式 `media-exp-*` manifests 同時計算圖片與影片數量，因此影片 Atlas 上線後不需要另一套統計來源。
+- 4 個 image cohorts；
+- 2 個 video cohorts。
 
-Atlas 歷史表應從每個 analysis report 的 `release_tags` 計算該版本當時的圖片／影片總量，避免把之後新增的資料倒灌進舊 Atlas row。
+JPEG 與 GIF previews 先寫入版本化 repo 路徑，再用 raw repository URL 嵌入 Notes；因此 Release asset list 保持 ZIP-only。
 
-未來 report 建議明確新增：
+若目前沒有可比較 video cohort，Notes 不會放空白 GIF，也不會讓 image Atlas 失敗。
+
+## Visual Lab
+
+Visual Lab index schema v3 為每個 entry 增加：
 
 ```json
 {
-  "comparable_image_prompts": 80,
-  "comparable_video_prompts": 4,
-  "verified_unique_images": 420,
-  "verified_unique_videos": 18
+  "media_type": "video",
+  "preview_format": "gif",
+  "primary_url": "...",
+  "bundle_url": "...",
+  "full_page_count": 1
 }
 ```
 
-## GitHub Actions 資源與可靠性
+前端提供 Images／Videos filter；GIF 會在卡片中直接播放，影片卡片顯示 keyframe page count，下載連結指向包含該 prompt 的 video bundle。
 
-- 使用 `sudo apt-get install --no-install-recommends ffmpeg`。
-- 不設定 repository-specific 90 分鐘 timeout。
-- 不使用 cache 或 persistent processing state。
-- 每次都重新從 immutable Releases 建立 corpus。
-- FFmpeg command 必須有明確錯誤輸出與單檔 timeout，避免損壞影片讓整個 process 永久卡住。
-- 每個 GIF 完成後使用 `ffprobe` 或 ImageMagick（若已安裝）確認 frame count 與尺寸；不額外引入大型依賴時可由 Pillow 驗證 GIF frames。
-- 只有全部 ZIP assets、Notes previews 與 metadata 驗證成功後才把 draft publish。
+## Workflow
 
-## 分階段實作
+Production workflow 顯式安裝：
 
-### Milestone V1：驗證與 Primary GIF
+```bash
+sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-cjk
+```
 
-- 收集／驗證 video samples；
-- 建立 controlled cohorts；
-- 2／3／4-sample primary GIF；
-- video sidecars；
-- 少量 GIF Notes previews；
-- 與圖片 Atlas 同 Release。
+Validate workflow 也安裝 FFmpeg，並以真實合成 MP4 執行：
 
-### Milestone V2：Extended 與 Keyframes
+- member matching；
+- seed cohort policy；
+- FFprobe；
+- 三點 decode；
+- synchronized animated GIF；
+- Release-style video ZIP extraction；
+- keyframe pages；
+- image/video combined ZIP packaging。
 
-- 最多 8 樣本 extended GIF；
-- 所有影片 keyframe contact sheets；
-- Visual Lab 影片 filter 與 GIF lazy loading。
+Atlas 仍沒有 repository-specific 90-minute timeout、processing cache 或 persistent state。每次重新掃描全部正式 experiment Releases。
 
-### Milestone V3：品質 Metrics
+## Failure behavior
 
-只作輔助指標，不取代人工觀看：
+- 單一壞影片只會被排除並記入 `missing_or_duplicate_media`；
+- FFmpeg／FFprobe 不存在會使 workflow 明確失敗；
+- draft Release 可在下一次 run 恢復；
+- 預期 ZIP 缺失或出現 non-ZIP asset 時不發布成功 index；
+- failure recovery artifact 保留 output、index、previews 與 README。
 
-- duration／FPS／resolution consistency；
-- scene-cut count；
-- optical-flow motion magnitude；
-- freeze-frame ratio；
-- perceptual similarity timeline；
-- black-frame／decode-error detection。
+## Production acceptance criteria
 
-## 驗收條件
+影片功能完成需同時符合：
 
-影片 Atlas 第一版完成時應滿足：
-
-1. 同一個全資料 workflow 同時發布 image 與 video atlas。
-2. 不讀取 `media-input-*` snapshot 作為實驗資料。
-3. 每個 video sample 都經過 `ffprobe` 與實際 decode。
-4. 相同 bytes 使用 SHA-256 去重。
-5. Primary GIF 使用同步時間與 contain fit。
-6. Release Notes 至少能直接顯示一個可點擊 GIF preview（有 eligible cohort 時）。
-7. Release assets 仍全部是 ZIP。
-8. Report、README statistics 與 Visual Lab 都能區分圖片與影片 prompt 數。
-9. 損壞影片會留下清楚的 missing／validation record，不會被當成成功樣本。
-10. 全部測試、Astro build 與 site validator 通過。
+1. 真實 `video_completed` metadata 可被收集；
+2. harvester 的 `<prompt_id>_<task>.mp4` 可精準匹配；
+3. 不同 random seeds 能形成同一 controlled cohort；
+4. broken container／stream 被排除；
+5. primary GIF 為多幀且同步；
+6. 短片停在最後一幀，不重播；
+7. 所有唯一影片都有 10%／50%／90% keyframe evidence；
+8. video prompt 每 15 個一個 ZIP；
+9. Release Notes 可嵌 GIF，但 Release Assets 維持 ZIP-only；
+10. Visual Lab 可搜尋、篩選及下載影片 bundle；
+11. 圖片 Atlas 既有測試與 Pages build 不退化。
