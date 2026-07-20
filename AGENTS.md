@@ -27,6 +27,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
 - YOLOX-Tiny object detection is currently specified, not implemented; do not present planned behavior as production.
+- The approved YOLO direction is an independent workflow and independent `media-yolo-*` Release family. Do not fold it back into Atlas without a new explicit user decision.
 
 ## Repository source-of-truth rules
 
@@ -52,6 +53,22 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Release Notes should use separate **Image highlights** and **Video highlights** sections and may be long when the entries materially improve inspection.
 - Every highlighted entry must link to its containing ZIP bundle.
 - Keep backward-compatible combined `highlights` metadata when adding media-specific highlight fields.
+- YOLO work must not reduce, replace, gate, or move these Atlas image/GIF Release Notes previews.
+
+## Planned YOLO behavior
+
+Until implementation is explicitly requested and completed:
+
+- planned workflow path: `.github/workflows/yolo-object-detection.yml`;
+- planned Release family: `media-yolo-all-<latest-experiment-date>-vN`;
+- v1 execution plan: one full GitHub-hosted CPU job, not a pre-emptive matrix;
+- design target: up to roughly 3000 canonical unique images;
+- every invocation reprocesses the complete canonical image corpus from scratch;
+- no persistent state, cross-run cache skip, incremental-only mode, or published-result reuse;
+- YOLO and Atlas do not share a workflow, draft Release, finalizer, assets, Notes, latest pointer, or history table;
+- Visual Lab may join independent YOLO and Atlas indexes only by `image_sha256`;
+- YOLO failure must not affect Atlas, and Atlas failure must not affect YOLO;
+- implementation tests must lock the existing Atlas preview contract as a non-regression requirement.
 
 ## Documentation and UX direction
 
