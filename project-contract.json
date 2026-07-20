@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-07-20.2",
+  "contract_version": "2026-07-20.3",
   "default_user_language": "zh-TW",
   "repository": {
     "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
@@ -19,7 +19,7 @@
     "prompts_per_bundle": 15,
     "video_seed_is_evidence_not_identity": true,
     "history_overrides_file": "config/atlas-history-overrides.json",
-    "history_metric_policy": "explicit immutable Atlas report value, then audited legacy override, otherwise unknown; never current corpus totals",
+    "history_metric_policy": "audited authoritative override only for a proven corrupt legacy report; otherwise explicit immutable Atlas report value, then non-authoritative missing-field override, otherwise unknown; never current corpus totals",
     "release_notes": {
       "image_max": 15,
       "image_min_unique_samples": 4,
