@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 import zipfile
 from dataclasses import asdict
 from pathlib import Path
@@ -34,10 +35,7 @@ def write_zip(
     compression: int = zipfile.ZIP_DEFLATED,
 ) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    kwargs: dict[str, Any] = {
-        "compression": compression,
-        "allowZip64": True,
-    }
+    kwargs: dict[str, Any] = {"compression": compression, "allowZip64": True}
     if compression == zipfile.ZIP_DEFLATED:
         kwargs["compresslevel"] = 6
     with zipfile.ZipFile(destination, "w", **kwargs) as archive:
@@ -50,6 +48,8 @@ def write_zip(
 
 
 def chunks(values: list[Any], size: int) -> Iterable[list[Any]]:
+    if size <= 0:
+        raise ValueError("Chunk size must be positive")
     for start in range(0, len(values), size):
         yield values[start : start + size]
 
@@ -76,31 +76,66 @@ def partition_by_size(files: list[Path], max_bytes: int) -> list[list[Path]]:
     return parts
 
 
-def create_prompt_bundles(output: Path, entries: list[AtlasEntry]) -> list[Path]:
+def safe_token(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-") or "prompt"
+
+
+def prompt_bundle_name(index: int, prompt_ids: list[str]) -> str:
+    if not prompt_ids:
+        raise ValueError("Prompt bundle cannot be empty")
+    first = safe_token(prompt_ids[0])
+    last = safe_token(prompt_ids[-1])
+    span = first if first == last else f"{first}-to-{last}"
+    return f"prompt-atlas-bundle-{index:03d}-{span}.zip"
+
+
+def create_prompt_bundles(
+    output: Path,
+    entries: list[AtlasEntry],
+    prompts_per_bundle: int = 15,
+) -> list[Path]:
+    """Package complete prompt histories, keeping every cohort for a prompt together."""
     by_prompt: dict[str, list[AtlasEntry]] = {}
     for entry in entries:
         by_prompt.setdefault(entry.prompt_id, []).append(entry)
 
+    prompt_ids = sorted(by_prompt)
     bundles: list[Path] = []
-    for prompt_id, prompt_entries in sorted(by_prompt.items()):
-        bundle_name = f"prompt-{prompt_id}-atlas.zip"
+    for bundle_index, bundled_prompt_ids in enumerate(
+        chunks(prompt_ids, max(1, int(prompts_per_bundle))),
+        1,
+    ):
+        bundle_name = prompt_bundle_name(bundle_index, bundled_prompt_ids)
         bundle_path = output / "release-assets" / bundle_name
         files: list[Path] = []
-        for entry in prompt_entries:
-            files.append(output / "primary" / entry.primary_file)
-            files.append(output / "sidecars" / entry.sidecar_file)
-            if entry.extended_file:
-                files.append(output / "extended" / entry.extended_file)
-            files.extend(output / "full" / name for name in entry.full_files)
-            entry.bundle_file = bundle_name
-        manifest_path = output / "bundle-manifests" / f"prompt-{prompt_id}.json"
+        bundled_entries: list[AtlasEntry] = []
+
+        for prompt_id in bundled_prompt_ids:
+            prompt_entries = sorted(
+                by_prompt[prompt_id],
+                key=lambda entry: (entry.model, entry.cohort_id),
+            )
+            for entry in prompt_entries:
+                files.append(output / "primary" / entry.primary_file)
+                files.append(output / "sidecars" / entry.sidecar_file)
+                if entry.extended_file:
+                    files.append(output / "extended" / entry.extended_file)
+                files.extend(output / "full" / name for name in entry.full_files)
+                entry.bundle_file = bundle_name
+                bundled_entries.append(entry)
+
+        manifest_path = output / "bundle-manifests" / f"prompt-bundle-{bundle_index:03d}.json"
         save_json(
             manifest_path,
             {
-                "schema_version": 1,
-                "prompt_id": prompt_id,
+                "schema_version": 2,
+                "bundle_index": bundle_index,
+                "prompt_count": len(bundled_prompt_ids),
+                "prompt_ids": bundled_prompt_ids,
+                "prompts_per_bundle_policy": int(prompts_per_bundle),
                 "cohorts": [
                     {
+                        "prompt_id": entry.prompt_id,
                         "cohort_id": entry.cohort_id,
                         "model": entry.model,
                         "sample_count": entry.sample_count,
@@ -109,7 +144,7 @@ def create_prompt_bundles(output: Path, entries: list[AtlasEntry]) -> list[Path]
                         "full_files": entry.full_files,
                         "sidecar_file": entry.sidecar_file,
                     }
-                    for entry in prompt_entries
+                    for entry in bundled_entries
                 ],
             },
         )
@@ -127,9 +162,15 @@ def create_release_packages(
 ) -> list[Path]:
     release_root = output / "release-assets"
     release_root.mkdir(parents=True, exist_ok=True)
-    bundles = create_prompt_bundles(output, entries)
+    bundles = create_prompt_bundles(
+        output,
+        entries,
+        prompts_per_bundle=max(1, int(config.get("prompts_per_bundle", 15))),
+    )
 
     report["entries"] = [asdict(entry) for entry in entries]
+    report["prompt_bundle_count"] = len(bundles)
+    report["prompts_per_bundle"] = max(1, int(config.get("prompts_per_bundle", 15)))
     report_path = output / "atlas-report.json"
     save_json(report_path, report)
 
