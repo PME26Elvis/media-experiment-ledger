@@ -30,3 +30,5 @@ __pycache__/
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+object-detection/output/
+object-detection/model-cache/

@@ -1,8 +1,14 @@
 # Full-Corpus YOLO Object Detection Specification
 
-> Status: **`specified_not_implemented`**  
-> Decision status: **approved direction, implementation pending**  
+> Status: **`implementation_pending_production`**  
+> Decision status: **implementation complete; production verification pending**  
 > 本文件定義未來 production implementation contract；在程式、獨立 workflow、測試、Release 產物與 Visual Lab 整合全部完成前，不得在 README 或 UI 宣稱此功能已上線。
+
+## 0. Implementation checkpoint
+
+The production implementation is now present on the feature branch: pinned model and labels, real ONNX Runtime smoke validation, quarantine-aware full-corpus inventory, verified ZIP extraction, within-run SHA dedupe with aliases, single-job inference, explicit failure sidecars, annotated previews, deterministic ZIP-only assets, independent `media-yolo-*` publication, latest/history indexes, README history, and YOLO Lab filters.
+
+The status remains `implementation_pending_production` until the merged main workflow publishes and verifies the first real full-corpus Release, index/writeback, Pages route, and Atlas non-regression.
 
 ## 1. 決策摘要
 
