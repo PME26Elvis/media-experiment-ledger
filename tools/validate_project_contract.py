@@ -69,9 +69,18 @@ def validate() -> list[str]:
         for tag, item in overrides.items():
             if not isinstance(item, dict) or not item.get("reason"):
                 errors.append(f"Atlas history override {tag} requires an audited reason")
+                continue
+            authoritative = item.get("authoritative", False)
+            if not isinstance(authoritative, bool):
+                errors.append(f"Atlas history override {tag}/authoritative must be boolean")
+            provided = 0
             for metric in ("images", "videos"):
-                if isinstance(item, dict) and metric in item and int(item[metric]) < 0:
-                    errors.append(f"Atlas history override {tag}/{metric} cannot be negative")
+                if metric in item:
+                    provided += 1
+                    if int(item[metric]) < 0:
+                        errors.append(f"Atlas history override {tag}/{metric} cannot be negative")
+            if authoritative and not provided:
+                errors.append(f"Authoritative Atlas history override {tag} needs a metric")
     if "never current corpus totals" not in str(atlas.get("history_metric_policy") or ""):
         errors.append("Atlas history metric policy must prohibit current-total backfill")
 
@@ -109,6 +118,7 @@ def validate() -> list[str]:
             "project-contract.json",
             "config/release-quarantine.json",
             "config/atlas-history-overrides.json",
+            "authoritative: true",
             "每 15 個 prompt",
             "YOLOX-Tiny",
             "API 完成事件",
@@ -122,6 +132,7 @@ def validate() -> list[str]:
             "project-contract.json",
             "config/release-quarantine.json",
             "config/atlas-history-overrides.json",
+            "authoritative: true",
             "15 prompt",
             "YOLOX-Tiny",
             "API completion events",
@@ -135,6 +146,7 @@ def validate() -> list[str]:
             "project-contract.json",
             "config/release-quarantine.json",
             "config/atlas-history-overrides.json",
+            "authoritative: true",
             "Traditional Chinese",
             "normal merge",
             "YOLOX-Tiny",
