@@ -1,0 +1,30 @@
+name: One-time verified YOLO status sync
+
+on:
+  pull_request:
+    paths:
+      - 'tools/apply_yolo_implemented_status.py'
+      - '.github/workflows/yolo-status-sync.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Synchronize verified production status
+        run: python tools/apply_yolo_implemented_status.py
+      - name: Commit synchronized status
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add AGENTS.md README.md README.en.md docs/PROJECT_CONTRACT.md docs/YOLO_OBJECT_DETECTION_SPEC.md tools/apply_yolo_implemented_status.py
+          git commit -m 'Synchronize verified YOLO production status'
+          git push origin HEAD:${{ github.head_ref }}
