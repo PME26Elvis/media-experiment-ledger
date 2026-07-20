@@ -107,7 +107,12 @@ def validate() -> list[str]:
 
     yolo = planned.get("yolo_object_detection") if isinstance(planned, dict) else {}
     expected_yolo = {
-        "status": "implementation_pending_production",
+        "status": "implemented",
+        "production_release": "media-yolo-all-2026-07-13-v1",
+        "production_writeback_commit": "bab357c4f92963d5d74e7229ad86272147436295",
+        "production_canonical_images": 387,
+        "production_images_with_detections": 313,
+        "production_total_detections": 1533,
         "workflow_path": ".github/workflows/yolo-object-detection.yml",
         "release_pattern": r"^media-yolo-all-\d{4}-\d{2}-\d{2}-v\d+$",
         "atlas_coupling": "none",
@@ -147,34 +152,48 @@ def validate() -> list[str]:
     if not isinstance(labels, list) or len(labels) != 80:
         errors.append("COCO labels file must contain exactly 80 classes")
 
+    history = read_json(ROOT / str(yolo.get("history_index") or ""))
+    releases = history.get("releases")
+    if not isinstance(releases, list) or not releases:
+        errors.append("Implemented YOLO contract requires a published history row")
+    else:
+        latest = releases[0]
+        for key, value in {
+            "tag": yolo.get("production_release"),
+            "images": yolo.get("production_canonical_images"),
+            "images_with_detections": yolo.get("production_images_with_detections"),
+            "total_detections": yolo.get("production_total_detections"),
+        }.items():
+            if latest.get(key) != value:
+                errors.append(f"YOLO production history {key}={latest.get(key)!r}; expected {value!r}")
+
     require_text(ROOT / "README.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
         "每 15 個 prompt", "YOLOX-Tiny", "API 完成事件", "封存媒體",
-        "AUTO:YOLO_HISTORY:START",
+        "AUTO:YOLO_HISTORY:START", "media-yolo-all-2026-07-13-v1",
     ], errors)
     require_text(ROOT / "README.en.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
         "15 prompt", "YOLOX-Tiny", "API completion events", "archived media",
-        "AUTO:YOLO_HISTORY_EN:START",
+        "AUTO:YOLO_HISTORY_EN:START", "media-yolo-all-2026-07-13-v1",
     ], errors)
     require_text(ROOT / "AGENTS.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
-        "Traditional Chinese", "normal merge", "implementation_pending_production",
-        "media-yolo-*",
+        "Traditional Chinese", "normal merge", "implemented", "media-yolo-*",
     ], errors)
     require_text(ROOT / "docs" / "PROJECT_CONTRACT.md", [
         "Source of truth", "Release quarantine", "Prompt Repeatability Atlas",
-        "atlas-history-overrides.json", "implementation_pending_production",
-        "media-yolo-*", "Contract validation",
+        "atlas-history-overrides.json", "implemented", "media-yolo-*",
+        "media-yolo-all-2026-07-13-v1", "Contract validation",
     ], errors)
     require_text(ROOT / "docs" / "PROMPT_REPEATABILITY_ATLAS.md", ["ZIP-only", "15 prompt", "full-corpus"], errors)
     require_text(ROOT / "docs" / "VIDEO_REPEATABILITY_ATLAS.md", ["seed", "FFprobe", "15 prompt"], errors)
     require_text(ROOT / str(yolo.get("spec") or ""), [
         "YOLOX-Tiny", "ONNX Runtime", "COCO", "media-yolo-all-",
-        "單一 GitHub-hosted CPU job", "implementation_pending_production", "Atlas 非回歸契約",
+        "單一 GitHub-hosted CPU job", "Status: **`implemented`**", "Atlas 非回歸契約",
     ], errors)
     require_text(ROOT / str(yolo.get("workflow_path") or ""), [
         "timeout-minutes: 350", "tools/build_yolo_detection.py", "media-yolo-*",
