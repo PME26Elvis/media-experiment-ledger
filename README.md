@@ -7,13 +7,27 @@
 ## 即時統計
 
 <!-- AUTO:LEDGER_STATS:START -->
-> 下一次 Atlas 發布後，GitHub Actions 會從全部 Releases 自動重建此區塊。
+> 此區塊由 GitHub Actions 全量重建；只統計正式 `media-exp-*` Releases，`media-input-*` snapshot 不會重複計入。
+
+| 統計項目 | 數值 |
+|---|---:|
+| 正式 Experiment Releases | 9 |
+| 實驗日期範圍 | 2026-06-29 → 2026-07-13 |
+| 圖片總數 | 937 |
+| 影片總數 | 40 |
+| 最新 Prompt Repeatability Atlas | [media-analysis-all-f5fdcae2c78b-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
 <!-- AUTO:LEDGER_STATS:END -->
 
 ## Prompt Repeatability Atlas 歷史
 
 <!-- AUTO:ATLAS_HISTORY:START -->
-> 下一次 Atlas 發布後，GitHub Actions 會從全部 Atlas Releases 自動重建此表。
+> 每次 Atlas workflow 都重新掃描全部 Atlas Releases 並重建此表，不依賴增量狀態。
+
+| 發布日期 | 圖譜類型 | 資料範圍 | 圖片 | 影片 | 可比較 Prompt | Release |
+|---|---|---|---:|---:|---:|---|
+| 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-f5fdcae2c78b-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
+| 2026-07-19 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-8b850904b063-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1) |
+| 2026-07-19 | 歷史單次圖譜 | 2026-07-13 | 3 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
 <!-- AUTO:ATLAS_HISTORY:END -->
 
 ## 核心能力
