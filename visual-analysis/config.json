@@ -1,5 +1,6 @@
 {
   "release_notes_highlights": 4,
+  "prompts_per_bundle": 15,
   "extended_min_samples": 5,
   "extended_max_samples": 16,
   "full_page_samples": 16,

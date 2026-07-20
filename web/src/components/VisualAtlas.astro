@@ -8,7 +8,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
     <div>
       <span class="eyebrow">PROMPT REPEATABILITY ATLAS</span>
       <h2>Controlled visual variation across the complete ledger.</h2>
-      <p>Every published <code>media-exp-*</code> Release is rebuilt as one global snapshot. Release notes show only a few previews; every eligible prompt has a ZIP containing its primary card, temporal overview, complete paginated contact sheets, sidecars, and source index.</p>
+      <p>Every published <code>media-exp-*</code> Release is rebuilt as one global snapshot. Release notes show only a few previews; complete prompt histories are grouped into deterministic ZIP assets containing up to 15 prompt IDs each.</p>
     </div>
     <div class="atlas-actions">
       <label>Prompt or text<input type="search" data-atlas-search placeholder="i0001, product, ceramic…" /></label>
@@ -55,9 +55,9 @@ const dataUrl = sitePath('data/visual-analysis.json');
       grid.innerHTML = filtered.map((entry) => {
         const image = entry.primary_url
           ? `<a class="atlas-image-link" href="${escapeHtml(entry.primary_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} repeatability comparison" /></a>`
-          : '<div class="atlas-image-link"><div class="atlas-image-missing">Preview is packaged in the prompt ZIP</div></div>';
+          : '<div class="atlas-image-link"><div class="atlas-image-missing">Preview is packaged in the containing Atlas bundle</div></div>';
         const bundle = entry.bundle_url
-          ? `<a class="atlas-bundle" href="${escapeHtml(entry.bundle_url)}">Download prompt ZIP</a>`
+          ? `<a class="atlas-bundle" href="${escapeHtml(entry.bundle_url)}">Download containing 15-prompt ZIP bundle</a>`
           : '<span class="atlas-bundle unavailable">Bundle URL unavailable</span>';
         return `
         <article class="atlas-card">

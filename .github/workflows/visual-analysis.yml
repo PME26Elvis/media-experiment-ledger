@@ -24,6 +24,7 @@ on:
       - 'tools/prompt_atlas_publish.py'
       - 'tools/prompt_atlas_build.py'
       - 'tools/prompt_atlas_packages.py'
+      - 'tools/update_readme_summary.py'
       - 'tools/release_packaging.py'
       - 'tools/release_publishing.py'
       - 'requirements-visual-analysis.txt'
@@ -103,6 +104,17 @@ jobs:
           fi
           python tools/build_prompt_atlas.py "${args[@]}"
 
+      - name: Refresh bilingual README statistics and Atlas history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/update_readme_summary.py \
+            --repo '${{ github.repository }}' \
+            --readme README.md \
+            --readme-en README.en.md
+
       - name: Upload failure recovery artifact
         if: failure()
         uses: actions/upload-artifact@v4
@@ -112,26 +124,30 @@ jobs:
             visual-analysis/output/
             web/public/data/visual-analysis.json
             web/public/data/visual-analysis/previews/
+            README.md
+            README.en.md
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0
 
-      - name: Publish Visual Lab index and versioned note previews
+      - name: Publish Visual Lab index, previews, and repository summary
         shell: bash
         run: |
           set -euo pipefail
           paths=(
+            README.md
+            README.en.md
             web/public/data/visual-analysis.json
             web/public/data/visual-analysis/previews
           )
           if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
-            echo "Visual Lab index and previews are unchanged"
+            echo "Visual Lab and README summary are unchanged"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add "${paths[@]}"
-          git commit -m 'visual: publish full-corpus prompt atlas index'
+          git commit -m 'visual: publish Atlas index and repository summary'
 
           # Analytics may update generated site files concurrently. Rebase and
           # retry immediately; no sleep/poll loop or persistent state is used.
@@ -143,5 +159,5 @@ jobs:
             fi
             echo "Push attempt $attempt raced with another workflow; retrying after rebase"
           done
-          echo 'Unable to publish the Visual Lab index after three conflict-safe attempts' >&2
+          echo 'Unable to publish the Visual Lab and README summary after three attempts' >&2
           exit 1
