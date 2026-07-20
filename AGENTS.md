@@ -24,7 +24,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 
 - Read `project-contract.json` first for machine-enforced values and `docs/PROJECT_CONTRACT.md` for rationale.
 - Apply `config/release-quarantine.json` to every canonical corpus consumer.
-- Preserve immutable Atlas history: use explicit report metrics first, then `config/atlas-history-overrides.json`; never backfill an old row from current corpus totals.
+- Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
 - YOLOX-Tiny object detection is currently specified, not implemented; do not present planned behavior as production.
 
