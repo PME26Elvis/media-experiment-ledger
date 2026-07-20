@@ -7,11 +7,12 @@ const dataUrl = sitePath('data/visual-analysis.json');
   <div class="atlas-toolbar panel-surface">
     <div>
       <span class="eyebrow">PROMPT REPEATABILITY ATLAS</span>
-      <h2>Controlled visual variation across the complete ledger.</h2>
-      <p>Every published <code>media-exp-*</code> Release is rebuilt as one global snapshot. Release notes show only a few previews; complete prompt histories are grouped into deterministic ZIP assets containing up to 15 prompt IDs each.</p>
+      <h2>Controlled image and video variation across the complete ledger.</h2>
+      <p>Every published <code>media-exp-*</code> Release is rebuilt as one global snapshot. Image comparisons use static cards; video comparisons use synchronized GIFs plus complete keyframe sheets. Histories are grouped into deterministic ZIP assets containing up to 15 prompt IDs each.</p>
     </div>
     <div class="atlas-actions">
-      <label>Prompt or text<input type="search" data-atlas-search placeholder="i0001, product, ceramic…" /></label>
+      <label>Prompt or text<input type="search" data-atlas-search placeholder="i0001, v0001, product, motion…" /></label>
+      <label>Media<select data-atlas-media><option value="">Images + videos</option><option value="image">Images</option><option value="video">Videos</option></select></label>
       <label>Category<select data-atlas-category><option value="">All categories</option></select></label>
       <a class="atlas-download" data-atlas-download hidden target="_blank" rel="noreferrer">Open all Atlas ZIP assets</a>
     </div>
@@ -20,7 +21,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
   <div class="atlas-metrics" data-atlas-metrics>
     <article><span>Status</span><strong>Loading</strong><small>Reading the latest global analysis index</small></article>
     <article><span>Corpus</span><strong>—</strong><small>All published experiment Releases</small></article>
-    <article><span>Comparisons</span><strong>—</strong><small>Controlled prompt cohorts</small></article>
+    <article><span>Comparisons</span><strong>—</strong><small>Image and video cohorts</small></article>
     <article><span>Analysis</span><strong>—</strong><small>ZIP-only companion Release</small></article>
   </div>
 
@@ -35,6 +36,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
     const grid = root.querySelector('[data-atlas-grid]');
     const status = root.querySelector('[data-atlas-status]');
     const search = root.querySelector('[data-atlas-search]');
+    const media = root.querySelector('[data-atlas-media]');
     const category = root.querySelector('[data-atlas-category]');
     const download = root.querySelector('[data-atlas-download]');
     const metrics = [...root.querySelectorAll('[data-atlas-metrics] article')];
@@ -46,27 +48,36 @@ const dataUrl = sitePath('data/visual-analysis.json');
 
     const render = () => {
       const needle = search.value.trim().toLowerCase();
+      const selectedMedia = media.value;
       const selectedCategory = category.value;
       const filtered = entries.filter((entry) => {
-        const haystack = `${entry.prompt_id} ${entry.category} ${entry.model} ${entry.prompt}`.toLowerCase();
-        return (!needle || haystack.includes(needle)) && (!selectedCategory || entry.category === selectedCategory);
+        const mediaType = entry.media_type || 'image';
+        const haystack = `${mediaType} ${entry.prompt_id} ${entry.category} ${entry.model} ${entry.prompt}`.toLowerCase();
+        return (!needle || haystack.includes(needle))
+          && (!selectedMedia || mediaType === selectedMedia)
+          && (!selectedCategory || entry.category === selectedCategory);
       });
-      status.textContent = `${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} controlled comparisons`;
+      const filteredImages = filtered.filter((entry) => (entry.media_type || 'image') === 'image').length;
+      const filteredVideos = filtered.filter((entry) => entry.media_type === 'video').length;
+      status.textContent = `${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} controlled comparisons · ${filteredImages.toLocaleString()} image · ${filteredVideos.toLocaleString()} video`;
       grid.innerHTML = filtered.map((entry) => {
-        const image = entry.primary_url
-          ? `<a class="atlas-image-link" href="${escapeHtml(entry.primary_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} repeatability comparison" /></a>`
-          : '<div class="atlas-image-link"><div class="atlas-image-missing">Preview is packaged in the containing Atlas bundle</div></div>';
+        const mediaType = entry.media_type || 'image';
+        const isVideo = mediaType === 'video';
+        const preview = entry.primary_url
+          ? `<a class="atlas-image-link ${isVideo ? 'is-video' : ''}" href="${escapeHtml(entry.primary_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(entry.primary_url)}" alt="${escapeHtml(entry.prompt_id)} ${escapeHtml(mediaType)} repeatability comparison" /></a>`
+          : `<div class="atlas-image-link ${isVideo ? 'is-video' : ''}"><div class="atlas-image-missing">Preview is packaged in the containing ${escapeHtml(mediaType)} Atlas bundle</div></div>`;
         const bundle = entry.bundle_url
-          ? `<a class="atlas-bundle" href="${escapeHtml(entry.bundle_url)}">Download containing 15-prompt ZIP bundle</a>`
+          ? `<a class="atlas-bundle" href="${escapeHtml(entry.bundle_url)}">Download containing 15-prompt ${escapeHtml(mediaType)} ZIP bundle</a>`
           : '<span class="atlas-bundle unavailable">Bundle URL unavailable</span>';
+        const fullLabel = isVideo ? 'keyframe page(s)' : 'full page(s)';
         return `
-        <article class="atlas-card">
-          ${image}
+        <article class="atlas-card" data-media="${escapeHtml(mediaType)}">
+          ${preview}
           <div class="atlas-card-body">
             <div class="atlas-card-head"><strong>${escapeHtml(entry.prompt_id)}</strong><span>${escapeHtml(entry.sample_count)} samples</span></div>
-            <small>${escapeHtml(entry.category)} · ${escapeHtml(entry.model)}</small>
+            <small>${escapeHtml(mediaType.toUpperCase())} · ${escapeHtml(entry.category)} · ${escapeHtml(entry.model)}</small>
             <p>${escapeHtml(entry.prompt)}</p>
-            <div class="atlas-tags"><code>${escapeHtml(entry.cohort_id)}</code><span>${escapeHtml(entry.full_page_count || 0)} full page(s)</span></div>
+            <div class="atlas-tags"><code>${escapeHtml(entry.cohort_id)}</code><span>${escapeHtml(entry.full_page_count || 0)} ${fullLabel}</span></div>
             ${bundle}
           </div>
         </article>`;
@@ -88,11 +99,13 @@ const dataUrl = sitePath('data/visual-analysis.json');
           download.hidden = false;
         }
         const dateRange = data.date_from || data.date_to ? `${data.date_from || '—'} → ${data.date_to || '—'}` : 'Date range unavailable';
+        const imageCount = Number(data.comparable_image_prompts || entries.filter((entry) => (entry.media_type || 'image') === 'image').length || 0);
+        const videoCount = Number(data.comparable_video_prompts || entries.filter((entry) => entry.media_type === 'video').length || 0);
         const metricValues = [
           [data.status === 'published' ? 'Published' : 'Waiting', data.generated_at_utc ? `Generated ${new Date(data.generated_at_utc).toLocaleString()}` : 'No generated atlas yet'],
           [`${Number(data.release_count_scanned || 0).toLocaleString()} Releases`, dateRange],
-          [Number(data.comparable_prompts || 0).toLocaleString(), 'Controlled prompt cohorts'],
-          [data.analysis_tag || '—', data.analysis_url ? 'Global ZIP-only Release published' : 'Companion Release']
+          [`${(imageCount + videoCount).toLocaleString()}`, `${imageCount.toLocaleString()} image · ${videoCount.toLocaleString()} video cohorts`],
+          [data.analysis_tag || '—', data.analysis_url ? 'Global ZIP-only image/video Release published' : 'Companion Release']
         ];
         metrics.forEach((tile, index) => {
           tile.querySelector('strong').textContent = metricValues[index][0];
@@ -107,6 +120,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
       });
 
     search.addEventListener('input', render);
+    media.addEventListener('change', render);
     category.addEventListener('change', render);
   }
 </script>
@@ -115,7 +129,7 @@ const dataUrl = sitePath('data/visual-analysis.json');
   .visual-atlas { margin-top: 1rem; }
   .atlas-toolbar { display:grid; grid-template-columns:1.25fr .75fr; gap:1.25rem; align-items:end; }
   .atlas-toolbar h2 { margin:.2rem 0 .45rem; font-size:clamp(1.7rem,3vw,2.7rem); letter-spacing:-.045em; }
-  .atlas-toolbar p { margin:0; color:var(--soft-text); max-width:68ch; }
+  .atlas-toolbar p { margin:0; color:var(--soft-text); max-width:72ch; }
   .atlas-actions { display:grid; grid-template-columns:1fr 1fr; gap:.65rem; }
   .atlas-actions label { color:var(--soft-text); font-size:.68rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
   .atlas-actions input,.atlas-actions select { width:100%; display:block; margin-top:.3rem; min-height:2.65rem; border-radius:.7rem; border:1px solid var(--panel-border); color:inherit; background:rgba(5,14,25,.72); padding:.55rem .7rem; }
@@ -131,7 +145,9 @@ const dataUrl = sitePath('data/visual-analysis.json');
   .atlas-status.error { color:var(--pink); }
   .atlas-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
   .atlas-card { overflow:hidden; border:1px solid var(--panel-border); border-radius:1.1rem; background:var(--panel-bg); box-shadow:0 18px 50px rgba(0,0,0,.15); }
+  .atlas-card[data-media='video'] { border-color:rgba(82,211,255,.45); }
   .atlas-image-link { display:block; background:#07101d; aspect-ratio:2048/2304; overflow:hidden; }
+  .atlas-image-link.is-video { aspect-ratio:2/1.15; }
   .atlas-image-link img { width:100%; height:100%; display:block; object-fit:contain; transition:transform .25s ease; }
   .atlas-image-link:hover img { transform:scale(1.012); }
   .atlas-image-missing { height:100%; display:grid; place-items:center; color:var(--soft-text); padding:1rem; text-align:center; }

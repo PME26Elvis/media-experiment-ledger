@@ -1,6 +1,6 @@
 ---
 title: Visual Lab
-description: Search the global prompt-repeatability index and download ZIP-packaged primary, temporal, and complete histories.
+description: Search the global image/video prompt-repeatability index and download ZIP-packaged evidence.
 ---
 
 import SectionTabs from '../../components/SectionTabs.astro';
@@ -12,18 +12,37 @@ import VisualAtlas from '../../components/VisualAtlas.astro';
 
 ## Reading the cards
 
-Each row represents one controlled cohort: identical `prompt_id`, model, and appearance-relevant settings. The global index includes cohorts from every published `media-exp-*` Release, even when the most recent upload did not contain that prompt.
+Each row represents one controlled cohort. Images and videos are always separate media types, even when they share a prompt ID. The global index includes cohorts from every published `media-exp-*` Release, even when the latest upload did not contain that prompt.
 
-A primary card summarizes temporal anchors. An extended sheet selects up to 16 temporal quantiles. Full contact sheets include every verified byte-unique sample and paginate at 16 samples per page. Exact duplicates are removed before any layout is rendered.
+Use the **Media** selector to show images, videos, or both.
 
-Only the small Release-note highlight set is mirrored as inline web previews. Every cohort links to the deterministic Atlas bundle that contains its prompt. Each bundle contains up to 15 prompt IDs and includes primary cards, extended overviews, all full pages, sidecars, and a bundle manifest.
+### Image cards
+
+Image cohorts are keyed by identical `prompt_id`, model, and appearance-relevant settings. A primary JPEG summarizes temporal anchors, an extended sheet selects up to 16 temporal quantiles, and full contact sheets contain every verified byte-unique image at 16 samples per page.
+
+### Video cards
+
+Video cohorts are keyed by identical `prompt_id`, model, and non-random generation settings. Random seed remains visible in sidecars but is excluded from the cohort key so repeated free-API runs can be compared.
+
+The primary GIF synchronizes all tiles from `t=0`, freezes short videos on their last frame, and uses contain/letterbox without cropping. Complete keyframe pages contain 10%, 50%, and 90% frames for every verified byte-unique video.
+
+Only the small Release-note highlight set is mirrored as inline web previews. Every cohort links to the deterministic Atlas bundle that contains its prompt. Image and video bundles are separate and each contains up to 15 prompt IDs.
+
+## Validation
+
+Images must match a ZIP `images` member and pass Pillow decoding. Videos must match a ZIP `videos` member, pass `ffprobe`, expose valid duration and dimensions, and decode successfully near the start, midpoint, and end through FFmpeg. Both media types use exact SHA-256 deduplication.
 
 ## Publication contract
 
 Raw experiment Releases remain immutable. The common multi-date publisher dispatches one global rebuild after the whole batch succeeds. Derived tags use `media-analysis-all-<dataset-fingerprint>-vN`.
 
-The companion Release asset list is ZIP-only: grouped image bundles containing up to 15 prompt IDs, metadata and offline-gallery packages, and multipart complete packages below the configured asset boundary. Inline Notes previews are served from versioned repository paths rather than naked Release assets.
+The companion Release asset list is ZIP-only:
 
-The planned video Atlas will share this same corpus, companion Release, ZIP-only publication, and Visual Lab index while using FFmpeg-generated GIF previews and keyframe sheets. See the [video Atlas plan](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/VIDEO_REPEATABILITY_ATLAS.md).
+- grouped image bundles, up to 15 prompt IDs each;
+- grouped video bundles, up to 15 prompt IDs each;
+- metadata and offline-gallery packages;
+- multipart complete packages below the configured asset boundary.
 
-See the [image Prompt Repeatability Atlas specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/PROMPT_REPEATABILITY_ATLAS.md) for ingestion paths, batch triggers, cohorting, full-page selection, packaging, and recovery details.
+Release Notes may display versioned JPEG and GIF previews, but those previews are served from repository paths rather than uploaded as naked Release assets.
+
+See the [shared/image Atlas specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/PROMPT_REPEATABILITY_ATLAS.md) and [video Atlas production contract](https://github.com/PME26Elvis/media-experiment-ledger/blob/main/docs/VIDEO_REPEATABILITY_ATLAS.md).

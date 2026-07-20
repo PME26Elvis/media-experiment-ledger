@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) | **English**
 
-A release-backed experiment platform for structured image and video generation runs. The repository keeps prompt banks, immutable experiment Releases, reproducible analytics, full-corpus repeatability atlases, forecasts, and an Astro/Starlight observatory without committing original result folders to Git history.
+A release-backed experiment platform for structured image and video generation runs. The repository keeps prompt banks, immutable experiment Releases, reproducible analytics, full-corpus image/video repeatability atlases, forecasts, and an Astro/Starlight observatory without committing original result folders to Git history.
 
 ## Live repository statistics
 
@@ -38,9 +38,10 @@ A release-backed experiment platform for structured image and video generation r
 - Keeps JSONL metadata and SHA-256 manifests available for inexpensive analytics.
 - Skips identical published runs and blocks conflicting reuse of a `run_id`.
 - Supports byte-verifiable `media-input-*` snapshots for store-now/promote-later uploads.
-- Rebuilds one global Prompt Repeatability Atlas from **all published experiment data** after a successful publishing batch.
-- Packages image Atlas output in deterministic ZIP bundles containing up to **15 prompt IDs** each.
-- Publishes analytics, forecasts, searchable visual comparisons, and architecture documentation through GitHub Pages.
+- Rebuilds one global image + video Prompt Repeatability Atlas from **all published experiment data** after a successful publishing batch.
+- Packages image and video Atlas output in deterministic ZIP bundles containing up to **15 prompt IDs** each.
+- Uses static cards for image comparisons and FFmpeg-validated synchronized GIFs plus complete keyframe sheets for videos.
+- Publishes analytics, forecasts, searchable image/video comparisons, and architecture documentation through GitHub Pages.
 
 ## Supported ingestion paths
 
@@ -87,7 +88,7 @@ python tools/input_snapshot.py publish results.zip
 python tools/input_snapshot.py promote --tag latest
 ```
 
-`media-input-*` Releases are transport/storage records. They are deliberately excluded from README statistics and Atlas source data; only promoted `media-exp-*` Releases count as formal experiments.
+`media-input-*` Releases are transport/storage records. They are excluded from README statistics and Atlas source data; only promoted `media-exp-*` Releases count as formal experiments.
 
 ## Experiment Release layout
 
@@ -105,14 +106,29 @@ A genuinely new run on an existing date creates an immutable supplement such as 
 
 ## Full-corpus Prompt Repeatability Atlas
 
-For each controlled image cohort—same prompt ID, model, and appearance-relevant settings—the Atlas produces:
+One companion Release handles both media types, while image and video samples always remain in separate controlled cohorts.
+
+### Images
+
+For the same prompt ID, model, and appearance-relevant settings, the Atlas produces:
 
 - a compact primary comparison card;
 - an extended overview with up to 16 temporal quantiles;
-- full contact-sheet pages containing every verified byte-unique sample;
+- full contact-sheet pages containing every verified byte-unique image;
 - JSON sidecars and source indexes;
-- deterministic ZIP bundles containing up to **15 prompt IDs**;
-- complete multipart ZIP packages below the configured Release-asset boundary.
+- deterministic bundles containing up to 15 image prompt IDs.
+
+### Videos
+
+For the same prompt ID, model, and non-random generation settings, the Atlas:
+
+- validates container, stream, duration, dimensions, frame rate, and codec with `ffprobe`;
+- decodes start, middle, and end frames with FFmpeg to reject broken media;
+- renders synchronized 2/3/4-run GIF comparisons;
+- starts every tile at `t=0`, freezes short clips on their last frame, and uses contain/letterbox without cropping;
+- creates 10%/50%/90% keyframe sheets for every verified byte-unique video;
+- preserves seed in the sample sidecar as evidence but excludes it from the cohort key;
+- packages up to 15 video prompt IDs per deterministic ZIP bundle.
 
 Companion tags use:
 
@@ -120,9 +136,9 @@ Companion tags use:
 media-analysis-all-<dataset-fingerprint>-vN
 ```
 
-Release notes embed a small category-diverse preview set. All Release assets remain ZIP containers; inline preview images are served from versioned repository paths.
+Release Notes default to four image JPEG highlights and two animated video GIF highlights. Release assets remain ZIP-only; versioned repository preview paths provide inline Notes and Visual Lab media.
 
-See [image Atlas specification](docs/PROMPT_REPEATABILITY_ATLAS.md) and the planned [video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md).
+See the [shared/image Atlas specification](docs/PROMPT_REPEATABILITY_ATLAS.md) and [video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md).
 
 ## README automation
 
@@ -132,7 +148,7 @@ Every successful Atlas workflow:
 2. aggregates image/video counts from manifests while excluding `media-input-*` snapshots;
 3. rescans every published `media-analysis-*` Release;
 4. rebuilds the statistics and Atlas-history blocks in both READMEs;
-5. commits the updated README, Visual Lab index, and versioned Notes previews together.
+5. commits the updated READMEs, Visual Lab index, and versioned JPEG/GIF previews together.
 
 No incremental README state or cache is used.
 
@@ -141,21 +157,21 @@ No incremental README state or cache is used.
 ```text
 Multi-day input batch
   → immutable date-scoped experiment Releases
-  → one full-corpus Prompt Repeatability Atlas
+  → one full-corpus image + video Prompt Repeatability Atlas
   → canonical analytics and reports
   → ensemble forecasts
   → Astro/Starlight build
   → GitHub Pages deployment
 ```
 
-The site includes Overview, Analytics, Visual Lab, Forecast Lab, System Atlas, and Frontend Stack sections.
+The site includes Overview, Analytics, Visual Lab with image/video filtering and GIF previews, Forecast Lab, System Atlas, and Frontend Stack sections.
 
 ## Documentation
 
 - [ZIP input and snapshot workflow — English](docs/INPUT_ARCHIVE_WORKFLOW.en.md)
 - [Codespaces publishing — English](docs/CODESPACES_PUBLISHING.en.md)
-- [Image Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md)
-- [Video Prompt Repeatability Atlas plan](docs/VIDEO_REPEATABILITY_ATLAS.md)
+- [Shared and image Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md)
+- [Video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md)
 - [繁體中文 README](README.md)
 
 ## Development
@@ -165,6 +181,7 @@ python -m pip install \
   -r requirements-analytics.txt \
   -r requirements-forecast.txt \
   -r requirements-visual-analysis.txt
+sudo apt-get install -y --no-install-recommends ffmpeg
 python -m compileall tools tests
 python -m unittest discover -s tests -v
 npm install --prefix web --package-lock=false --no-audit --no-fund

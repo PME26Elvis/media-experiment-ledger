@@ -8,15 +8,28 @@ from pathlib import Path
 from typing import Any, Sequence
 from urllib.parse import quote
 
-from prompt_atlas_core import AtlasEntry
 from prompt_atlas_data import command
 
 ANALYSIS_VERSION_RE = re.compile(r"-v(\d+)$")
 
 
-def choose_highlights(entries: Sequence[AtlasEntry], limit: int) -> list[AtlasEntry]:
+def media_type(entry: Any) -> str:
+    return str(getattr(entry, "media_type", "image") or "image")
+
+
+def choose_highlights(
+    entries: Sequence[Any],
+    limit: int,
+    *,
+    media: str | None = None,
+) -> list[Any]:
+    candidates = [
+        entry
+        for entry in entries
+        if media is None or media_type(entry) == media
+    ]
     ranked = sorted(
-        entries,
+        candidates,
         key=lambda entry: (
             -min(entry.sample_count, 32),
             entry.category,
@@ -24,7 +37,7 @@ def choose_highlights(entries: Sequence[AtlasEntry], limit: int) -> list[AtlasEn
             entry.cohort_id,
         ),
     )
-    selected: list[AtlasEntry] = []
+    selected: list[Any] = []
     categories: set[str] = set()
     for entry in ranked:
         if len(selected) >= limit:
@@ -40,6 +53,29 @@ def choose_highlights(entries: Sequence[AtlasEntry], limit: int) -> list[AtlasEn
     return selected
 
 
+def choose_release_highlights(
+    entries: Sequence[Any],
+    config: dict[str, Any],
+) -> list[Any]:
+    image_limit = max(
+        0,
+        int(
+            config.get(
+                "release_notes_image_highlights",
+                config.get("release_notes_highlights", 4),
+            )
+        ),
+    )
+    video_limit = max(
+        0,
+        int(config.get("release_notes_video_highlights", 2)),
+    )
+    return [
+        *choose_highlights(entries, image_limit, media="image"),
+        *choose_highlights(entries, video_limit, media="video"),
+    ]
+
+
 def release_asset_url(repo: str, tag: str, asset_name: str) -> str:
     return (
         f"https://github.com/{repo}/releases/download/"
@@ -52,7 +88,9 @@ def release_page_url(repo: str, tag: str) -> str:
 
 
 def asset_map(repo: str, tag: str) -> tuple[dict[str, str], str]:
-    release = json.loads(command(["gh", "api", f"repos/{repo}/releases/tags/{tag}"]).stdout)
+    release = json.loads(
+        command(["gh", "api", f"repos/{repo}/releases/tags/{tag}"]).stdout
+    )
     return (
         {
             str(asset["name"]): str(asset["browser_download_url"])
@@ -68,7 +106,6 @@ def analysis_tag_for_dataset(
     *,
     force: bool = False,
 ) -> tuple[str, bool, bool]:
-    """Return tag, resumed-draft flag, and reused-published flag."""
     base = f"media-analysis-all-{fingerprint[:12]}"
     drafts: list[tuple[int, str]] = []
     published: list[tuple[int, str]] = []
@@ -85,7 +122,10 @@ def analysis_tag_for_dataset(
         return max(drafts)[1], True, False
     if published and not force:
         return max(published)[1], False, True
-    next_version = max([number for number, _ in drafts + published], default=0) + 1
+    next_version = max(
+        [number for number, _ in drafts + published],
+        default=0,
+    ) + 1
     return f"{base}-v{next_version}", False, False
 
 
@@ -101,25 +141,36 @@ def publication_result(
     tag: str,
     release_url: str,
     assets: dict[str, str],
-    entries: Sequence[AtlasEntry],
+    entries: Sequence[Any],
     config: dict[str, Any],
     *,
     resumed: bool,
     reused: bool,
 ) -> dict[str, Any]:
     complete_names = complete_asset_names(assets)
-    highlights = choose_highlights(
-        entries,
-        int(config.get("release_notes_highlights", 4)),
-    )
+    highlights = choose_release_highlights(entries, config)
     return {
         "analysis_tag": tag,
         "analysis_url": release_url,
-        "archive_url": next((assets.get(name) for name in complete_names if assets.get(name)), None),
-        "archive_urls": [assets[name] for name in complete_names if name in assets],
+        "archive_url": next(
+            (assets.get(name) for name in complete_names if assets.get(name)),
+            None,
+        ),
+        "archive_urls": [
+            assets[name]
+            for name in complete_names
+            if name in assets
+        ],
         "report_url": assets.get("atlas-metadata.zip"),
         "gallery_url": assets.get("offline-gallery.zip"),
-        "highlights": [entry.prompt_id for entry in highlights],
+        "highlights": [
+            {
+                "media_type": media_type(entry),
+                "prompt_id": entry.prompt_id,
+                "cohort_id": entry.cohort_id,
+            }
+            for entry in highlights
+        ],
         "assets": assets,
         "resumed_draft": resumed,
         "reused_published": reused,
@@ -130,7 +181,7 @@ def publish_release(
     repo: str,
     dataset_fingerprint_value: str,
     output_root: Path,
-    entries: list[AtlasEntry],
+    entries: list[Any],
     config: dict[str, Any],
     report: dict[str, Any],
     preview_urls: dict[str, str],
@@ -159,16 +210,22 @@ def publish_release(
         force=force,
     )
     title = (
-        "Prompt Repeatability Atlas — All Published Data "
-        f"({report.get('date_from') or 'unknown'} → {report.get('date_to') or 'unknown'})"
+        "Prompt Repeatability Atlas — Images + Videos "
+        f"({report.get('date_from') or 'unknown'} → "
+        f"{report.get('date_to') or 'unknown'})"
     )
     release_assets = sorted((output_root / "release-assets").glob("*.zip"))
     if not release_assets:
         raise RuntimeError("No ZIP release assets were created")
-    non_zip = [path.name for path in release_assets if path.suffix.lower() != ".zip"]
+    non_zip = [
+        path.name
+        for path in release_assets
+        if path.suffix.lower() != ".zip"
+    ]
     if non_zip:
         raise RuntimeError(
-            "Atlas Release assets must all be ZIP containers: " + ", ".join(non_zip)
+            "Atlas Release assets must all be ZIP containers: "
+            + ", ".join(non_zip)
         )
 
     if reused:
@@ -227,31 +284,49 @@ def publish_release(
         for path in release_assets
     }
     release_url = release_page_url(repo, tag)
-    highlights = choose_highlights(
-        entries,
-        int(config.get("release_notes_highlights", 4)),
-    )
+    highlights = choose_release_highlights(entries, config)
     complete_names = complete_asset_names(planned_assets)
     complete_links = " · ".join(
         f"[Complete part {index + 1}]({planned_assets[name]})"
         for index, name in enumerate(complete_names)
     )
-    prompts_per_bundle = max(1, int(config.get("prompts_per_bundle", 15)))
-    bundle_count = int(report.get("prompt_bundle_count") or 0)
+    image_count = int(report.get("comparable_image_prompts") or 0)
+    video_count = int(report.get("comparable_video_prompts") or 0)
+    prompts_per_bundle = max(
+        1,
+        int(config.get("prompts_per_bundle", 15)),
+    )
+    video_prompts_per_bundle = max(
+        1,
+        int(
+            config.get(
+                "video_prompts_per_bundle",
+                prompts_per_bundle,
+            )
+        ),
+    )
 
     notes = [
         "# Prompt Repeatability Atlas",
         "",
-        "A full-corpus snapshot built from every currently published `media-exp-*` Release.",
+        "A full-corpus image + video snapshot built from every currently "
+        "published `media-exp-*` Release.",
         "",
         f"- Dataset fingerprint: `{dataset_fingerprint_value}`",
         f"- Experiment Releases scanned: **{report.get('release_count_scanned', 0)}**",
-        f"- Date range: **{report.get('date_from') or '—'} → {report.get('date_to') or '—'}**",
-        f"- Comparable controlled cohorts: **{len(entries)}**",
-        f"- Prompt bundles: **{bundle_count}**, up to **{prompts_per_bundle} prompt IDs per ZIP**",
-        f"- Embedded previews: **{len(highlights)}**",
-        "- Every Release asset is a ZIP container; there are no naked JPG, JSON, GIF, or HTML assets.",
-        "- Each grouped prompt bundle contains primary cards, temporal overviews, complete paginated contact sheets, sidecars, and a bundle manifest.",
+        f"- Date range: **{report.get('date_from') or '—'} → "
+        f"{report.get('date_to') or '—'}**",
+        f"- Comparable image cohorts: **{image_count}**",
+        f"- Comparable video cohorts: **{video_count}**",
+        f"- Image bundles: **{report.get('prompt_bundle_count', 0)}**, "
+        f"up to **{prompts_per_bundle} prompt IDs per ZIP**",
+        f"- Video bundles: **{report.get('video_prompt_bundle_count', 0)}**, "
+        f"up to **{video_prompts_per_bundle} prompt IDs per ZIP**",
+        f"- Embedded previews: **{len(highlights)}** static cards / animated GIFs",
+        "- Every Release asset is a ZIP container; there are no naked JPG, "
+        "JSON, GIF, MP4, or HTML assets.",
+        "- Video evidence includes synchronized GIF comparisons, "
+        "10%/50%/90% keyframe sheets, FFprobe metadata, and exact source references.",
         "",
         complete_links or f"[All ZIP assets]({release_url})",
         f"[Metadata package]({planned_assets.get('atlas-metadata.zip', release_url)}) · "
@@ -261,31 +336,51 @@ def publish_release(
         "",
     ]
     for entry in highlights:
+        kind = media_type(entry)
         preview = preview_urls.get(entry.cohort_id)
         bundle = planned_assets.get(entry.bundle_file or "", release_url)
         notes.extend(
             [
-                f"### {entry.prompt_id} · {entry.category} · {entry.sample_count} unique samples",
+                f"### {entry.prompt_id} · {kind} · {entry.category} · "
+                f"{entry.sample_count} unique samples",
                 "",
-                textwrap.shorten(entry.prompt, width=240, placeholder="…"),
+                textwrap.shorten(
+                    entry.prompt,
+                    width=240,
+                    placeholder="…",
+                ),
                 "",
             ]
         )
         if preview:
             notes.extend(
                 [
-                    f"[![{entry.prompt_id} repeatability comparison]({preview})]({preview})",
+                    f"[![{entry.prompt_id} {kind} repeatability comparison]"
+                    f"({preview})]({preview})",
                     "",
                 ]
             )
-        notes.extend([f"[Download the containing {prompts_per_bundle}-prompt bundle]({bundle})", ""])
+        bundle_size = (
+            video_prompts_per_bundle
+            if kind == "video"
+            else prompts_per_bundle
+        )
+        notes.extend(
+            [
+                f"[Download the containing {bundle_size}-prompt "
+                f"{kind} bundle]({bundle})",
+                "",
+            ]
+        )
     notes.extend(
         [
             "## Interpretation",
             "",
-            "Primary cards summarize temporal anchors. Extended sheets sample up to "
-            f"{int(config.get('extended_max_samples', 16))} temporal quantiles. "
-            "The full pages include every verified byte-unique sample in chronological order.",
+            "Image primary cards summarize temporal anchors; full image pages "
+            "contain every verified byte-unique sample. Video primary GIFs "
+            "synchronize all tiles from t=0, pad short clips on their final frame, "
+            "and use contain/letterbox without cropping. Video keyframe pages "
+            "include 10%, 50%, and 90% frames for every verified byte-unique clip.",
         ]
     )
     final_notes = output_root / "release-notes.md"
@@ -312,10 +407,13 @@ def publish_release(
     missing = sorted(expected.difference(assets))
     if missing:
         raise RuntimeError(
-            f"Published release {tag} is missing ZIP assets: {', '.join(missing)}"
+            f"Published release {tag} is missing ZIP assets: "
+            f"{', '.join(missing)}"
         )
     if any(not name.endswith(".zip") for name in assets):
-        raise RuntimeError(f"Published release {tag} contains a non-ZIP asset")
+        raise RuntimeError(
+            f"Published release {tag} contains a non-ZIP asset"
+        )
     return publication_result(
         tag,
         verified_release_url or release_url,
