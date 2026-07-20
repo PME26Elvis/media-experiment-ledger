@@ -228,4 +228,5 @@ npm run build --prefix web
 <!-- AUTO:YOLO_HISTORY:START -->
 | 發布日期 | 資料範圍 | 圖片 | 有偵測 | 偵測框 | 模型 | Release |
 |---|---|---:|---:|---:|---|---|
+| 2026-07-20 | 2026-06-29 → 2026-07-13 | 387 | 313 | 1,533 | YOLOX-Tiny | [`media-yolo-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-yolo-all-2026-07-13-v1) |
 <!-- AUTO:YOLO_HISTORY:END -->
