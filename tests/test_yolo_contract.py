@@ -21,14 +21,18 @@ class YoloContractTests(unittest.TestCase):
         self.assertIn('title="Video highlights"', publisher)
         self.assertIn("repeatability comparison]", publisher)
 
-    def test_yolo_pipeline_has_its_own_release_contract(self) -> None:
+    def test_yolo_pipeline_has_verified_independent_release_contract(self) -> None:
         workflow = (ROOT / ".github" / "workflows" / "yolo-object-detection.yml").read_text(encoding="utf-8")
         self.assertIn("timeout-minutes: 350", workflow)
         self.assertIn("tools/build_yolo_detection.py", workflow)
         self.assertNotIn("visual-analysis.yml", workflow)
         self.assertNotIn("media-analysis-", workflow)
         contract = json.loads((ROOT / "project-contract.json").read_text(encoding="utf-8"))["planned_analysis"]["yolo_object_detection"]
-        self.assertEqual(contract["status"], "implementation_pending_production")
+        self.assertEqual(contract["status"], "implemented")
+        self.assertEqual(contract["production_release"], "media-yolo-all-2026-07-13-v1")
+        self.assertEqual(contract["production_canonical_images"], 387)
+        self.assertEqual(contract["production_images_with_detections"], 313)
+        self.assertEqual(contract["production_total_detections"], 1533)
         self.assertEqual(contract["atlas_coupling"], "none")
         self.assertFalse(contract["matrix_sharding_v1"])
         self.assertFalse(contract["persistent_state"])

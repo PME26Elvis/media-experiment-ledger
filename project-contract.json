@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-07-20.5",
+  "contract_version": "2026-07-20.6",
   "default_user_language": "zh-TW",
   "repository": {
     "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
@@ -42,7 +42,12 @@
   },
   "planned_analysis": {
     "yolo_object_detection": {
-      "status": "implementation_pending_production",
+      "status": "implemented",
+      "production_release": "media-yolo-all-2026-07-13-v1",
+      "production_writeback_commit": "bab357c4f92963d5d74e7229ad86272147436295",
+      "production_canonical_images": 387,
+      "production_images_with_detections": 313,
+      "production_total_detections": 1533,
       "spec": "docs/YOLO_OBJECT_DETECTION_SPEC.md",
       "default_model_family": "YOLOX-Tiny",
       "runtime": "ONNX Runtime CPU",

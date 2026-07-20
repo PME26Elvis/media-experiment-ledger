@@ -26,7 +26,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Apply `config/release-quarantine.json` to every canonical corpus consumer.
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
-- YOLOX-Tiny object detection is currently `implementation_pending_production`: implementation exists, but do not call it fully production-complete until a real `media-yolo-*` Release, index writeback, YOLO Lab, README history, and Atlas non-regression are verified.
+- YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, README history, 387-image coverage, and Atlas non-regression were verified.
 - YOLO remains an independent workflow and independent `media-yolo-*` Release family. Do not fold it into Atlas without a new explicit user decision.
 
 ## Repository source-of-truth rules

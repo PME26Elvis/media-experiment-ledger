@@ -62,7 +62,7 @@
 
 ## YOLOX-Tiny object detection status
 
-YOLO 功能目前為 `implementation_pending_production`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)，目前已實作：
+YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)。首個 production Release 為 `media-yolo-all-2026-07-13-v1`，writeback commit 為 `bab357c4f92963d5d74e7229ad86272147436295`，實測處理 387 張 canonical images，其中 313 張有偵測，共 1,533 個 boxes。已實作並驗證：
 
 - SHA-pinned YOLOX-Tiny ONNX model 與 COCO 80 labels；
 - 真實 ONNX Runtime CPU smoke test；
@@ -78,7 +78,7 @@ YOLO 功能目前為 `implementation_pending_production`。完整規格位於 [`
 - 每次 invocation 從零重跑，不使用 persistent state、跨 run cache skip 或 published-result reuse；
 - YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table。
 
-只有在 main 上完成一次真正的 full-corpus workflow，並驗證 published Release、ZIP assets、latest/history writeback、YOLO Lab、Pages 與 Atlas 非回歸後，狀態才能改為 `implemented`。
+首個 main full-corpus workflow 已完成；published Release、ZIP-only assets、latest/history writeback、20 張版本化 previews、YOLO Lab、Pages build 與 Atlas 非回歸均已驗證。
 
 ## Git and publication behavior
 
