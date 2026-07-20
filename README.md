@@ -24,7 +24,7 @@
 | 實驗日期範圍 | 2026-06-29 → 2026-07-13 |
 | 圖片總數 | 387 |
 | 影片總數 | 33 |
-| 最新 Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v4](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v4) |
+| 最新 Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v5](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v5) |
 <!-- AUTO:LEDGER_STATS:END -->
 
 ## Prompt Repeatability Atlas 歷史
@@ -34,6 +34,7 @@
 
 | 發布日期 | 圖譜類型 | 資料範圍 | 圖片 | 影片 | 可比較 Prompt | Release |
 |---|---|---|---:|---:|---:|---|
+| 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v5`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v5) |
 | 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v4`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v4) |
 | 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v3) |
 | 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v2) |
