@@ -17,34 +17,65 @@ def media_type(entry: Any) -> str:
     return str(getattr(entry, "media_type", "image") or "image")
 
 
+def configured_highlight_limit(value: Any, default: int) -> int | None:
+    """Resolve a numeric highlight limit or the explicit ``all`` policy."""
+    selected = default if value is None else value
+    if isinstance(selected, str) and selected.strip().lower() == "all":
+        return None
+    return max(0, int(selected))
+
+
 def choose_highlights(
     entries: Sequence[Any],
-    limit: int,
+    limit: int | None,
     *,
     media: str | None = None,
+    min_samples: int = 2,
+    category_diversity: bool = True,
 ) -> list[Any]:
+    """Choose deterministic, evidence-rich highlights.
+
+    A finite selection first covers distinct categories using the strongest cohort
+    in each category, then fills the remaining slots by sample count. ``None``
+    means include every eligible cohort in stable prompt order.
+    """
     candidates = [
         entry
         for entry in entries
-        if media is None or media_type(entry) == media
+        if (media is None or media_type(entry) == media)
+        and int(getattr(entry, "sample_count", 0) or 0) >= min_samples
     ]
+    if limit == 0 or not candidates:
+        return []
+    if limit is None:
+        return sorted(
+            candidates,
+            key=lambda entry: (
+                entry.prompt_id,
+                entry.model,
+                entry.cohort_id,
+            ),
+        )
+
     ranked = sorted(
         candidates,
         key=lambda entry: (
-            -min(entry.sample_count, 32),
+            -min(int(entry.sample_count), 32),
             entry.category,
             entry.prompt_id,
             entry.cohort_id,
         ),
     )
     selected: list[Any] = []
-    categories: set[str] = set()
-    for entry in ranked:
-        if len(selected) >= limit:
-            break
-        if entry.category not in categories:
-            selected.append(entry)
-            categories.add(entry.category)
+    if category_diversity:
+        categories: set[str] = set()
+        for entry in ranked:
+            if len(selected) >= limit:
+                break
+            category = str(entry.category or "uncategorized")
+            if category not in categories:
+                selected.append(entry)
+                categories.add(category)
     for entry in ranked:
         if len(selected) >= limit:
             break
@@ -53,27 +84,53 @@ def choose_highlights(
     return selected
 
 
+def choose_release_highlight_groups(
+    entries: Sequence[Any],
+    config: dict[str, Any],
+) -> dict[str, list[Any]]:
+    image_limit = configured_highlight_limit(
+        config.get(
+            "release_notes_image_highlights",
+            config.get("release_notes_highlights"),
+        ),
+        4,
+    )
+    video_limit = configured_highlight_limit(
+        config.get("release_notes_video_highlights"),
+        2,
+    )
+    image_min_samples = max(
+        2,
+        int(config.get("release_notes_image_min_samples", 2)),
+    )
+    video_min_samples = max(
+        2,
+        int(config.get("release_notes_video_min_samples", 2)),
+    )
+    return {
+        "image": choose_highlights(
+            entries,
+            image_limit,
+            media="image",
+            min_samples=image_min_samples,
+            category_diversity=True,
+        ),
+        "video": choose_highlights(
+            entries,
+            video_limit,
+            media="video",
+            min_samples=video_min_samples,
+            category_diversity=True,
+        ),
+    }
+
+
 def choose_release_highlights(
     entries: Sequence[Any],
     config: dict[str, Any],
 ) -> list[Any]:
-    image_limit = max(
-        0,
-        int(
-            config.get(
-                "release_notes_image_highlights",
-                config.get("release_notes_highlights", 4),
-            )
-        ),
-    )
-    video_limit = max(
-        0,
-        int(config.get("release_notes_video_highlights", 2)),
-    )
-    return [
-        *choose_highlights(entries, image_limit, media="image"),
-        *choose_highlights(entries, video_limit, media="video"),
-    ]
+    groups = choose_release_highlight_groups(entries, config)
+    return [*groups["image"], *groups["video"]]
 
 
 def release_asset_url(repo: str, tag: str, asset_name: str) -> str:
@@ -137,6 +194,14 @@ def complete_asset_names(assets: dict[str, str]) -> list[str]:
     )
 
 
+def highlight_descriptor(entry: Any) -> dict[str, str]:
+    return {
+        "media_type": media_type(entry),
+        "prompt_id": entry.prompt_id,
+        "cohort_id": entry.cohort_id,
+    }
+
+
 def publication_result(
     tag: str,
     release_url: str,
@@ -148,7 +213,9 @@ def publication_result(
     reused: bool,
 ) -> dict[str, Any]:
     complete_names = complete_asset_names(assets)
-    highlights = choose_release_highlights(entries, config)
+    groups = choose_release_highlight_groups(entries, config)
+    image_highlights = [highlight_descriptor(entry) for entry in groups["image"]]
+    video_highlights = [highlight_descriptor(entry) for entry in groups["video"]]
     return {
         "analysis_tag": tag,
         "analysis_url": release_url,
@@ -163,18 +230,60 @@ def publication_result(
         ],
         "report_url": assets.get("atlas-metadata.zip"),
         "gallery_url": assets.get("offline-gallery.zip"),
-        "highlights": [
-            {
-                "media_type": media_type(entry),
-                "prompt_id": entry.prompt_id,
-                "cohort_id": entry.cohort_id,
-            }
-            for entry in highlights
-        ],
+        "highlights": [*image_highlights, *video_highlights],
+        "image_highlights": image_highlights,
+        "video_highlights": video_highlights,
         "assets": assets,
         "resumed_draft": resumed,
         "reused_published": reused,
     }
+
+
+def append_highlight_section(
+    notes: list[str],
+    *,
+    title: str,
+    entries: Sequence[Any],
+    preview_urls: dict[str, str],
+    planned_assets: dict[str, str],
+    release_url: str,
+    bundle_size: int,
+) -> None:
+    if not entries:
+        return
+    notes.extend([f"## {title}", ""])
+    for entry in entries:
+        kind = media_type(entry)
+        preview = preview_urls.get(entry.cohort_id)
+        bundle = planned_assets.get(entry.bundle_file or "", release_url)
+        notes.extend(
+            [
+                f"### {entry.prompt_id} · {entry.category} · "
+                f"{entry.sample_count} unique samples",
+                "",
+                textwrap.shorten(
+                    entry.prompt,
+                    width=240,
+                    placeholder="…",
+                ),
+                "",
+            ]
+        )
+        if preview:
+            notes.extend(
+                [
+                    f"[![{entry.prompt_id} {kind} repeatability comparison]"
+                    f"({preview})]({preview})",
+                    "",
+                ]
+            )
+        notes.extend(
+            [
+                f"[Download the containing {bundle_size}-prompt "
+                f"{kind} bundle]({bundle})",
+                "",
+            ]
+        )
 
 
 def publish_release(
@@ -284,7 +393,9 @@ def publish_release(
         for path in release_assets
     }
     release_url = release_page_url(repo, tag)
-    highlights = choose_release_highlights(entries, config)
+    highlight_groups = choose_release_highlight_groups(entries, config)
+    image_highlights = highlight_groups["image"]
+    video_highlights = highlight_groups["video"]
     complete_names = complete_asset_names(planned_assets)
     complete_links = " · ".join(
         f"[Complete part {index + 1}]({planned_assets[name]})"
@@ -322,7 +433,8 @@ def publish_release(
         f"up to **{prompts_per_bundle} prompt IDs per ZIP**",
         f"- Video bundles: **{report.get('video_prompt_bundle_count', 0)}**, "
         f"up to **{video_prompts_per_bundle} prompt IDs per ZIP**",
-        f"- Embedded previews: **{len(highlights)}** static cards / animated GIFs",
+        f"- Embedded image previews: **{len(image_highlights)}**",
+        f"- Embedded video previews: **{len(video_highlights)}**",
         "- Every Release asset is a ZIP container; there are no naked JPG, "
         "JSON, GIF, MP4, or HTML assets.",
         "- Video evidence includes synchronized GIF comparisons, "
@@ -332,46 +444,25 @@ def publish_release(
         f"[Metadata package]({planned_assets.get('atlas-metadata.zip', release_url)}) · "
         f"[Offline gallery package]({planned_assets.get('offline-gallery.zip', release_url)})",
         "",
-        "## Highlights",
-        "",
     ]
-    for entry in highlights:
-        kind = media_type(entry)
-        preview = preview_urls.get(entry.cohort_id)
-        bundle = planned_assets.get(entry.bundle_file or "", release_url)
-        notes.extend(
-            [
-                f"### {entry.prompt_id} · {kind} · {entry.category} · "
-                f"{entry.sample_count} unique samples",
-                "",
-                textwrap.shorten(
-                    entry.prompt,
-                    width=240,
-                    placeholder="…",
-                ),
-                "",
-            ]
-        )
-        if preview:
-            notes.extend(
-                [
-                    f"[![{entry.prompt_id} {kind} repeatability comparison]"
-                    f"({preview})]({preview})",
-                    "",
-                ]
-            )
-        bundle_size = (
-            video_prompts_per_bundle
-            if kind == "video"
-            else prompts_per_bundle
-        )
-        notes.extend(
-            [
-                f"[Download the containing {bundle_size}-prompt "
-                f"{kind} bundle]({bundle})",
-                "",
-            ]
-        )
+    append_highlight_section(
+        notes,
+        title="Image highlights",
+        entries=image_highlights,
+        preview_urls=preview_urls,
+        planned_assets=planned_assets,
+        release_url=release_url,
+        bundle_size=prompts_per_bundle,
+    )
+    append_highlight_section(
+        notes,
+        title="Video highlights",
+        entries=video_highlights,
+        preview_urls=preview_urls,
+        planned_assets=planned_assets,
+        release_url=release_url,
+        bundle_size=video_prompts_per_bundle,
+    )
     notes.extend(
         [
             "## Interpretation",
