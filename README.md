@@ -8,7 +8,7 @@
 
 - [`project-contract.json`](project-contract.json) 是機器可驗證的同步錨點；[`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) 是人類可讀版本。
 - [`config/release-quarantine.json`](config/release-quarantine.json) 保留歷史資產但排除已確認的空 run／metadata fixture。
-- [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) 只補足舊 Atlas schema 缺失的歷史欄位；舊快照不會被目前 totals 改寫。
+- [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) 通常只補足舊 Atlas schema 缺失欄位；若 report 本身已由 source Release、原始歷史表與 entry evidence 證實錯誤，才可使用審核過的 `authoritative: true` 修正。舊快照絕不被目前 totals 改寫。
 - 正式統計分開呈現 **API 完成事件** 與 **封存媒體**；新發布若兩者數量不一致會被阻止。
 - [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) 會全量排查所有 `media-exp-*` manifests、JSONL、ZIP members、size、SHA-256 與 CRC。
 - YOLOX-Tiny／ONNX Runtime／COCO 物件偵測目前為[詳盡規格](docs/YOLO_OBJECT_DETECTION_SPEC.md)，狀態是 **specified, not implemented**。
