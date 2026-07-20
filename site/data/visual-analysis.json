@@ -1,22 +1,22 @@
 {
   "schema_version": 2,
   "status": "published",
-  "generated_at_utc": "2026-07-19T16:49:38+00:00",
+  "generated_at_utc": "2026-07-20T03:05:28+00:00",
   "dataset_scope": "all_published_media_exp_releases",
-  "dataset_fingerprint": "8b850904b0632ec9c9454b2b835c3d0f358a5a3383425c2f3dd39b9167ec57c1",
+  "dataset_fingerprint": "f5fdcae2c78becd488f79c15bd1fa8af3a3bdd9b060eb887356e2e9e8a59cc79",
   "source_tag": "all published data",
   "latest_source_tag": "media-exp-2026-07-13",
   "release_count_scanned": 9,
   "date_from": "2026-06-29",
   "date_to": "2026-07-13",
   "comparable_prompts": 80,
-  "analysis_tag": "media-analysis-all-8b850904b063-v1",
-  "analysis_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1",
-  "archive_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-repeatability-atlas-complete-part001.zip",
+  "analysis_tag": "media-analysis-all-f5fdcae2c78b-v1",
+  "analysis_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1",
+  "archive_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-repeatability-atlas-complete-part001.zip",
   "archive_urls": [
-    "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-repeatability-atlas-complete-part001.zip"
+    "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-repeatability-atlas-complete-part001.zip"
   ],
-  "report_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/atlas-metadata.zip",
+  "report_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/atlas-metadata.zip",
   "highlights": [
     "i0001",
     "i0033",
@@ -31,8 +31,8 @@
       "model": "agnes-image-2.1-flash",
       "cohort_id": "bb7adbfd12e867eb",
       "sample_count": 9,
-      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/8b850904b063/code-5b793f153dcc/atlas-i0001-bb7adbfd12e867eb-n4.jpg",
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0001-atlas.zip",
+      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/f5fdcae2c78b/code-7d224ed6e3ab/atlas-i0001-bb7adbfd12e867eb-n4.jpg",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -43,8 +43,8 @@
       "model": "agnes-image-2.1-flash",
       "cohort_id": "7505d139a8ee561c",
       "sample_count": 9,
-      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/8b850904b063/code-5b793f153dcc/atlas-i0002-7505d139a8ee561c-n4.jpg",
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0002-atlas.zip",
+      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/f5fdcae2c78b/code-7d224ed6e3ab/atlas-i0002-7505d139a8ee561c-n4.jpg",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -56,7 +56,7 @@
       "cohort_id": "9ee3fb56660fc2c6",
       "sample_count": 9,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0003-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -68,7 +68,7 @@
       "cohort_id": "c56a9398f29d2705",
       "sample_count": 8,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0004-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -80,7 +80,7 @@
       "cohort_id": "fcfa48f7f826e339",
       "sample_count": 8,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0005-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -92,7 +92,7 @@
       "cohort_id": "047cf43ebc01ef5d",
       "sample_count": 8,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0006-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -104,7 +104,7 @@
       "cohort_id": "7836524772502329",
       "sample_count": 8,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0007-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -116,7 +116,7 @@
       "cohort_id": "eae75feef69e327d",
       "sample_count": 8,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0008-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -128,7 +128,7 @@
       "cohort_id": "c062dc7b9603c681",
       "sample_count": 7,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0009-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -140,7 +140,7 @@
       "cohort_id": "f49922932d9be301",
       "sample_count": 7,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0010-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -152,7 +152,7 @@
       "cohort_id": "33fba029caa19531",
       "sample_count": 7,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0011-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -164,7 +164,7 @@
       "cohort_id": "7f201c81dca12521",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0012-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -176,7 +176,7 @@
       "cohort_id": "55a7023449e139e1",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0013-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -188,7 +188,7 @@
       "cohort_id": "fb93a7e45d69f6d6",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0014-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -200,7 +200,7 @@
       "cohort_id": "e71144d87f3d81fb",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0015-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-001-i0001-to-i0015.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -212,7 +212,7 @@
       "cohort_id": "4e2fea9f7b812b3b",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0016-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -224,7 +224,7 @@
       "cohort_id": "490e63fc0c42932c",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0017-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -236,7 +236,7 @@
       "cohort_id": "f87c40a7b3b95aa7",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0018-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -248,7 +248,7 @@
       "cohort_id": "11be3653729e1dc4",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0019-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -260,7 +260,7 @@
       "cohort_id": "1c7ed326dd717f51",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0020-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -272,7 +272,7 @@
       "cohort_id": "edf89525d757eec4",
       "sample_count": 6,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0021-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -284,7 +284,7 @@
       "cohort_id": "62cee391fbce0e00",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0022-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -296,7 +296,7 @@
       "cohort_id": "c4d745b213a941ad",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0023-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -308,7 +308,7 @@
       "cohort_id": "d48f79db11b5b298",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0024-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -320,7 +320,7 @@
       "cohort_id": "0c4f2db9690d2ddf",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0025-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -332,7 +332,7 @@
       "cohort_id": "1463fa8891f45e86",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0026-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -344,7 +344,7 @@
       "cohort_id": "271b71d3e5133882",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0027-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -356,7 +356,7 @@
       "cohort_id": "77c8cb52285b8113",
       "sample_count": 5,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0028-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": true,
       "full_page_count": 1
     },
@@ -368,7 +368,7 @@
       "cohort_id": "dfe5cc3edd568344",
       "sample_count": 4,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0029-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -380,7 +380,7 @@
       "cohort_id": "fe70c1f0425bf4e0",
       "sample_count": 4,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0030-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-002-i0016-to-i0030.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -392,7 +392,7 @@
       "cohort_id": "6dd58ced03c315f3",
       "sample_count": 4,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0031-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -404,7 +404,7 @@
       "cohort_id": "b5ee4a6c257f9242",
       "sample_count": 4,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0032-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -415,8 +415,8 @@
       "model": "agnes-image-2.1-flash",
       "cohort_id": "e14f6abfa6b0660f",
       "sample_count": 3,
-      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/8b850904b063/code-5b793f153dcc/atlas-i0033-e14f6abfa6b0660f-n3.jpg",
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0033-atlas.zip",
+      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/f5fdcae2c78b/code-7d224ed6e3ab/atlas-i0033-e14f6abfa6b0660f-n3.jpg",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -428,7 +428,7 @@
       "cohort_id": "a38120e12e9630ee",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0034-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -440,7 +440,7 @@
       "cohort_id": "39934dc824500d63",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0035-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -452,7 +452,7 @@
       "cohort_id": "02fb1ed65b0a6333",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0036-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -464,7 +464,7 @@
       "cohort_id": "9c76b5516bf900bd",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0037-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -476,7 +476,7 @@
       "cohort_id": "b74458eee5d4fc3d",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0038-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -488,7 +488,7 @@
       "cohort_id": "77e59979e7bc4f11",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0039-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -500,7 +500,7 @@
       "cohort_id": "762ab58854218745",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0040-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -512,7 +512,7 @@
       "cohort_id": "c8931efd7f986f74",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0041-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -524,7 +524,7 @@
       "cohort_id": "f6f75c28248fa97d",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0042-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -536,7 +536,7 @@
       "cohort_id": "17465c279c94bf20",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0043-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -548,7 +548,7 @@
       "cohort_id": "68d08fc9014d1ceb",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0044-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -560,7 +560,7 @@
       "cohort_id": "96f9efe2616a4083",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0045-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-003-i0031-to-i0045.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -572,7 +572,7 @@
       "cohort_id": "0579e2390f690d15",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0046-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -584,7 +584,7 @@
       "cohort_id": "9a11145d5f933630",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0047-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -596,7 +596,7 @@
       "cohort_id": "663ff80182ebbaf2",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0048-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -608,7 +608,7 @@
       "cohort_id": "69f2ba5f216f16c6",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0049-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -620,7 +620,7 @@
       "cohort_id": "06e60e746a0c7ab5",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0050-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -632,7 +632,7 @@
       "cohort_id": "0fba0811399eaae7",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0051-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -644,7 +644,7 @@
       "cohort_id": "4b9d34622afbc85f",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0052-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -656,7 +656,7 @@
       "cohort_id": "5b04a13bb09b1abc",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0053-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -668,7 +668,7 @@
       "cohort_id": "1503bcf9bd24f328",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0054-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -680,7 +680,7 @@
       "cohort_id": "75a85056210504b6",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0055-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -692,7 +692,7 @@
       "cohort_id": "55a63884129aee31",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0056-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -704,7 +704,7 @@
       "cohort_id": "2edf7082c639db10",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0057-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -716,7 +716,7 @@
       "cohort_id": "17b705289375b78d",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0058-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -728,7 +728,7 @@
       "cohort_id": "80b86481d80cf935",
       "sample_count": 3,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0059-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -740,7 +740,7 @@
       "cohort_id": "7d0ddf9ace04cdab",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0060-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-004-i0046-to-i0060.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -751,8 +751,8 @@
       "model": "agnes-image-2.1-flash",
       "cohort_id": "76f2388a2985b77f",
       "sample_count": 2,
-      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/8b850904b063/code-5b793f153dcc/atlas-i0061-76f2388a2985b77f-n2.jpg",
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0061-atlas.zip",
+      "primary_url": "https://raw.githubusercontent.com/PME26Elvis/media-experiment-ledger/main/web/public/data/visual-analysis/previews/f5fdcae2c78b/code-7d224ed6e3ab/atlas-i0061-76f2388a2985b77f-n2.jpg",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -764,7 +764,7 @@
       "cohort_id": "e02617695e0ddfc4",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0062-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -776,7 +776,7 @@
       "cohort_id": "9771dfd4ff0f85a4",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0063-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -788,7 +788,7 @@
       "cohort_id": "42868e422bcba42e",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0064-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -800,7 +800,7 @@
       "cohort_id": "504da2b1c3c9d883",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0065-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -812,7 +812,7 @@
       "cohort_id": "24d3ca8a1be6726a",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0066-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -824,7 +824,7 @@
       "cohort_id": "9969f71a43e087bc",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0067-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -836,7 +836,7 @@
       "cohort_id": "9c1e82cd0afe44d4",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0068-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -848,7 +848,7 @@
       "cohort_id": "75a41c99657e5e65",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0069-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -860,7 +860,7 @@
       "cohort_id": "199ced054b45a07e",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0070-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -872,7 +872,7 @@
       "cohort_id": "3dfd1ba94165433c",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0071-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -884,7 +884,7 @@
       "cohort_id": "523573ddabff859d",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0072-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -896,7 +896,7 @@
       "cohort_id": "13dfa64d2afc7ad0",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0073-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -908,7 +908,7 @@
       "cohort_id": "d63aae893bf1a48a",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0074-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -920,7 +920,7 @@
       "cohort_id": "dbd06a0bcbe7bcbf",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0075-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-005-i0061-to-i0075.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -932,7 +932,7 @@
       "cohort_id": "0592856aaadfed88",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0076-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-006-i0076-to-i0080.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -944,7 +944,7 @@
       "cohort_id": "26df19423b05c0bc",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0077-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-006-i0076-to-i0080.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -956,7 +956,7 @@
       "cohort_id": "ce68705d3d126af7",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0078-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-006-i0076-to-i0080.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -968,7 +968,7 @@
       "cohort_id": "7f2e5d97dee0ea43",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0079-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-006-i0076-to-i0080.zip",
       "has_extended": false,
       "full_page_count": 1
     },
@@ -980,7 +980,7 @@
       "cohort_id": "99f8fd1497630014",
       "sample_count": 2,
       "primary_url": null,
-      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-8b850904b063-v1/prompt-i0080-atlas.zip",
+      "bundle_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-analysis-all-f5fdcae2c78b-v1/prompt-atlas-bundle-006-i0076-to-i0080.zip",
       "has_extended": false,
       "full_page_count": 1
     }
