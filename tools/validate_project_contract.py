@@ -60,6 +60,21 @@ def validate() -> list[str]:
                 f"project-contract.json requires {value!r}"
             )
 
+    history_overrides_path = ROOT / str(atlas.get("history_overrides_file") or "")
+    history_overrides = read_json(history_overrides_path)
+    overrides = history_overrides.get("overrides")
+    if not isinstance(overrides, dict) or not overrides:
+        errors.append("Atlas history overrides must contain an overrides object")
+    else:
+        for tag, item in overrides.items():
+            if not isinstance(item, dict) or not item.get("reason"):
+                errors.append(f"Atlas history override {tag} requires an audited reason")
+            for metric in ("images", "videos"):
+                if isinstance(item, dict) and metric in item and int(item[metric]) < 0:
+                    errors.append(f"Atlas history override {tag}/{metric} cannot be negative")
+    if "never current corpus totals" not in str(atlas.get("history_metric_policy") or ""):
+        errors.append("Atlas history metric policy must prohibit current-total backfill")
+
     quarantine_path = ROOT / str(contract.get("repository", {}).get("quarantine_file") or "")
     quarantine = read_json(quarantine_path)
     excluded = quarantine.get("excluded_runs")
@@ -93,6 +108,7 @@ def validate() -> list[str]:
         [
             "project-contract.json",
             "config/release-quarantine.json",
+            "config/atlas-history-overrides.json",
             "每 15 個 prompt",
             "YOLOX-Tiny",
             "API 完成事件",
@@ -105,6 +121,7 @@ def validate() -> list[str]:
         [
             "project-contract.json",
             "config/release-quarantine.json",
+            "config/atlas-history-overrides.json",
             "15 prompt",
             "YOLOX-Tiny",
             "API completion events",
@@ -117,6 +134,7 @@ def validate() -> list[str]:
         [
             "project-contract.json",
             "config/release-quarantine.json",
+            "config/atlas-history-overrides.json",
             "Traditional Chinese",
             "normal merge",
             "YOLOX-Tiny",
@@ -129,6 +147,7 @@ def validate() -> list[str]:
             "Source of truth",
             "Release quarantine",
             "Prompt Repeatability Atlas",
+            "atlas-history-overrides.json",
             "YOLOX-Tiny",
             "Contract validation",
         ],

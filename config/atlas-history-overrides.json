@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "policy": "Use only when an immutable historical Atlas report predates explicit corpus-count fields. Explicit values from the Atlas report always win. Never substitute current corpus totals for a historical snapshot.",
+  "overrides": {
+    "media-analysis-all-f5fdcae2c78b-v1": {
+      "images": 937,
+      "videos": 40,
+      "reason": "This image-only Atlas report predates metadata_video_samples, while the published historical README recorded the complete source corpus as 937 images and 40 videos."
+    },
+    "media-analysis-all-8b850904b063-v1": {
+      "images": 937,
+      "videos": 40,
+      "reason": "This legacy full-corpus Atlas report predates explicit image/video corpus-count fields; the immutable historical summary recorded 937 images and 40 videos."
+    },
+    "media-analysis-2026-07-13-v1": {
+      "images": 3,
+      "videos": 1,
+      "reason": "This legacy single-release Atlas predates explicit corpus-count fields. Its immutable source Release and original historical table recorded 3 images and 1 video."
+    }
+  }
+}

@@ -8,6 +8,7 @@ A release-backed experiment platform for structured image and video generation r
 
 - [`project-contract.json`](project-contract.json) is the machine-validated synchronization anchor; [`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) is the human-readable contract.
 - [`config/release-quarantine.json`](config/release-quarantine.json) preserves historical assets while excluding confirmed empty runs and metadata-only fixtures.
+- [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) fills only fields missing from legacy Atlas schemas; current totals never rewrite immutable historical snapshots.
 - Formal reporting separates **API completion events** from **archived media**; new publication is blocked when those counts differ.
 - The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
 - YOLOX-Tiny / ONNX Runtime / COCO object detection has a [detailed specification](docs/YOLO_OBJECT_DETECTION_SPEC.md) and is **specified, not implemented**.

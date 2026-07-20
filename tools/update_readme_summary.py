@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Sequence
 from urllib.parse import quote
 
+from atlas_history_policy import historical_metric
 from release_policy import is_quarantined, media_counts_from_file_records
 
 MEDIA_TAG_RE = re.compile(r"^media-exp-(\d{4}-\d{2}-\d{2})(?:-s\d{2})?$")
@@ -274,18 +275,12 @@ def atlas_history(
         report = atlas_report(repo, tag, root)
         report = report or {}
         selected_tags = tags_for_report(report, totals)
-        report_images = report.get("metadata_image_samples")
-        report_videos = report.get("metadata_video_samples")
-        images = (
-            int(report_images)
-            if report_images is not None
-            else (sum(int(totals.per_release[tag]["images"]) for tag in selected_tags) if selected_tags else None)
-        )
-        videos = (
-            int(report_videos)
-            if report_videos is not None
-            else (sum(int(totals.per_release[tag]["videos"]) for tag in selected_tags) if selected_tags else None)
-        )
+        # Historical Atlas rows are immutable snapshots. Modern reports
+        # carry explicit corpus counts; audited overrides cover the few legacy
+        # schemas that do not. Current experiment totals must never time-travel
+        # into an older Atlas row.
+        images = historical_metric(tag, report, "images")
+        videos = historical_metric(tag, report, "videos")
         date_from = str(report.get("date_from") or "")
         date_to = str(report.get("date_to") or "")
         if not date_from and len(selected_tags) == 1:

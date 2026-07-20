@@ -9,9 +9,10 @@
 1. `project-contract.json`：可由程式檢查的值與路徑。
 2. `visual-analysis/config.json`：Atlas 實際執行參數。
 3. `config/release-quarantine.json`：歷史無效 run 的版本化例外。
-4. README、`AGENTS.md` 與本文件：人類／agent 操作說明。
-5. Atlas、影片與 YOLO 規格：各分析模組的完整契約。
-6. tests 與 validation workflow：防止上述內容靜默漂移。
+4. `config/atlas-history-overrides.json`：只有舊 Atlas schema 缺少 corpus-count fields 時才使用的審核記錄。
+5. README、`AGENTS.md` 與本文件：人類／agent 操作說明。
+6. Atlas、影片與 YOLO 規格：各分析模組的完整契約。
+7. tests 與 validation workflow：防止上述內容靜默漂移。
 
 ## Source of truth
 
@@ -54,6 +55,7 @@
 - 影片 seed 保留為 sample evidence，但因 harvester 每次隨機化，seed 不進 repeatability identity。
 - Image Release Notes 最多 15 個、至少 4 unique samples，先覆蓋 category 再按樣本數補滿。
 - Video Release Notes 預設放入所有至少 2 unique samples 的可比較 cohorts。
+- Atlas 歷史表只讀該 immutable Atlas report 的明確值；舊 schema 缺欄位時才讀 `config/atlas-history-overrides.json`，兩者皆無則顯示未知，絕不以目前 corpus totals 回填舊快照。
 
 ## YOLOX-Tiny object detection status
 
