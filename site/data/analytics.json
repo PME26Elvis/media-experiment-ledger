@@ -1,27 +1,6 @@
 {
-  "generated_at": "2026-07-20T05:15:32+00:00",
+  "generated_at": "2026-07-20T08:43:21+00:00",
   "runs": [
-    {
-      "date": "2026-06-29",
-      "tag": "media-exp-2026-06-29",
-      "run_id": "run_20260629_232751",
-      "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
-      "image_completed": 0,
-      "video_completed": 0,
-      "errors": 0,
-      "success_rate": null,
-      "latency_mean_s": null,
-      "latency_p50_s": null,
-      "latency_p90_s": null,
-      "latency_p95_s": null,
-      "started_at": null,
-      "finished_at": null,
-      "source_bytes": 0,
-      "file_count": 0,
-      "models": {},
-      "categories": {},
-      "error_classes": {}
-    },
     {
       "date": "2026-06-29",
       "tag": "media-exp-2026-06-29",
@@ -47,55 +26,6 @@
         "nature": 1,
         "product-video": 1,
         "taiwan-asia-urban": 1
-      },
-      "error_classes": {}
-    },
-    {
-      "date": "2026-06-29",
-      "tag": "media-exp-2026-06-29",
-      "run_id": "run_test",
-      "digest": "bc53374c1c1e8304ae36c03bf7d319bcdbb8aa93cd17d0d7694ea95d7786144e",
-      "image_completed": 550,
-      "video_completed": 7,
-      "errors": 0,
-      "success_rate": 1.0,
-      "latency_mean_s": 0.0,
-      "latency_p50_s": 0.0,
-      "latency_p90_s": 0.0,
-      "latency_p95_s": 0.0,
-      "started_at": "2026-06-29T23:26:45+08:00",
-      "finished_at": "2026-06-29T23:26:45+08:00",
-      "source_bytes": 352949,
-      "file_count": 1,
-      "models": {
-        "agnes-image-2.1-flash": 550,
-        "agnes-video-v2.0": 14
-      },
-      "categories": {
-        "abstract-concept": 30,
-        "architecture": 28,
-        "ecommerce": 30,
-        "editorial-design": 30,
-        "educational-diagram": 31,
-        "educational-video": 1,
-        "fantasy": 31,
-        "fantasy-video": 1,
-        "fashion": 26,
-        "food": 26,
-        "game-asset": 30,
-        "high-density": 30,
-        "lifestyle": 26,
-        "marketing": 32,
-        "marketing-video": 1,
-        "music": 26,
-        "nature": 28,
-        "product": 32,
-        "product-video": 1,
-        "sci-fi": 31,
-        "sci-fi-video": 1,
-        "taiwan-asia-urban": 27,
-        "travel": 26,
-        "ui-app-assets": 32
       },
       "error_classes": {}
     },
@@ -416,13 +346,13 @@
   "daily": [
     {
       "period": "2026-06-29",
-      "runs": 3,
-      "image_completed": 550,
-      "video_completed": 11,
+      "runs": 1,
+      "image_completed": 0,
+      "video_completed": 4,
       "errors": 0,
       "success_rate": 1.0,
-      "latency_mean_s": 135.25,
-      "source_bytes": 16386671
+      "latency_mean_s": 270.5,
+      "source_bytes": 16033722
     },
     {
       "period": "2026-06-30",
@@ -508,13 +438,13 @@
   "monthly": [
     {
       "period": "2026-06",
-      "runs": 6,
-      "image_completed": 590,
-      "video_completed": 11,
+      "runs": 4,
+      "image_completed": 40,
+      "video_completed": 4,
       "errors": 6,
-      "success_rate": 0.9901153212520593,
-      "latency_mean_s": 107.45752508361204,
-      "source_bytes": 246468926
+      "success_rate": 0.88,
+      "latency_mean_s": 134.32190635451505,
+      "source_bytes": 246115977
     },
     {
       "period": "2026-07",
@@ -532,29 +462,17 @@
     "transient_or_duplicate": 1
   },
   "categories": {
-    "marketing-video": 6,
-    "nature": 33,
-    "product-video": 7,
-    "taiwan-asia-urban": 32,
-    "abstract-concept": 30,
-    "architecture": 111,
-    "ecommerce": 60,
-    "editorial-design": 30,
-    "educational-diagram": 31,
-    "educational-video": 5,
-    "fantasy": 31,
-    "fantasy-video": 5,
-    "fashion": 26,
-    "food": 26,
-    "game-asset": 30,
-    "high-density": 30,
-    "lifestyle": 26,
-    "marketing": 55,
-    "music": 26,
-    "product": 231,
-    "sci-fi": 31,
-    "sci-fi-video": 5,
-    "travel": 26,
-    "ui-app-assets": 84
+    "marketing-video": 5,
+    "nature": 5,
+    "product-video": 6,
+    "taiwan-asia-urban": 5,
+    "product": 199,
+    "educational-video": 4,
+    "fantasy-video": 4,
+    "sci-fi-video": 4,
+    "architecture": 83,
+    "ui-app-assets": 52,
+    "ecommerce": 30,
+    "marketing": 23
   }
 }

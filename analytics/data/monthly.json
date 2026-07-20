@@ -1,13 +1,13 @@
 [
   {
     "period": "2026-06",
-    "runs": 6,
-    "image_completed": 590,
-    "video_completed": 11,
+    "runs": 4,
+    "image_completed": 40,
+    "video_completed": 4,
     "errors": 6,
-    "success_rate": 0.9901153212520593,
-    "latency_mean_s": 107.45752508361204,
-    "source_bytes": 246468926
+    "success_rate": 0.88,
+    "latency_mean_s": 134.32190635451505,
+    "source_bytes": 246115977
   },
   {
     "period": "2026-07",

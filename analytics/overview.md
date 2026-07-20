@@ -6,12 +6,12 @@ Generated from immutable release manifests and standalone JSONL metadata.
 
 | Metric | Value |
 |---|---|
-| Runs | 13 |
+| Runs | 11 |
 | Experiment dates | 9 |
-| Images completed | 937 |
-| Videos completed | 40 |
+| Images completed | 387 |
+| Videos completed | 33 |
 | Errors | 15 |
-| Overall success | 98.5% |
+| Overall success | 96.6% |
 
 ## Recent dates
 
@@ -25,7 +25,7 @@ Generated from immutable release manifests and standalone JSONL metadata.
 | 2026-07-02 | 1 | 32 | 7 | 1 | 97.5% | 84.2 |
 | 2026-07-01 | 1 | 0 | 0 | 2 | 0.0% | 22.5 |
 | 2026-06-30 | 3 | 40 | 0 | 6 | 87.0% | 88.9 |
-| 2026-06-29 | 3 | 550 | 11 | 0 | 100.0% | 135.2 |
+| 2026-06-29 | 1 | 0 | 4 | 0 | 100.0% | 270.5 |
 
 ## Charts
 

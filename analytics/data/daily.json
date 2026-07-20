@@ -1,13 +1,13 @@
 [
   {
     "period": "2026-06-29",
-    "runs": 3,
-    "image_completed": 550,
-    "video_completed": 11,
+    "runs": 1,
+    "image_completed": 0,
+    "video_completed": 4,
     "errors": 0,
     "success_rate": 1.0,
-    "latency_mean_s": 135.25,
-    "source_bytes": 16386671
+    "latency_mean_s": 270.5,
+    "source_bytes": 16033722
   },
   {
     "period": "2026-06-30",
