@@ -24,7 +24,7 @@ A release-backed experiment platform for structured image and video generation r
 | Experiment date range | 2026-06-29 → 2026-07-13 |
 | Total images | 387 |
 | Total videos | 33 |
-| Latest Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v2](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v2) |
+| Latest Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v3](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v3) |
 <!-- AUTO:LEDGER_STATS_EN:END -->
 
 ## Prompt Repeatability Atlas history
@@ -34,13 +34,14 @@ A release-backed experiment platform for structured image and video generation r
 
 | Published | Atlas type | Data range | Images | Videos | Comparable prompts | Release |
 |---|---|---|---:|---:|---:|---|
+| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v3) |
 | 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v2) |
 | 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v1) |
 | 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-c45c1b53c1f7-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c45c1b53c1f7-v1) |
 | 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-34912876cb25-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-34912876cb25-v1) |
 | 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-f5fdcae2c78b-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
 | 2026-07-19 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-8b850904b063-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1) |
-| 2026-07-19 | Legacy single-release atlas | 2026-07-13 | 937 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
+| 2026-07-19 | Legacy single-release atlas | 2026-07-13 | 3 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
 <!-- AUTO:ATLAS_HISTORY_EN:END -->
 
 ## Core capabilities
