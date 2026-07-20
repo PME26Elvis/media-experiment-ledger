@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "contract_version": "2026-07-20.1",
+  "default_user_language": "zh-TW",
+  "repository": {
+    "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
+    "transport_release_pattern": "^media-input-",
+    "formal_source_of_truth": "immutable media-exp-* Releases after applying the versioned quarantine policy",
+    "quarantine_file": "config/release-quarantine.json",
+    "historical_correction_policy": "preserve historical assets; quarantine invalid runs, regenerate derived data, and repair managed Release Notes",
+    "default_merge_method": "merge",
+    "delete_branches_by_default": false
+  },
+  "atlas": {
+    "scope": "all published, non-quarantined media-exp-* runs",
+    "hidden_incremental_state": false,
+    "release_assets_zip_only": true,
+    "image_video_cohorts_separate": true,
+    "prompts_per_bundle": 15,
+    "video_seed_is_evidence_not_identity": true,
+    "release_notes": {
+      "image_max": 15,
+      "image_min_unique_samples": 4,
+      "image_selection": "strongest cohort per category first, then descending unique sample count with deterministic tie-breaking",
+      "video_mode": "all",
+      "video_min_unique_samples": 2,
+      "sections": [
+        "Image highlights",
+        "Video highlights"
+      ]
+    }
+  },
+  "experiment_integrity": {
+    "completed_event_counts_must_match_archived_media_counts": true,
+    "empty_runs_are_not_publishable": true,
+    "production_run_id_pattern": "^run_\\d{8}_\\d{6}(?:_[A-Za-z0-9][A-Za-z0-9._-]*)?$",
+    "audit_report_json": "data/audits/experiment-releases.json",
+    "audit_report_markdown": "docs/reports/EXPERIMENT_RELEASE_AUDIT.md"
+  },
+  "planned_analysis": {
+    "yolo_object_detection": {
+      "status": "specified_not_implemented",
+      "spec": "docs/YOLO_OBJECT_DETECTION_SPEC.md",
+      "default_model_family": "YOLOX-Tiny",
+      "runtime": "ONNX Runtime CPU",
+      "training_dataset": "COCO 80 classes",
+      "license": "Apache-2.0",
+      "rebuild_policy": "full corpus, no persistent cache/state",
+      "release_strategy": "same media-analysis companion Release with namespaced assets and independent matrix jobs"
+    }
+  },
+  "required_validation": [
+    "python tools/validate_project_contract.py",
+    "python -m compileall tools tests",
+    "python -m unittest discover -s tests -v",
+    "npm run build --prefix web",
+    "python tools/validate_site_build.py"
+  ],
+  "synchronized_surfaces": [
+    "README.md",
+    "README.en.md",
+    "AGENTS.md",
+    "docs/PROJECT_CONTRACT.md",
+    "docs/PROMPT_REPEATABILITY_ATLAS.md",
+    "docs/VIDEO_REPEATABILITY_ATLAS.md",
+    "docs/YOLO_OBJECT_DETECTION_SPEC.md",
+    "visual-analysis/config.json",
+    "config/release-quarantine.json",
+    "tests"
+  ]
+}
