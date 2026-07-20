@@ -2,9 +2,11 @@
 
 ## Purpose
 
-The Prompt Repeatability Atlas turns the complete release-backed media ledger into controlled visual comparisons. The current production renderer handles images; the planned video renderer is specified in [VIDEO_REPEATABILITY_ATLAS.md](VIDEO_REPEATABILITY_ATLAS.md) and will share the same corpus, workflow, report, companion Release, and README refresh.
+The production Prompt Repeatability Atlas turns the complete release-backed media ledger into controlled image and video comparisons. Both renderers share the same corpus, fingerprint, workflow, report, companion Release, README refresh, and Visual Lab index.
 
-The production Atlas is a **global snapshot**. It scans every currently published `media-exp-*` Release, not only the Release that happened to trigger the workflow.
+The Atlas is a **global snapshot**. It scans every currently published `media-exp-*` Release, not only the Release that triggered the workflow.
+
+Detailed video behavior is documented in [VIDEO_REPEATABILITY_ATLAS.md](VIDEO_REPEATABILITY_ATLAS.md).
 
 ## Batch boundary and triggers
 
@@ -16,14 +18,9 @@ All supported input paths eventually call `tools/publish_results.py`:
 4. promote that snapshot through **Actions → Promote input snapshot**;
 5. reconstruct a browser-uploaded split ZIP and use the normal archive publisher.
 
-`publish_results.py` may create many date-scoped primary or supplemental Releases during one invocation. After every date has been evaluated, it dispatches **one** Atlas workflow only when:
+One invocation may create many date-scoped primary or supplemental Releases. After all dates have been evaluated, the publisher dispatches **one** Atlas workflow only when the whole batch succeeds and at least one formal experiment Release was added.
 
-- at least one new `media-exp-*` Release was published;
-- the whole batch completed without a date failure;
-- the operation was not a dry run;
-- `--skip-atlas-dispatch` was not explicitly selected.
-
-The Atlas workflow also supports manual execution and rebuilds after Atlas code/configuration changes. Individual Release events are not the authoritative batch boundary.
+The workflow also supports manual execution and forced rebuilds after implementation or policy changes. Individual Release events are not the authoritative batch boundary.
 
 ## Full-corpus identity
 
@@ -34,181 +31,206 @@ The dataset fingerprint contains:
 - the complete `visual-analysis/config.json` policy;
 - the Atlas dataset schema version.
 
-No local processing state or cache is used. Repeated dispatches over the same immutable corpus and policy reuse the existing published fingerprint Release. A forced code/configuration rebuild creates the next `-vN` version for the same fingerprint.
-
-Global derived tags use:
+No local processing state or cache is used. Repeated dispatches over the same immutable corpus and policy may reuse an existing fingerprint Release; a forced code/configuration rebuild creates the next `-vN` version.
 
 ```text
 media-analysis-all-<12-character-dataset-fingerprint>-vN
 ```
 
-Raw experiment Releases and `media-input-*` snapshots remain immutable. Snapshots are transport/storage records and never enter the Atlas corpus until promotion creates formal `media-exp-*` Releases.
+Raw experiment Releases and `media-input-*` snapshots remain immutable. Snapshots do not enter the Atlas until promotion creates formal `media-exp-*` Releases.
 
-## Controlled image cohort definition
+## Shared media rules
+
+Image and video cohorts never mix. Every entry has an explicit `media_type`.
+
+For both media types:
+
+- `prompt_id` is canonical prompt identity;
+- model and generation settings remain part of the cohort key;
+- transport-only fields are excluded;
+- metadata alone is insufficient: the actual ZIP member must be found and decoded;
+- exact byte duplicates are removed with SHA-256;
+- at least two verified unique samples are required;
+- primary selections use temporal anchors and always include the latest sample;
+- all verified unique samples remain represented in full evidence pages and sidecars;
+- raw media is not copied into the companion Release.
+
+## Controlled image cohorts
 
 An image cohort is keyed by:
 
-1. `prompt_id`;
-2. `media_type = image`;
-3. model name;
-4. normalized appearance-relevant request settings.
+1. `media_type = image`;
+2. `prompt_id`;
+3. model;
+4. normalized appearance-relevant settings.
 
-Prompt text is excluded from the settings fingerprint because `prompt_id` is canonical. Transport-only fields such as `response_format` are excluded. Model, dimensions, quality, sampler, guidance, negative prompt, model revision, input/reference hashes, and future appearance-relevant payload fields remain part of the fingerprint when present.
+Prompt text is excluded because `prompt_id` is canonical. Transport fields such as `response_format` are excluded. Dimensions, quality, sampler, guidance, negative prompt, model revision, input/reference hashes, and future appearance-relevant fields remain when present.
 
-Different models or settings never appear in the same repeatability card.
+### Image validation
 
-## Sample validation and deduplication
+A row becomes usable only when:
 
-Metadata is collected first from standalone `run_*-outputs.jsonl` assets. The workflow then downloads the image ZIPs needed by candidate cohorts.
-
-A metadata row becomes usable only when:
-
-- its event is `image_completed`;
+- event is `image_completed`;
 - `prompt_id` exists;
 - an image member with the same prompt stem exists under a ZIP `images` path;
 - Pillow can decode and verify it.
 
-Exact duplicate bytes are removed using SHA-256. Metadata-only test rows and broken media cannot appear as visual evidence. A picture is never duplicated to fill a layout.
+### Image outputs
 
-## Three image output levels
-
-### 1. Primary card
-
-| Usable unique samples | Primary layout |
+| Unique samples | Primary layout |
 |---:|---|
-| 0–1 | no card |
+| 0–1 | no entry |
 | 2 | `1 × 2` |
 | 3 | `2 × 2` with one explicit empty cell |
 | 4+ | deterministic `2 × 2` |
 
-For four or more samples, the card selects the earliest sample, temporal history anchors, and the latest sample in the cohort.
+When at least five samples exist, an extended sheet contains up to 16 temporal quantiles. Full contact sheets contain every verified byte-unique image in chronological order, paginated at 16 per page.
 
-### 2. Extended temporal overview
+Rendering uses contain rather than cover, 960 px primary cells, 640 px extended/full cells, progressive JPEG quality 90, and Noto Sans CJK with portable fallbacks.
 
-When at least five unique samples exist, the prompt receives an extended sheet containing up to **16 temporal quantiles**. The default layout uses at most four columns and four rows.
+## Controlled video cohorts
 
-### 3. Full contact sheets
+A video cohort is keyed by:
 
-Every verified byte-unique sample is included in chronological order. Samples are paginated at **16 per page** by default. A prompt with 49 valid results therefore receives four pages: `16 + 16 + 16 + 1`.
+1. `media_type = video`;
+2. `prompt_id`;
+3. model;
+4. normalized non-random generation settings such as frame count, requested frame rate, dimensions, negative prompt, motion/camera/quality controls, model revision, and conditioning media hashes.
 
-## Rendering
+### Seed policy
 
-- Images use `contain`, never `cover`, so presentation does not hide generated artifacts.
-- Primary cell size: 960 px.
-- Extended/full-page cell size: 640 px.
-- Outer margin: 48 px.
-- Gutter: 24 px.
-- Header includes prompt ID, category, model, cohort fingerprint, and up to three prompt lines.
-- Tile footer includes temporal role, experiment date, run ID, source dimensions, and seed availability.
-- Output is progressive optimized JPEG at quality 90.
-- The workflow installs Noto Sans CJK with portable fallbacks for local tests.
+The harvester intentionally generates a new random seed for each video run. Seed is preserved in each sample sidecar as evidence, but excluded from cohort identity. Including seed would turn every real run into a singleton and prevent repeatability analysis.
+
+### Video validation
+
+A row becomes usable only when:
+
+- event is `video_completed`;
+- `prompt_id` exists;
+- a matching member exists under a ZIP `videos` path;
+- `ffprobe` finds a video stream and valid duration/dimensions;
+- FFmpeg decodes frames near the start, midpoint, and end;
+- SHA-256 completes successfully.
+
+Supported containers include MP4, MOV, M4V, WebM, MKV, and AVI.
+
+### Video outputs
+
+Primary GIF layouts follow the same 2/3/4-sample policy as images. Every tile begins at `t=0`; long clips are trimmed to the configured preview duration, short clips freeze on their final frame, and contain/letterbox is used without cropping.
+
+Defaults:
+
+- 6 seconds;
+- 6 FPS;
+- 128 colors;
+- `480 × 270` per primary tile;
+- infinite GIF loop.
+
+Cohorts with at least five samples receive an extended GIF with up to eight temporal quantiles. Full keyframe pages include every verified unique video, with frames at 10%, 50%, and 90%, paginated at 16 videos per page.
 
 ## ZIP-only Release assets
 
-The companion Release uploads **only `.zip` assets**. No JPG, JSON, GIF, or HTML file appears naked in the Release asset list.
+The companion Release uploads **only `.zip` assets**. No JPEG, GIF, JSON, MP4, or HTML file appears naked in the asset list.
 
-### Grouped prompt packages
+### Image bundles
 
-Prompt IDs are sorted deterministically. Up to **15 distinct prompt IDs** are placed in each bundle. Every controlled cohort belonging to one prompt stays in the same bundle, so a prompt is never split because it was generated with multiple models or settings.
-
-Example:
+Prompt IDs are sorted deterministically. Up to 15 distinct image prompt IDs are placed in each bundle, and every cohort for one prompt stays together.
 
 ```text
 prompt-atlas-bundle-001-i0001-to-i0015.zip
-  primary/...
-  extended/...
-  full/i0001-<cohort>/page-001-of-...jpg
-  ...
-  sidecars/...
+  primary/*.jpg
+  extended/*.jpg
+  full/<prompt>-<cohort>/page-*.jpg
+  sidecars/*.json
   bundle-manifests/prompt-bundle-001.json
-
-prompt-atlas-bundle-002-i0016-to-i0030.zip
-  ...
 ```
 
-The bundle manifest records:
+### Video bundles
 
-- bundle index;
-- prompt count and ordered prompt IDs;
-- configured `prompts_per_bundle` policy;
-- every cohort, model, sample count, card, sidecar, and full-page path.
+Video prompts use the same 15-prompt policy but remain in separate assets.
 
-The current policy is stored in `visual-analysis/config.json` as:
-
-```json
-{
-  "prompts_per_bundle": 15
-}
+```text
+video-atlas-bundle-001-v0001-to-v0015.zip
+  video/primary/*.gif
+  video/extended/*.gif
+  video/keyframes/<prompt>-<cohort>/page-*.jpg
+  video/sidecars/*.json
+  video-bundle-manifests/video-prompt-bundle-001.json
 ```
 
 ### Global packages
 
-- `atlas-metadata.zip` — corpus report and all cohort sidecars.
-- `offline-gallery.zip` — offline gallery plus primary cards.
-- `prompt-repeatability-atlas-complete-partNNN.zip` — ZIP_STORED transport containers holding grouped prompt bundles and global packages, partitioned below the configured 1.75 GiB boundary.
-
-With the present low-volume free-API workload, 15 prompts per asset substantially reduces the Release asset count while remaining far below GitHub's per-asset size limit.
+- `atlas-metadata.zip` — combined report, image/video sidecars, and bundle manifests.
+- `offline-gallery.zip` — offline index plus image JPEG and video GIF primary previews.
+- `prompt-repeatability-atlas-complete-partNNN.zip` — ZIP_STORED transport containers holding all image/video bundles and global packages below the configured asset boundary.
 
 ## Release-note previews
 
-Release notes embed a small category-diverse set, four by default. Preview JPEGs are versioned under:
+Release Notes default to:
+
+- four category-diverse image JPEG highlights;
+- two category-diverse video GIF highlights.
+
+Versioned previews are committed under:
 
 ```text
-web/public/data/visual-analysis/previews/<fingerprint>/<batch-id>/
+web/public/data/visual-analysis/previews/<fingerprint>/<batch-id>/<media-type>/
 ```
 
-They use stable raw-repository URLs, allowing inline images while the Release asset list stays ZIP-only. Each preview links to the grouped bundle that contains that prompt.
+Stable raw-repository URLs allow inline previews while Release assets remain ZIP-only. Every preview links to the grouped bundle that contains its prompt.
 
-The Visual Lab indexes every cohort. Only the highlight set has inline preview files; all cohorts expose their containing grouped-bundle URL and full-page count.
+If no comparable video cohort exists, the image Atlas still publishes normally and no blank video placeholder is added to Notes.
+
+## Visual Lab index
+
+Schema version 3 includes:
+
+- `media_type`;
+- `preview_format` (`jpeg` or `gif`);
+- image/video comparable cohort totals;
+- metadata image/video sample totals;
+- preview URL;
+- grouped bundle URL;
+- full image-page or video-keyframe-page count.
+
+The Visual Lab supports image/video filtering, animated GIF cards, search, category filtering, and direct bundle downloads.
 
 ## README statistics and Atlas history
 
-Every successful Atlas workflow runs `tools/update_readme_summary.py` after publication. The command:
+Every successful Atlas workflow runs `tools/update_readme_summary.py` after publication. It:
 
-1. rescans all published Releases;
+1. rescans all Releases;
 2. counts images and videos only from formal `media-exp-*` manifests;
 3. excludes `media-input-*` snapshots;
-4. reads every published `media-analysis-*` report, including legacy single-Release Atlases;
-5. rebuilds marked statistics and Atlas-history blocks in `README.md` and `README.en.md`;
-6. commits the README files together with the Visual Lab index and versioned previews.
+4. reads every published `media-analysis-*` report;
+5. rebuilds the marked blocks in `README.md` and `README.en.md`;
+6. commits README files together with the Visual Lab index and JPEG/GIF previews.
 
-Atlas-history totals use the `release_tags` captured in each report, so later experiment data is not retroactively added to older Atlas rows. No incremental README state or cache is used.
-
-## Planned video integration
-
-Video repeatability will not use a separate workflow or companion Release. It will extend the same pipeline with:
-
-- `video_completed` metadata and selective `run_*-videos*.zip` downloads;
-- `ffprobe` validation and actual FFmpeg decoding;
-- exact SHA-256 deduplication;
-- synchronized tiled GIF previews for Release Notes;
-- keyframe contact sheets and video sidecars;
-- grouped video ZIP bundles, also up to 15 prompt IDs;
-- shared image/video counts in the report, README, and Visual Lab.
-
-The complete validation, GIF, FFmpeg, packaging, and milestone plan is in [VIDEO_REPEATABILITY_ATLAS.md](VIDEO_REPEATABILITY_ATLAS.md).
+Historical totals use the `release_tags` captured in each report, so later experiment data is not added retroactively to older rows.
 
 ## Workflow reliability
 
-The repository-specific 90-minute timeout is removed. The workflow still obeys GitHub-hosted runner platform limits but does not terminate a valid full-corpus job at 90 minutes.
+The production workflow explicitly installs FFmpeg, FFprobe, Pillow, and Noto Sans CJK. The validation workflow also installs FFmpeg and runs real synthetic MP4 regression tests.
 
-No Actions cache, processing-state file, long polling loop, or background daemon is used. Observable stages are:
+There is no repository-specific 90-minute timeout, Actions processing cache, persistent Atlas state, long polling loop, or background daemon.
 
-1. enumerate all experiment Releases;
-2. download standalone output metadata;
-3. resolve global cohorts;
-4. download required media ZIPs;
-5. verify and deduplicate media;
-6. render primary, extended, and full outputs;
-7. create grouped prompt and global ZIP packages;
+Observable stages:
+
+1. enumerate all formal experiment Releases;
+2. download output metadata;
+3. resolve image and video cohorts;
+4. download required image/video ZIPs;
+5. decode, verify, and deduplicate media;
+6. render image cards, video GIFs, and full evidence pages;
+7. create image/video grouped bundles and global packages;
 8. create or resume a draft companion Release;
 9. upload ZIP-only assets;
-10. publish Notes with inline previews;
+10. publish Notes with JPEG/GIF previews;
 11. verify the published asset set;
 12. rebuild bilingual README statistics/history;
-13. commit README, Visual Lab index, and versioned preview files.
+13. commit README, Visual Lab index, and versioned previews.
 
-A failure-only Actions artifact is retained for seven days. Successful builds rely on the immutable analysis Release rather than duplicating the entire output as an Actions artifact.
+A failure-only Actions artifact is retained for seven days. Successful builds rely on the immutable analysis Release.
 
 ## Manual execution
 
@@ -218,6 +240,8 @@ Codespaces equivalent:
 
 ```bash
 python -m pip install -r requirements-visual-analysis.txt
+sudo apt-get update -qq
+sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-cjk
 python tools/build_prompt_atlas.py \
   --scope all \
   --batch-id manual \
@@ -227,16 +251,20 @@ python tools/update_readme_summary.py \
   --repo PME26Elvis/media-experiment-ledger
 ```
 
-`gh auth status` must succeed. Publishing needs `contents: write`; dispatching from `publish_results.py` also needs permission to run Actions workflows.
+`gh auth status` must succeed. Publishing needs `contents: write`; batch dispatch also needs permission to run Actions workflows.
 
 ## Files
 
-- `.github/workflows/visual-analysis.yml` — global orchestration, publication, README refresh, and repository writeback.
+- `.github/workflows/visual-analysis.yml` — global image/video orchestration, publication, README refresh, and writeback.
+- `.github/workflows/validate.yml` — Python, real FFmpeg, Astro, and route validation.
 - `tools/publish_results.py` — authoritative batch-completion dispatch.
-- `tools/prompt_atlas_core.py` — cohort identity, selection, deduplication, and image rendering.
-- `tools/prompt_atlas_data.py` and `tools/prompt_atlas_publish.py` — corpus collection and ZIP-only publication.
-- `tools/prompt_atlas_build.py`, `tools/prompt_atlas_packages.py`, and `tools/build_prompt_atlas.py` — rendering, full pages, grouped packaging, previews, and CLI orchestration.
-- `tools/update_readme_summary.py` — full Release rescan and bilingual README block generation.
-- `visual-analysis/config.json` — stable rendering and packaging policy.
-- `tests/test_prompt_atlas.py`, `tests/test_publish_results.py`, and `tests/test_readme_summary.py` — scope, trigger, packaging, statistics, and rendering regressions.
-- `web/src/components/VisualAtlas.astro` — searchable global index and grouped-bundle access.
+- `tools/prompt_atlas_core.py` — image cohort, selection, deduplication, and rendering primitives.
+- `tools/prompt_atlas_data.py` — corpus discovery and image extraction.
+- `tools/prompt_atlas_video.py` — video metadata, validation, GIF, keyframes, and sidecars.
+- `tools/prompt_atlas_build.py` — combined full-corpus build and index.
+- `tools/prompt_atlas_packages.py` — image/video bundles and global packages.
+- `tools/prompt_atlas_publish.py` — draft recovery, ZIP upload, combined Notes, and verification.
+- `tools/update_readme_summary.py` — full Release rescan and bilingual README generation.
+- `visual-analysis/config.json` — image/video rendering and packaging policy.
+- `tests/test_prompt_atlas.py` and `tests/test_prompt_atlas_video.py` — image and real FFmpeg video regressions.
+- `web/src/components/VisualAtlas.astro` — searchable image/video Visual Lab.
