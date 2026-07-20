@@ -2,8 +2,10 @@
 
 Modern Atlas reports contain explicit ``metadata_image_samples`` and
 ``metadata_video_samples``. A few immutable legacy reports predate one or both
-fields. Those releases use a small, versioned and audited override file. Unknown
-legacy reports stay unknown instead of inheriting today's corpus totals.
+fields. Those releases use a small, versioned and audited override file. One
+known legacy report contains a proven polluted global count; it is marked with
+an explicit authoritative override. Unknown legacy reports stay unknown instead
+of inheriting today's corpus totals.
 """
 from __future__ import annotations
 
@@ -18,13 +20,11 @@ _REPORT_KEYS = {
         "metadata_image_samples",
         "image_samples",
         "source_image_count",
-        "images",
     ),
     "videos": (
         "metadata_video_samples",
         "video_samples",
         "source_video_count",
-        "videos",
     ),
 }
 
@@ -45,7 +45,15 @@ def load_atlas_history_overrides(
             raise ValueError(f"Atlas history override for {tag} must be an object")
         if not str(item.get("reason") or "").strip():
             raise ValueError(f"Atlas history override for {tag} requires a reason")
-        normalized: dict[str, Any] = {"reason": str(item["reason"])}
+        authoritative = item.get("authoritative", False)
+        if not isinstance(authoritative, bool):
+            raise ValueError(
+                f"Atlas history override {tag}/authoritative must be a boolean"
+            )
+        normalized: dict[str, Any] = {
+            "reason": str(item["reason"]),
+            "authoritative": authoritative,
+        }
         for metric in ("images", "videos"):
             if metric not in item:
                 continue
@@ -53,6 +61,10 @@ def load_atlas_history_overrides(
             if count < 0:
                 raise ValueError(f"Atlas history override {tag}/{metric} cannot be negative")
             normalized[metric] = count
+        if authoritative and not any(metric in normalized for metric in ("images", "videos")):
+            raise ValueError(
+                f"Authoritative Atlas history override {tag} must provide a metric"
+            )
         output[str(tag)] = normalized
     return output
 
@@ -87,15 +99,20 @@ def historical_metric(
     """Return an immutable Atlas snapshot metric.
 
     Priority:
-    1. explicit value embedded in that Atlas's own report;
-    2. audited versioned override for a known legacy schema;
-    3. unknown (``None``).
+    1. an audited ``authoritative`` override for a proven corrupt legacy report;
+    2. an explicit value embedded in that Atlas's own report;
+    3. a non-authoritative override for a known missing legacy field;
+    4. unknown (``None``).
 
     Current experiment totals are intentionally not accepted as an argument.
     """
+    override = load_atlas_history_overrides(overrides_path).get(tag, {})
+    override_value = override.get(metric)
+    if override.get("authoritative") and override_value is not None:
+        return int(override_value)
+
     explicit = explicit_report_metric(report, metric)
     if explicit is not None:
         return explicit
-    override = load_atlas_history_overrides(overrides_path).get(tag, {})
-    value = override.get(metric)
-    return int(value) if value is not None else None
+
+    return int(override_value) if override_value is not None else None
