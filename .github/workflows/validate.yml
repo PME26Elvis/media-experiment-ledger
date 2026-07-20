@@ -63,7 +63,19 @@ jobs:
       - name: Validate synchronized project contract
         run: python tools/validate_project_contract.py
       - run: python -m compileall tools tests
-      - run: python -m unittest discover -s tests -v
+      - name: Run complete unittest suite
+        shell: bash
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee unittest.log
+      - name: Upload unittest diagnostic log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unittest-log-${{ github.run_id }}
+          path: unittest.log
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
