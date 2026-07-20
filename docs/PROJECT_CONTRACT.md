@@ -73,7 +73,7 @@ YOLO 功能目前為 `implementation_pending_production`。完整規格位於 [`
 - 每張圖片 success 或 explicit failure sidecar；
 - annotated JPEG、class summaries、timing、source indexes 與 deterministic ZIP-only assets；
 - 獨立 `.github/workflows/yolo-object-detection.yml`；
-- 獨立 `media-yolo-all-<latest-experiment-date>-vN` Release；
+- 獨立 `media-yolo-*` Release 家族，正式 tag 使用 `media-yolo-all-<latest-experiment-date>-vN`；
 - 獨立 latest/history indexes、README history 與 YOLO Lab；
 - 每次 invocation 從零重跑，不使用 persistent state、跨 run cache skip 或 published-result reuse；
 - YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table。
