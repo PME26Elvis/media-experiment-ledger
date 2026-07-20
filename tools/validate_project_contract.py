@@ -174,7 +174,7 @@ def validate() -> list[str]:
     require_text(ROOT / "docs" / "VIDEO_REPEATABILITY_ATLAS.md", ["seed", "FFprobe", "15 prompt"], errors)
     require_text(ROOT / str(yolo.get("spec") or ""), [
         "YOLOX-Tiny", "ONNX Runtime", "COCO", "media-yolo-all-",
-        "one full CPU job", "implementation_pending_production", "Atlas 非回歸契約",
+        "單一 GitHub-hosted CPU job", "implementation_pending_production", "Atlas 非回歸契約",
     ], errors)
     require_text(ROOT / str(yolo.get("workflow_path") or ""), [
         "timeout-minutes: 350", "tools/build_yolo_detection.py", "media-yolo-*",
