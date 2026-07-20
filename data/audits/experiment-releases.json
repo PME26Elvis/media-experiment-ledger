@@ -1,0 +1,914 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-07-20T08:44:22+00:00",
+  "repository": "PME26Elvis/media-experiment-ledger",
+  "verify_archives": true,
+  "release_notes_repaired": true,
+  "release_count": 9,
+  "canonical_run_count": 11,
+  "quarantined_run_count": 2,
+  "canonical_totals": {
+    "api_image_completed": 387,
+    "api_video_completed": 33,
+    "archived_images": 387,
+    "archived_videos": 33,
+    "errors": 15,
+    "packaged_media_bytes": 2352252405
+  },
+  "releases": [
+    {
+      "tag": "media-exp-2026-06-29",
+      "name": "Media Experiment — 2026-06-29",
+      "published_at": "2026-07-14T16:47:49Z",
+      "experiment_dates": [
+        "2026-06-29"
+      ],
+      "manifest_digests": [
+        "d65bc344a86ee70a5e8baf98627d410a91857026e86549bb3850b32e1147842e"
+      ],
+      "manifest_runs": 3,
+      "canonical_runs": 1,
+      "quarantined_runs": 2,
+      "status": "corrected",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 0,
+        "api_video_completed": 4,
+        "archived_images": 0,
+        "archived_videos": 4,
+        "errors": 0,
+        "packaged_media_bytes": 16035718
+      },
+      "runs": [
+        {
+          "run_id": "run_20260629_232751",
+          "digest": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "canonical": false,
+          "quarantine": {
+            "tag": "media-exp-2026-06-29",
+            "run_id": "run_20260629_232751",
+            "classification": "empty_placeholder",
+            "reason_zh": "此 run 在 manifest 中為 0 files、0 bytes、0 完成事件，屬於誤發布的空目錄，不代表一次有效實驗。",
+            "reason_en": "The manifest records zero files, zero bytes, and zero completed events. This is an accidentally published empty directory, not a valid experiment run.",
+            "evidence": {
+              "source_bytes": 0,
+              "file_count": 0,
+              "image_completed_events": 0,
+              "video_completed_events": 0
+            }
+          },
+          "source_bytes": 0,
+          "file_count": 0,
+          "error_rows": 0,
+          "manifest_completion_events": {
+            "images": 0,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 0,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "packaged_media_bytes": 0,
+          "asset_checks": [],
+          "anomalies": [
+            {
+              "code": "quarantined_historical_run",
+              "severity": "info",
+              "message": "The manifest records zero files, zero bytes, and zero completed events. This is an accidentally published empty directory, not a valid experiment run."
+            },
+            {
+              "code": "empty_run",
+              "severity": "warning",
+              "message": "Run contains no source files"
+            }
+          ],
+          "status": "quarantined"
+        },
+        {
+          "run_id": "run_20260629_233317",
+          "digest": "ec9abc589993002484ce90757ba92fe9a7f8e5d83a26ebc3137549c9a445385b",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 16033722,
+          "file_count": 5,
+          "error_rows": 0,
+          "manifest_completion_events": {
+            "images": 0,
+            "videos": 4
+          },
+          "jsonl_completion_events": {
+            "images": 0,
+            "videos": 4
+          },
+          "manifest_media_files": {
+            "images": 0,
+            "videos": 4
+          },
+          "archive_media_files": {
+            "images": 0,
+            "videos": 4
+          },
+          "packaged_media_bytes": 16035718,
+          "asset_checks": [
+            {
+              "name": "run_20260629_233317-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 16035718,
+              "expected_sha256": "45c051d14199164a634a4afe84e5d553103df08cf435b328e8d0312c654a4e92",
+              "downloaded": true,
+              "actual_size_bytes": 16035718,
+              "actual_sha256": "45c051d14199164a634a4afe84e5d553103df08cf435b328e8d0312c654a4e92",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        },
+        {
+          "run_id": "run_test",
+          "digest": "bc53374c1c1e8304ae36c03bf7d319bcdbb8aa93cd17d0d7694ea95d7786144e",
+          "canonical": false,
+          "quarantine": {
+            "tag": "media-exp-2026-06-29",
+            "run_id": "run_test",
+            "classification": "synthetic_fixture",
+            "reason_zh": "此測試 fixture 只有 1 個約 0.3 MiB 的 metadata 檔，卻包含 550 個 image_completed 與 7 個 video_completed 事件、全部延遲為 0，且沒有對應封存媒體；它不應進入正式資料母體。",
+            "reason_en": "This synthetic fixture contains only one roughly 0.3 MiB metadata file but reports 550 image_completed and 7 video_completed events with zero latency and no corresponding archived media. It must not enter the formal corpus.",
+            "evidence": {
+              "source_bytes": 352949,
+              "file_count": 1,
+              "image_completed_events": 550,
+              "video_completed_events": 7,
+              "archived_image_files": 0,
+              "archived_video_files": 0
+            }
+          },
+          "source_bytes": 352949,
+          "file_count": 1,
+          "error_rows": 0,
+          "manifest_completion_events": {
+            "images": 550,
+            "videos": 7
+          },
+          "jsonl_completion_events": {
+            "images": 550,
+            "videos": 7
+          },
+          "manifest_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "packaged_media_bytes": 0,
+          "asset_checks": [],
+          "anomalies": [
+            {
+              "code": "quarantined_historical_run",
+              "severity": "info",
+              "message": "This synthetic fixture contains only one roughly 0.3 MiB metadata file but reports 550 image_completed and 7 video_completed events with zero latency and no corresponding archived media. It must not enter the formal corpus."
+            },
+            {
+              "code": "completed_events_vs_manifest_media",
+              "severity": "warning",
+              "message": "completed events={'images': 550, 'videos': 7}, manifest media files={'images': 0, 'videos': 0}"
+            }
+          ],
+          "status": "quarantined"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-06-30",
+      "name": "Media Experiment — 2026-06-30",
+      "published_at": "2026-07-14T16:47:58Z",
+      "experiment_dates": [
+        "2026-06-30"
+      ],
+      "manifest_digests": [
+        "1ef83934f0c700845a6226a254cc4a4a7c0f42742f7bd370c5f568630a39de1f"
+      ],
+      "manifest_runs": 3,
+      "canonical_runs": 3,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 40,
+        "api_video_completed": 0,
+        "archived_images": 40,
+        "archived_videos": 0,
+        "errors": 6,
+        "packaged_media_bytes": 230087727
+      },
+      "runs": [
+        {
+          "run_id": "run_20260630_144301",
+          "digest": "370573f9925a66af24a277bc39429eede93e135e88c5a2a465157ed77d3f7c13",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 121168348,
+          "file_count": 23,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 21,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 21,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 21,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 21,
+            "videos": 0
+          },
+          "packaged_media_bytes": 121171092,
+          "asset_checks": [
+            {
+              "name": "run_20260630_144301-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 121171092,
+              "expected_sha256": "ff2e4dfdd2981de05c67688938b9e42c95d4d4218cc9addcecfc8031d337820f",
+              "downloaded": true,
+              "actual_size_bytes": 121171092,
+              "actual_sha256": "ff2e4dfdd2981de05c67688938b9e42c95d4d4218cc9addcecfc8031d337820f",
+              "media_members": {
+                "images": 21,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        },
+        {
+          "run_id": "run_20260630_165959",
+          "digest": "6d53259333ff0032e139cc01a3ee50b8e760a7a67afcbda07726217fe97604fb",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 62728857,
+          "file_count": 13,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 11,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 11,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 11,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 11,
+            "videos": 0
+          },
+          "packaged_media_bytes": 62730401,
+          "asset_checks": [
+            {
+              "name": "run_20260630_165959-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 62730401,
+              "expected_sha256": "3cfab32d5603c49a964d1da27e0b53f6fc6bfa5e16bd83322cc9e521a9c70f0f",
+              "downloaded": true,
+              "actual_size_bytes": 62730401,
+              "actual_sha256": "3cfab32d5603c49a964d1da27e0b53f6fc6bfa5e16bd83322cc9e521a9c70f0f",
+              "media_members": {
+                "images": 11,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        },
+        {
+          "run_id": "run_20260630_190013",
+          "digest": "0a0d6ed850ebb869fff6f155a35b57c14e478da0232171b95d57b02538591825",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 46185050,
+          "file_count": 10,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 8,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 8,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 8,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 8,
+            "videos": 0
+          },
+          "packaged_media_bytes": 46186234,
+          "asset_checks": [
+            {
+              "name": "run_20260630_190013-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 46186234,
+              "expected_sha256": "ad4025fc707110cf30260f7aab99481deb6995478eedd712912888f3a9c3087d",
+              "downloaded": true,
+              "actual_size_bytes": 46186234,
+              "actual_sha256": "ad4025fc707110cf30260f7aab99481deb6995478eedd712912888f3a9c3087d",
+              "media_members": {
+                "images": 8,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-01",
+      "name": "Media Experiment — 2026-07-01",
+      "published_at": "2026-07-14T16:48:00Z",
+      "experiment_dates": [
+        "2026-07-01"
+      ],
+      "manifest_digests": [
+        "779f1d2b66f0afbfde950c8494c66433850d89861659a8a7aef5bcab474df642"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 0,
+        "api_video_completed": 0,
+        "archived_images": 0,
+        "archived_videos": 0,
+        "errors": 2,
+        "packaged_media_bytes": 0
+      },
+      "runs": [
+        {
+          "run_id": "run_20260701_144028",
+          "digest": "013f715a14b3e690db4b9d58af39aabfe60ac122246fcf005cf50ee97f02fa61",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 2216,
+          "file_count": 1,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 0,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 0,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 0,
+            "videos": 0
+          },
+          "packaged_media_bytes": 0,
+          "asset_checks": [],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-02",
+      "name": "Media Experiment — 2026-07-02",
+      "published_at": "2026-07-14T16:48:11Z",
+      "experiment_dates": [
+        "2026-07-02"
+      ],
+      "manifest_digests": [
+        "57010eb16bb65d7186494d60457f3da8f238ee6dc6d09a07185f16a756b9b165"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 32,
+        "api_video_completed": 7,
+        "archived_images": 32,
+        "archived_videos": 7,
+        "errors": 1,
+        "packaged_media_bytes": 210448183
+      },
+      "runs": [
+        {
+          "run_id": "run_20260702_132745",
+          "digest": "565c22ba0792a5fb9398ea7a8a21b06c106f99e07be3efe0d94e6855d01e3fd6",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 210382446,
+          "file_count": 41,
+          "error_rows": 1,
+          "manifest_completion_events": {
+            "images": 32,
+            "videos": 7
+          },
+          "jsonl_completion_events": {
+            "images": 32,
+            "videos": 7
+          },
+          "manifest_media_files": {
+            "images": 32,
+            "videos": 7
+          },
+          "archive_media_files": {
+            "images": 32,
+            "videos": 7
+          },
+          "packaged_media_bytes": 210448183,
+          "asset_checks": [
+            {
+              "name": "run_20260702_132745-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 187453992,
+              "expected_sha256": "a2fbe129a334ad994ffb877a9e4b80b0c7277af18e0feccf56eb543b5363823e",
+              "downloaded": true,
+              "actual_size_bytes": 187453992,
+              "actual_sha256": "a2fbe129a334ad994ffb877a9e4b80b0c7277af18e0feccf56eb543b5363823e",
+              "media_members": {
+                "images": 32,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            },
+            {
+              "name": "run_20260702_132745-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 22994191,
+              "expected_sha256": "faad90992fbd3afc2095bd8450d44560e261232d7a7e93d12d2109efaeed770f",
+              "downloaded": true,
+              "actual_size_bytes": 22994191,
+              "actual_sha256": "faad90992fbd3afc2095bd8450d44560e261232d7a7e93d12d2109efaeed770f",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-03",
+      "name": "Media Experiment — 2026-07-03",
+      "published_at": "2026-07-14T16:48:20Z",
+      "experiment_dates": [
+        "2026-07-03"
+      ],
+      "manifest_digests": [
+        "1ebdcbb198d6c614ed359bfa2d7ede1aa7f793adf0e77c376f016db78192192b"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 28,
+        "api_video_completed": 7,
+        "archived_images": 28,
+        "archived_videos": 7,
+        "errors": 1,
+        "packaged_media_bytes": 186909815
+      },
+      "runs": [
+        {
+          "run_id": "run_20260703_112425",
+          "digest": "7de768e7c4b7b7437f2a1ebf6794b860c9ff37d48bca928b708ccdd89c1912f2",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 186848705,
+          "file_count": 37,
+          "error_rows": 1,
+          "manifest_completion_events": {
+            "images": 28,
+            "videos": 7
+          },
+          "jsonl_completion_events": {
+            "images": 28,
+            "videos": 7
+          },
+          "manifest_media_files": {
+            "images": 28,
+            "videos": 7
+          },
+          "archive_media_files": {
+            "images": 28,
+            "videos": 7
+          },
+          "packaged_media_bytes": 186909815,
+          "asset_checks": [
+            {
+              "name": "run_20260703_112425-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 162489428,
+              "expected_sha256": "5784c07170be0a18a970781af1c1babee8325030160ab7232060afab47122348",
+              "downloaded": true,
+              "actual_size_bytes": 162489428,
+              "actual_sha256": "5784c07170be0a18a970781af1c1babee8325030160ab7232060afab47122348",
+              "media_members": {
+                "images": 28,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            },
+            {
+              "name": "run_20260703_112425-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 24420387,
+              "expected_sha256": "f98fb6737b286ed5a603734cdc9be5b5c0e4f3edb7c74a05654a1c7e81ca846e",
+              "downloaded": true,
+              "actual_size_bytes": 24420387,
+              "actual_sha256": "f98fb6737b286ed5a603734cdc9be5b5c0e4f3edb7c74a05654a1c7e81ca846e",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-05",
+      "name": "Media Experiment — 2026-07-05",
+      "published_at": "2026-07-14T16:48:43Z",
+      "experiment_dates": [
+        "2026-07-05"
+      ],
+      "manifest_digests": [
+        "f63e13ad98d8941e600c1676802a71bf7d330f0e9b2c9e5a55ff5ac9db7bc35a"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 80,
+        "api_video_completed": 7,
+        "archived_images": 80,
+        "archived_videos": 7,
+        "errors": 0,
+        "packaged_media_bytes": 492823993
+      },
+      "runs": [
+        {
+          "run_id": "run_20260705_200953",
+          "digest": "34f4a339b3587ee7a46e79643ee5ab1306ea2c02558077759e33b741913a4905",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 492698591,
+          "file_count": 88,
+          "error_rows": 0,
+          "manifest_completion_events": {
+            "images": 80,
+            "videos": 7
+          },
+          "jsonl_completion_events": {
+            "images": 80,
+            "videos": 7
+          },
+          "manifest_media_files": {
+            "images": 80,
+            "videos": 7
+          },
+          "archive_media_files": {
+            "images": 80,
+            "videos": 7
+          },
+          "packaged_media_bytes": 492823993,
+          "asset_checks": [
+            {
+              "name": "run_20260705_200953-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 467461199,
+              "expected_sha256": "b824f457665d66e886907fa9e3f5248c6fed85a8674b69a63308c5018de19a7a",
+              "downloaded": true,
+              "actual_size_bytes": 467461199,
+              "actual_sha256": "b824f457665d66e886907fa9e3f5248c6fed85a8674b69a63308c5018de19a7a",
+              "media_members": {
+                "images": 80,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            },
+            {
+              "name": "run_20260705_200953-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 25362794,
+              "expected_sha256": "92807727ccdb7d90b96def90d884c0f916c049735623841452e142c3abf23c21",
+              "downloaded": true,
+              "actual_size_bytes": 25362794,
+              "actual_sha256": "92807727ccdb7d90b96def90d884c0f916c049735623841452e142c3abf23c21",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-11",
+      "name": "Media Experiment — 2026-07-11",
+      "published_at": "2026-07-14T16:49:00Z",
+      "experiment_dates": [
+        "2026-07-11"
+      ],
+      "manifest_digests": [
+        "b35c1b67ec02aa8fbf315b03fbd5ffcc3bdcbcf7971972cee619e7b24b474b9b"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 59,
+        "api_video_completed": 0,
+        "archived_images": 59,
+        "archived_videos": 0,
+        "errors": 2,
+        "packaged_media_bytes": 375365781
+      },
+      "runs": [
+        {
+          "run_id": "run_20260711_204146",
+          "digest": "dee2dfb881ccb0c2717913d3f5f76250566e24a774bbaebafef401cf8181fe31",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 375358477,
+          "file_count": 61,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 59,
+            "videos": 0
+          },
+          "jsonl_completion_events": {
+            "images": 59,
+            "videos": 0
+          },
+          "manifest_media_files": {
+            "images": 59,
+            "videos": 0
+          },
+          "archive_media_files": {
+            "images": 59,
+            "videos": 0
+          },
+          "packaged_media_bytes": 375365781,
+          "asset_checks": [
+            {
+              "name": "run_20260711_204146-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 375365781,
+              "expected_sha256": "9ef12467e3a254d826d65bb276deb838c803fa3b9d932da013318aef308e9c72",
+              "downloaded": true,
+              "actual_size_bytes": 375365781,
+              "actual_sha256": "9ef12467e3a254d826d65bb276deb838c803fa3b9d932da013318aef308e9c72",
+              "media_members": {
+                "images": 59,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-12",
+      "name": "Media Experiment — 2026-07-12",
+      "published_at": "2026-07-14T16:49:31Z",
+      "experiment_dates": [
+        "2026-07-12"
+      ],
+      "manifest_digests": [
+        "235c9feb270ea2f138530ef05a4786cd1cdcac0ce1e270bbc6cb387a7e92fb6d"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 145,
+        "api_video_completed": 7,
+        "archived_images": 145,
+        "archived_videos": 7,
+        "errors": 1,
+        "packaged_media_bytes": 822515787
+      },
+      "runs": [
+        {
+          "run_id": "run_20260712_175037",
+          "digest": "d35efdf31af02482495a7a21e79850b8da3abd31fd5c0d5788974f10f11b111a",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 822318788,
+          "file_count": 154,
+          "error_rows": 1,
+          "manifest_completion_events": {
+            "images": 145,
+            "videos": 7
+          },
+          "jsonl_completion_events": {
+            "images": 145,
+            "videos": 7
+          },
+          "manifest_media_files": {
+            "images": 145,
+            "videos": 7
+          },
+          "archive_media_files": {
+            "images": 145,
+            "videos": 7
+          },
+          "packaged_media_bytes": 822515787,
+          "asset_checks": [
+            {
+              "name": "run_20260712_175037-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 794125866,
+              "expected_sha256": "0efea83d00b541fe853589bd2a385cfacc315cdabca6b83e0196424a74deaf93",
+              "downloaded": true,
+              "actual_size_bytes": 794125866,
+              "actual_sha256": "0efea83d00b541fe853589bd2a385cfacc315cdabca6b83e0196424a74deaf93",
+              "media_members": {
+                "images": 145,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            },
+            {
+              "name": "run_20260712_175037-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 28389921,
+              "expected_sha256": "a41f278b986ac23844b440a81bbf463930508f922b3fe9f73f87b2f168a617d2",
+              "downloaded": true,
+              "actual_size_bytes": 28389921,
+              "actual_sha256": "a41f278b986ac23844b440a81bbf463930508f922b3fe9f73f87b2f168a617d2",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "tag": "media-exp-2026-07-13",
+      "name": "Media Experiment — 2026-07-13",
+      "published_at": "2026-07-14T16:49:34Z",
+      "experiment_dates": [
+        "2026-07-13"
+      ],
+      "manifest_digests": [
+        "e815543995a511412eb22dc7d1a0a35a3465892166b18af0173cc29b7689d1dd"
+      ],
+      "manifest_runs": 1,
+      "canonical_runs": 1,
+      "quarantined_runs": 0,
+      "status": "ok",
+      "verify_archives": true,
+      "totals": {
+        "api_image_completed": 3,
+        "api_video_completed": 1,
+        "archived_images": 3,
+        "archived_videos": 1,
+        "errors": 2,
+        "packaged_media_bytes": 18065401
+      },
+      "runs": [
+        {
+          "run_id": "run_20260713_220443",
+          "digest": "ccc7eac43e165a2ab0f647eac16988a80a1059477f25e6cb2356d2591e0ab0ac",
+          "canonical": true,
+          "quarantine": null,
+          "source_bytes": 18054070,
+          "file_count": 6,
+          "error_rows": 2,
+          "manifest_completion_events": {
+            "images": 3,
+            "videos": 1
+          },
+          "jsonl_completion_events": {
+            "images": 3,
+            "videos": 1
+          },
+          "manifest_media_files": {
+            "images": 3,
+            "videos": 1
+          },
+          "archive_media_files": {
+            "images": 3,
+            "videos": 1
+          },
+          "packaged_media_bytes": 18065401,
+          "asset_checks": [
+            {
+              "name": "run_20260713_220443-images.zip",
+              "kind": "images",
+              "expected_size_bytes": 16348210,
+              "expected_sha256": "389f01e5e8c15af582503740dc8d0fcb3a9bc1341884f860c7d926e2b026c622",
+              "downloaded": true,
+              "actual_size_bytes": 16348210,
+              "actual_sha256": "389f01e5e8c15af582503740dc8d0fcb3a9bc1341884f860c7d926e2b026c622",
+              "media_members": {
+                "images": 3,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
+            },
+            {
+              "name": "run_20260713_220443-videos.zip",
+              "kind": "videos",
+              "expected_size_bytes": 1717191,
+              "expected_sha256": "f3dd1fdceb424e60a4c86304fa4f7fe790faaf481745d46cbdbdbee193d373a5",
+              "downloaded": true,
+              "actual_size_bytes": 1717191,
+              "actual_sha256": "f3dd1fdceb424e60a4c86304fa4f7fe790faaf481745d46cbdbdbee193d373a5",
+              "media_members": {
+                "images": 0,
+                "videos": 1
+              },
+              "bad_member": null,
+              "status": "ok"
+            }
+          ],
+          "anomalies": [],
+          "status": "ok"
+        }
+      ]
+    }
+  ]
+}
