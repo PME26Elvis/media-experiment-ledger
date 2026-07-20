@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-07-20.4",
+  "contract_version": "2026-07-20.5",
   "default_user_language": "zh-TW",
   "repository": {
     "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
@@ -42,7 +42,7 @@
   },
   "planned_analysis": {
     "yolo_object_detection": {
-      "status": "specified_not_implemented",
+      "status": "implementation_pending_production",
       "spec": "docs/YOLO_OBJECT_DETECTION_SPEC.md",
       "default_model_family": "YOLOX-Tiny",
       "runtime": "ONNX Runtime CPU",
@@ -60,13 +60,23 @@
       "persistent_state": false,
       "cross_run_cache_skip": false,
       "published_result_reuse": false,
-      "visual_lab_join_key": "image_sha256"
+      "visual_lab_join_key": "image_sha256",
+      "implementation_entrypoint": "tools/build_yolo_detection.py",
+      "requirements": "requirements-yolo.txt",
+      "model_lock": "object-detection/model-lock.json",
+      "labels": "object-detection/coco-80.json",
+      "latest_index": "data/yolo/latest.json",
+      "history_index": "data/yolo/history.json",
+      "web_index": "web/public/data/yolo/latest.json",
+      "visual_lab_route": "yolo-lab",
+      "release_notes_preview_max": 20
     }
   },
   "required_validation": [
     "python tools/validate_project_contract.py",
     "python -m compileall tools tests",
     "python -m unittest discover -s tests -v",
+    "python tools/yolo_model_smoke.py",
     "npm run build --prefix web",
     "python tools/validate_site_build.py"
   ],
@@ -81,6 +91,21 @@
     "visual-analysis/config.json",
     "config/release-quarantine.json",
     "config/atlas-history-overrides.json",
+    "requirements-yolo.txt",
+    "object-detection/model-lock.json",
+    "object-detection/coco-80.json",
+    "tools/yolo_core.py",
+    "tools/yolo_corpus.py",
+    "tools/yolo_packages.py",
+    "tools/yolo_publish.py",
+    "tools/build_yolo_detection.py",
+    "tools/yolo_model_smoke.py",
+    ".github/workflows/yolo-object-detection.yml",
+    "data/yolo/latest.json",
+    "data/yolo/history.json",
+    "web/public/data/yolo/latest.json",
+    "web/src/components/YoloLab.astro",
+    "web/src/content/docs/yolo-lab.mdx",
     "tests"
   ]
 }

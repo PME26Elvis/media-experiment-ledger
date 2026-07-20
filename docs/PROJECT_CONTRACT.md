@@ -30,7 +30,7 @@
 - README totals；
 - image/video Prompt Repeatability Atlas；
 - Experiment Release Audit；
-- 未來 YOLO object-detection corpus；
+- YOLO object-detection corpus；
 - 任何其他全資料衍生分析。
 
 目前 2026-06-29 的 `run_test` 是 synthetic fixture，另有一個 0 files／0 bytes 的空 run；兩者保留在歷史 Release 中，但不再被當作正式實驗。
@@ -62,18 +62,23 @@
 
 ## YOLOX-Tiny object detection status
 
-YOLO 功能目前狀態為 `specified_not_implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)。預設方案是 Apache-2.0 的 YOLOX-Tiny COCO 模型與 ONNX Runtime CPU inference，但它不再整合進 Atlas：
+YOLO 功能目前為 `implementation_pending_production`。完整規格位於 [`YOLO_OBJECT_DETECTION_SPEC.md`](YOLO_OBJECT_DETECTION_SPEC.md)，目前已實作：
 
-- 規劃獨立 workflow：`.github/workflows/yolo-object-detection.yml`；
-- 規劃獨立 Release 家族：`media-yolo-all-<latest-experiment-date>-vN`；
-- v1 使用一個完整 GitHub-hosted CPU job，而不是預先建立 matrix；
-- 以 3000 張圖片作為初始設計規模；
-- 每次 invocation 都從零重跑完整 canonical image corpus；
-- 不使用 persistent state、跨 run cache skip 或 published-result reuse；
-- YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table；
-- 未來 Visual Lab 只能透過 `image_sha256` 關聯兩套獨立資料。
+- SHA-pinned YOLOX-Tiny ONNX model 與 COCO 80 labels；
+- 真實 ONNX Runtime CPU smoke test；
+- quarantine-aware full-corpus Release inventory；
+- asset SHA、ZIP CRC、safe path、manifest member SHA 與 Pillow decode 驗證；
+- 同一次 workflow 內 image SHA dedupe，並保留所有 source aliases；
+- 單一 350-minute hosted-runner job；
+- 每張圖片 success 或 explicit failure sidecar；
+- annotated JPEG、class summaries、timing、source indexes 與 deterministic ZIP-only assets；
+- 獨立 `.github/workflows/yolo-object-detection.yml`；
+- 獨立 `media-yolo-*` Release 家族，正式 tag 使用 `media-yolo-all-<latest-experiment-date>-vN`；
+- 獨立 latest/history indexes、README history 與 YOLO Lab；
+- 每次 invocation 從零重跑，不使用 persistent state、跨 run cache skip 或 published-result reuse；
+- YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table。
 
-在 production implementation 完成前，README 與 UI 不得把它描述成已上線功能。YOLO implementation 也必須加入 Atlas 非回歸測試，確認既有大量圖片與 GIF Release Notes previews 保持不變。
+只有在 main 上完成一次真正的 full-corpus workflow，並驗證 published Release、ZIP assets、latest/history writeback、YOLO Lab、Pages 與 Atlas 非回歸後，狀態才能改為 `implemented`。
 
 ## Git and publication behavior
 
@@ -90,8 +95,9 @@ PR 與 main push 必須執行：
 python tools/validate_project_contract.py
 python -m compileall tools tests
 python -m unittest discover -s tests -v
+python tools/yolo_model_smoke.py
 npm run build --prefix web
 python tools/validate_site_build.py
 ```
 
-`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件與三份分析規格。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
+`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、三份分析規格、YOLO model lock、labels、workflow、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。

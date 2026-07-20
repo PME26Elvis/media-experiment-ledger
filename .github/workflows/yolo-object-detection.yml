@@ -1,0 +1,125 @@
+name: Publish YOLO Object Detection
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Optional reason recorded in the workflow summary
+        required: false
+        default: manual
+        type: string
+      confidence_threshold:
+        description: Detection confidence threshold
+        required: false
+        default: '0.25'
+        type: string
+      nms_iou_threshold:
+        description: Class-aware NMS IoU threshold
+        required: false
+        default: '0.45'
+        type: string
+      max_detections:
+        description: Maximum detections per image
+        required: false
+        default: '100'
+        type: string
+      publish_release:
+        description: Publish independent media-yolo-* Release
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/yolo-object-detection.yml'
+      - 'tools/build_yolo_detection.py'
+      - 'tools/yolo_*.py'
+      - 'object-detection/**'
+      - 'requirements-yolo.txt'
+      - 'config/release-quarantine.json'
+
+concurrency:
+  group: yolo-object-detection
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  analyze-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-yolo.txt
+      - name: Install YOLO runtime
+        run: python -m pip install -r requirements-yolo.txt
+      - name: Validate synchronized project contract
+        run: python tools/validate_project_contract.py
+      - name: Run full-corpus YOLOX-Tiny analysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          confidence='${{ inputs.confidence_threshold }}'
+          nms='${{ inputs.nms_iou_threshold }}'
+          max_detections='${{ inputs.max_detections }}'
+          publish='${{ inputs.publish_release }}'
+          if [[ '${{ github.event_name }}' == 'push' ]]; then
+            confidence='0.25'; nms='0.45'; max_detections='100'; publish='true'
+          fi
+          args=(
+            --repo '${{ github.repository }}'
+            --confidence-threshold "$confidence"
+            --nms-iou-threshold "$nms"
+            --max-detections "$max_detections"
+          )
+          if [[ "$publish" == 'true' ]]; then args+=(--publish); fi
+          python tools/build_yolo_detection.py "${args[@]}"
+          {
+            echo '## YOLO Object Detection'
+            echo "Reason: ${{ inputs.reason || 'code push' }}"
+            echo "Confidence: $confidence"
+            echo "NMS IoU: $nms"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload recovery artifact on failure or non-publish run
+        if: failure() || inputs.publish_release == false
+        uses: actions/upload-artifact@v4
+        with:
+          name: yolo-object-detection-${{ github.run_id }}
+          path: |
+            object-detection/output/
+            data/yolo/
+            web/public/data/yolo/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+      - name: Commit independent YOLO index, previews, and history
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(data/yolo web/public/data/yolo README.md README.en.md)
+          if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
+            echo 'YOLO index and history are unchanged'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "${paths[@]}"
+          git commit -m 'yolo: publish independent object-detection index'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1

@@ -6,6 +6,7 @@ on:
       - "tools/**"
       - "tests/**"
       - "web/**"
+      - "object-detection/**"
       - "README.md"
       - "README.en.md"
       - "AGENTS.md"
@@ -16,6 +17,7 @@ on:
       - "requirements-analytics.txt"
       - "requirements-forecast.txt"
       - "requirements-visual-analysis.txt"
+      - "requirements-yolo.txt"
       - ".github/workflows/**"
   push:
     branches: [main]
@@ -23,6 +25,7 @@ on:
       - "tools/**"
       - "tests/**"
       - "web/**"
+      - "object-detection/**"
       - "README.md"
       - "README.en.md"
       - "AGENTS.md"
@@ -33,6 +36,7 @@ on:
       - "requirements-analytics.txt"
       - "requirements-forecast.txt"
       - "requirements-visual-analysis.txt"
+      - "requirements-yolo.txt"
       - ".github/workflows/**"
 
 permissions:
@@ -51,32 +55,41 @@ jobs:
             requirements-analytics.txt
             requirements-forecast.txt
             requirements-visual-analysis.txt
-      - name: Install Python and FFmpeg test dependencies
+            requirements-yolo.txt
+      - name: Install Python, YOLO, and FFmpeg test dependencies
         run: |
           set -euo pipefail
           python -m pip install \
             -r requirements-analytics.txt \
             -r requirements-forecast.txt \
-            -r requirements-visual-analysis.txt
+            -r requirements-visual-analysis.txt \
+            -r requirements-yolo.txt
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -version | head -n 1
           ffprobe -version | head -n 1
       - name: Validate synchronized project contract
-        run: python tools/validate_project_contract.py
+        shell: bash
+        run: |
+          set -o pipefail
+          python tools/validate_project_contract.py 2>&1 | tee contract-validation.log
       - run: python -m compileall tools tests
       - name: Run complete unittest suite
         shell: bash
         run: |
           set -o pipefail
           python -m unittest discover -s tests -v 2>&1 | tee unittest.log
-      - name: Upload unittest diagnostic log on failure
+      - name: Verify pinned YOLOX-Tiny ONNX execution
+        run: python tools/yolo_model_smoke.py
+      - name: Upload validation diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: unittest-log-${{ github.run_id }}
-          path: unittest.log
-          if-no-files-found: error
+          name: validation-logs-${{ github.run_id }}
+          path: |
+            contract-validation.log
+            unittest.log
+          if-no-files-found: warn
           retention-days: 7
       - uses: actions/setup-node@v4
         with:

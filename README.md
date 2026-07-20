@@ -11,7 +11,7 @@
 - [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) 通常只補足舊 Atlas schema 缺失欄位；若 report 本身已由 source Release、原始歷史表與 entry evidence 證實錯誤，才可使用審核過的 `authoritative: true` 修正。舊快照絕不被目前 totals 改寫。
 - 正式統計分開呈現 **API 完成事件** 與 **封存媒體**；新發布若兩者數量不一致會被阻止。
 - [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) 會全量排查所有 `media-exp-*` manifests、JSONL、ZIP members、size、SHA-256 與 CRC。
-- YOLOX-Tiny／ONNX Runtime／COCO 物件偵測目前為[詳盡規格](docs/YOLO_OBJECT_DETECTION_SPEC.md)，狀態是 **specified, not implemented**。
+- YOLOX-Tiny／ONNX Runtime／COCO 物件偵測已完成獨立 workflow、`media-yolo-*` Release、ZIP、index 與 YOLO Lab 實作，正在等待第一次 production 全量驗證；詳見[完整契約](docs/YOLO_OBJECT_DETECTION_SPEC.md)與 [YOLO Lab](web/src/content/docs/yolo-lab.mdx)。
 
 ## 即時統計
 
@@ -222,3 +222,10 @@ python -m unittest discover -s tests -v
 npm install --prefix web --package-lock=false --no-audit --no-fund
 npm run build --prefix web
 ```
+
+## YOLO 物件偵測歷史
+
+<!-- AUTO:YOLO_HISTORY:START -->
+| 發布日期 | 資料範圍 | 圖片 | 有偵測 | 偵測框 | 模型 | Release |
+|---|---|---:|---:|---:|---|---|
+<!-- AUTO:YOLO_HISTORY:END -->

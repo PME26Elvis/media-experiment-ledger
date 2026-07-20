@@ -1,0 +1,103 @@
+---
+import { sitePath } from '../lib/sitePath';
+const dataUrl = sitePath('data/yolo/latest.json');
+---
+
+<section class="yolo-lab" data-yolo-root data-url={dataUrl}>
+  <div class="yolo-toolbar panel-surface">
+    <div>
+      <span class="eyebrow">YOLO OBJECT DETECTION</span>
+      <h2>Independent YOLOX-Tiny / COCO observations across every canonical image.</h2>
+      <p>This view is separate from Prompt Repeatability Atlas. COCO covers only 80 classes; a missing detection does not mean the image contains no object.</p>
+    </div>
+    <div class="yolo-actions">
+      <label>Prompt, class, or SHA<input type="search" data-yolo-search placeholder="person, bottle, i0001…" /></label>
+      <label>COCO class<select data-yolo-class><option value="">All classes</option></select></label>
+      <label>Minimum confidence <output data-yolo-confidence-label>0.25</output><input type="range" min="0" max="1" step="0.05" value="0.25" data-yolo-confidence /></label>
+      <label class="yolo-checkbox"><input type="checkbox" checked data-yolo-images /> Show annotated previews</label>
+      <a class="yolo-download" data-yolo-download hidden target="_blank" rel="noreferrer">Open YOLO Release</a>
+    </div>
+  </div>
+  <div class="yolo-metrics" data-yolo-metrics>
+    <article><span>Status</span><strong>Loading</strong><small>Reading independent YOLO index</small></article>
+    <article><span>Corpus</span><strong>—</strong><small>Canonical unique images</small></article>
+    <article><span>Observed</span><strong>—</strong><small>Images with detections</small></article>
+    <article><span>Detections</span><strong>—</strong><small>COCO boxes above threshold</small></article>
+  </div>
+  <p class="yolo-status" data-yolo-status>Loading YOLO results…</p>
+  <div class="yolo-grid" data-yolo-grid></div>
+</section>
+
+<script>
+  for (const root of document.querySelectorAll('[data-yolo-root]')) {
+    const search = root.querySelector('[data-yolo-search]');
+    const classSelect = root.querySelector('[data-yolo-class]');
+    const confidence = root.querySelector('[data-yolo-confidence]');
+    const confidenceLabel = root.querySelector('[data-yolo-confidence-label]');
+    const showImages = root.querySelector('[data-yolo-images]');
+    const status = root.querySelector('[data-yolo-status]');
+    const grid = root.querySelector('[data-yolo-grid]');
+    const download = root.querySelector('[data-yolo-download]');
+    const metrics = [...root.querySelectorAll('[data-yolo-metrics] article')];
+    let entries = [];
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character]));
+    const primarySource = (entry) => Array.isArray(entry.sources) && entry.sources.length ? entry.sources[0] : {};
+    const render = () => {
+      const needle = search.value.trim().toLowerCase();
+      const selectedClass = classSelect.value;
+      const minConfidence = Number(confidence.value || 0);
+      confidenceLabel.textContent = minConfidence.toFixed(2);
+      const filtered = entries.filter((entry) => {
+        const source = primarySource(entry);
+        const detections = Array.isArray(entry.detections) ? entry.detections : [];
+        const matchingDetections = detections.filter((detection) => Number(detection.confidence || 0) >= minConfidence && (!selectedClass || detection.class_name === selectedClass));
+        const classes = detections.map((detection) => detection.class_name).join(' ');
+        const haystack = `${entry.image_sha256} ${source.prompt_id || ''} ${source.prompt || ''} ${source.category || ''} ${source.model || ''} ${classes}`.toLowerCase();
+        return (!needle || haystack.includes(needle))
+          && (!selectedClass || matchingDetections.length > 0)
+          && (!detections.length || detections.some((detection) => Number(detection.confidence || 0) >= minConfidence));
+      });
+      status.textContent = `${filtered.length.toLocaleString()} of ${entries.length.toLocaleString()} images match · confidence ≥ ${minConfidence.toFixed(2)}`;
+      grid.innerHTML = filtered.map((entry) => {
+        const source = primarySource(entry);
+        const detections = (entry.detections || []).filter((detection) => Number(detection.confidence || 0) >= minConfidence && (!selectedClass || detection.class_name === selectedClass));
+        const classes = [...new Set(detections.map((item) => item.class_name))];
+        const preview = showImages.checked && entry.annotated_preview_url
+          ? `<a class="yolo-image" href="${escapeHtml(entry.annotated_preview_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(entry.annotated_preview_url)}" alt="YOLO annotated preview"></a>`
+          : `<div class="yolo-image"><div class="yolo-missing">${showImages.checked ? 'Preview is packaged in the independent annotated ZIP' : 'Preview hidden'}</div></div>`;
+        return `<article class="yolo-card">${preview}<div class="yolo-body"><div class="yolo-head"><strong>${escapeHtml(source.prompt_id || entry.image_sha256.slice(0, 12))}</strong><span>${detections.length} visible boxes</span></div><small>${escapeHtml(source.category || 'uncategorized')} · ${escapeHtml(source.model || 'unknown model')}</small><p>${escapeHtml(source.prompt || 'Prompt metadata unavailable')}</p><div class="yolo-tags">${classes.length ? classes.map((item) => `<span>${escapeHtml(item)}</span>`).join('') : '<span>no matching COCO class</span>'}</div><code>${escapeHtml(entry.image_sha256.slice(0, 20))}</code>${entry.bundle_url ? `<a class="yolo-bundle" href="${escapeHtml(entry.bundle_url)}">Download annotated ZIP</a>` : ''}</div></article>`;
+      }).join('');
+      if (!filtered.length) grid.innerHTML = '<div class="yolo-empty panel-surface">No YOLO observations match the current filters.</div>';
+    };
+    fetch(root.dataset.url, { cache: 'no-store' }).then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }).then((data) => {
+      entries = Array.isArray(data.entries) ? data.entries.filter((entry) => entry.status === 'success') : [];
+      const classes = [...new Set(entries.flatMap((entry) => (entry.detections || []).map((item) => item.class_name)).filter(Boolean))].sort();
+      classSelect.insertAdjacentHTML('beforeend', classes.map((item) => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join(''));
+      if (data.release_url) { download.href = data.release_url; download.hidden = false; }
+      const summary = data.summary || {};
+      const values = [
+        [data.status === 'published' ? 'Published' : 'Waiting', data.release_tag || 'No production YOLO Release'],
+        [Number(summary.expected_images || 0).toLocaleString(), `${data.date_from || '—'} → ${data.date_to || '—'}`],
+        [Number(summary.images_with_detections || 0).toLocaleString(), `${Number(summary.empty_detection_images || 0).toLocaleString()} empty detections`],
+        [Number(summary.total_detections || 0).toLocaleString(), `${data.model || 'YOLOX-Tiny'} / COCO`]
+      ];
+      metrics.forEach((tile, index) => { tile.querySelector('strong').textContent = values[index][0]; tile.querySelector('small').textContent = values[index][1]; });
+      render();
+    }).catch((error) => {
+      status.textContent = `YOLO data could not be loaded: ${error.message}`;
+      status.classList.add('error');
+      grid.innerHTML = '<div class="yolo-empty panel-surface">Run the independent YOLO Object Detection workflow to publish the first index.</div>';
+    });
+    search.addEventListener('input', render);
+    classSelect.addEventListener('change', render);
+    confidence.addEventListener('input', render);
+    showImages.addEventListener('change', render);
+  }
+</script>
+
+<style>
+  .yolo-lab{margin-top:1rem}.yolo-toolbar{display:grid;grid-template-columns:1.25fr .75fr;gap:1.25rem;align-items:end}.yolo-toolbar h2{margin:.2rem 0 .45rem;font-size:clamp(1.7rem,3vw,2.7rem);letter-spacing:-.045em}.yolo-toolbar p{margin:0;color:var(--soft-text);max-width:72ch}.yolo-actions{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.yolo-actions label{color:var(--soft-text);font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.yolo-actions input,.yolo-actions select{width:100%;display:block;margin-top:.3rem;min-height:2.65rem;border-radius:.7rem;border:1px solid var(--panel-border);color:inherit;background:rgba(5,14,25,.72);padding:.55rem .7rem}.yolo-checkbox{display:flex!important;align-items:center;gap:.5rem}.yolo-checkbox input{width:auto;min-height:auto;margin:0}.yolo-download{grid-column:1/-1;display:flex;justify-content:center;align-items:center;min-height:2.7rem;border-radius:.72rem;text-decoration:none;color:#07101d;background:linear-gradient(135deg,var(--green),#ccff98);font-weight:850}.yolo-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin:1rem 0}.yolo-metrics article{padding:1rem;border-radius:1rem;background:var(--panel-bg);border:1px solid var(--panel-border);min-width:0}.yolo-metrics span,.yolo-metrics small{display:block;color:var(--soft-text)}.yolo-metrics strong{display:block;margin:.3rem 0;font-size:clamp(1.2rem,2.2vw,1.8rem)}.yolo-status{color:var(--soft-text);font-size:.78rem}.yolo-status.error{color:var(--pink)}.yolo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.yolo-card{overflow:hidden;border:1px solid rgba(128,255,128,.3);border-radius:1.1rem;background:var(--panel-bg)}.yolo-image{display:block;aspect-ratio:4/3;background:#07101d;overflow:hidden}.yolo-image img{width:100%;height:100%;object-fit:contain}.yolo-missing{height:100%;display:grid;place-items:center;color:var(--soft-text);padding:1rem;text-align:center}.yolo-body{padding:1rem}.yolo-head{display:flex;justify-content:space-between;gap:1rem}.yolo-head strong{color:var(--green)}.yolo-head span{color:var(--cyan);font-size:.72rem;font-weight:800}.yolo-body small,.yolo-body p{color:var(--soft-text)}.yolo-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin:.7rem 0}.yolo-tags span{padding:.2rem .45rem;border-radius:999px;background:rgba(106,255,169,.12);color:var(--green);font-size:.68rem}.yolo-body code{display:block;color:var(--cyan);font-size:.68rem}.yolo-bundle{display:flex;justify-content:center;margin-top:.8rem;padding:.62rem;border:1px solid rgba(106,255,169,.3);border-radius:.65rem;color:var(--green);text-decoration:none;font-size:.75rem;font-weight:800}.yolo-empty{grid-column:1/-1;text-align:center;padding:2rem;color:var(--soft-text)}@media(max-width:75rem){.yolo-toolbar{grid-template-columns:1fr}.yolo-metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:48rem){.yolo-actions,.yolo-grid{grid-template-columns:1fr}.yolo-metrics{grid-template-columns:1fr 1fr}}
+</style>
