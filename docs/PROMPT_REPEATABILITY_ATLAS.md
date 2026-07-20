@@ -268,3 +268,7 @@ python tools/update_readme_summary.py \
 - `visual-analysis/config.json` — image/video rendering and packaging policy.
 - `tests/test_prompt_atlas.py` and `tests/test_prompt_atlas_video.py` — image and real FFmpeg video regressions.
 - `web/src/components/VisualAtlas.astro` — searchable image/video Visual Lab.
+
+## Synchronized project contract
+
+This is a **full-corpus** analysis over non-quarantined formal runs. Release assets remain **ZIP-only**, and image/video outputs remain in deterministic bundles containing up to **15 prompt** IDs. The machine-readable values live in `project-contract.json`; the canonical quarantine is `config/release-quarantine.json`.

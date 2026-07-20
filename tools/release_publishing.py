@@ -11,6 +11,7 @@ from typing import Any, Sequence
 from zoneinfo import ZoneInfo
 
 from release_packaging import CommandError, RunPlan, inspect_run, json_digest, package_run, run_command
+from release_policy import media_counts_from_file_records, validate_publishable_run
 
 TAG_RE = re.compile(r"^media-exp-(\d{4}-\d{2}-\d{2})(?:-s(\d{2}))?$")
 PUBLISHED_TAG_RE = re.compile(r"^PUBLISHED\s+\d{4}-\d{2}-\d{2}:\s+(media-exp-[^\s]+)")
@@ -151,12 +152,20 @@ def build_manifest(
 
 def release_notes(manifest: dict[str, Any]) -> str:
     runs = manifest["runs"]
-    image_count = sum(
+    api_image_events = sum(
         int(run["stats"].get("image_completed", 0)) for run in runs
     )
-    video_count = sum(
+    api_video_events = sum(
         int(run["stats"].get("video_completed", 0)) for run in runs
     )
+    archived_images = 0
+    archived_videos = 0
+    for run in runs:
+        stats = run.get("stats") if isinstance(run.get("stats"), dict) else {}
+        files = run.get("files") if isinstance(run.get("files"), list) else []
+        counted = media_counts_from_file_records(files)
+        archived_images += int(stats.get("archived_images", counted["images"]))
+        archived_videos += int(stats.get("archived_videos", counted["videos"]))
     error_count = sum(int(run["stats"].get("errors", 0)) for run in runs)
     media_bytes = sum(
         int(asset["size_bytes"])
@@ -168,12 +177,20 @@ def release_notes(manifest: dict[str, Any]) -> str:
         {model for run in runs for model in run["stats"].get("models", [])}
     )
     lines = [
+        "<!-- managed:experiment-release:v2 -->",
         f"Experiment date: **{manifest['experiment_date_taipei']}** (Asia/Taipei)",
         f"Runs: **{len(runs)}**",
-        f"Images completed: **{image_count:,}**",
-        f"Videos completed: **{video_count:,}**",
+        f"API image completion events: **{api_image_events:,}**",
+        f"Archived image files: **{archived_images:,}**",
+        f"API video completion events: **{api_video_events:,}**",
+        f"Archived video files: **{archived_videos:,}**",
         f"Errors: **{error_count:,}**",
         f"Packaged media: **{media_bytes / 1024**3:.2f} GiB**",
+        "Integrity: **completion events match archived media files**",
+        "",
+        "API completion events and archived media are intentionally shown as "
+        "separate evidence. Publication is blocked if their image or video "
+        "counts differ.",
         "",
         "## Included runs",
     ]
@@ -238,6 +255,7 @@ def publish_date(
     conflicts: list[str] = []
     for run_dir in run_dirs:
         inspected = inspect_run(run_dir)
+        validate_publishable_run(inspected)
         remote_digest = remote_runs.get(inspected.run_id)
         if remote_digest is None:
             unpublished.append(inspected)

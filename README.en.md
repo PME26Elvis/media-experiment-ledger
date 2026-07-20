@@ -4,6 +4,14 @@
 
 A release-backed experiment platform for structured image and video generation runs. The repository keeps prompt banks, immutable experiment Releases, reproducible analytics, full-corpus image/video repeatability atlases, forecasts, and an Astro/Starlight observatory without committing original result folders to Git history.
 
+## Project contract and data integrity
+
+- [`project-contract.json`](project-contract.json) is the machine-validated synchronization anchor; [`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) is the human-readable contract.
+- [`config/release-quarantine.json`](config/release-quarantine.json) preserves historical assets while excluding confirmed empty runs and metadata-only fixtures.
+- Formal reporting separates **API completion events** from **archived media**; new publication is blocked when those counts differ.
+- The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
+- YOLOX-Tiny / ONNX Runtime / COCO object detection has a [detailed specification](docs/YOLO_OBJECT_DETECTION_SPEC.md) and is **specified, not implemented**.
+
 ## Live repository statistics
 
 <!-- AUTO:LEDGER_STATS_EN:START -->
@@ -131,6 +139,8 @@ For the same prompt ID, model, and non-random generation settings, the Atlas:
 - creates 10%/50%/90% keyframe sheets for every verified byte-unique video;
 - preserves seed in the sample sidecar as evidence but excludes it from the cohort key;
 - packages up to 15 video prompt IDs per deterministic ZIP bundle.
+
+Image and video outputs remain in bundles containing up to 15 prompt IDs.
 
 Companion tags use:
 

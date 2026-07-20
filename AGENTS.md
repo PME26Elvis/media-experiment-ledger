@@ -20,11 +20,20 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - When GitHub connector or Actions access is unavailable, run all feasible checks locally and provide either a unified patch or Codespaces-ready commands as the fallback.
 - Never use a passing unit test as proof that a production Release was published; verify the actual Release/index/writeback when the task includes publication.
 
+## Contract hierarchy
+
+- Read `project-contract.json` first for machine-enforced values and `docs/PROJECT_CONTRACT.md` for rationale.
+- Apply `config/release-quarantine.json` to every canonical corpus consumer.
+- When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
+- YOLOX-Tiny object detection is currently specified, not implemented; do not present planned behavior as production.
+
 ## Repository source-of-truth rules
 
 - Formal experiment data comes only from immutable `media-exp-*` Releases.
 - `media-input-*` Releases are transport/snapshot artifacts. Do not include them in formal statistics or Atlas source data.
 - Existing published experiment Releases are immutable. New data for an existing date must use the established supplemental Release flow.
+- Historical invalid runs remain as evidence but are excluded through `config/release-quarantine.json`; never silently delete them.
+- Distinguish API completion events from archived media files. Publication must fail when their counts differ.
 - Prompt Repeatability Atlas rebuilds scan the complete currently published corpus. Avoid hidden incremental state or processing caches unless there is a documented, compelling reason.
 - Release assets remain ZIP-only. Inline JPEG/GIF previews are served from versioned repository paths rather than uploaded as naked Release assets.
 - Image and video Atlas bundles contain up to 15 prompt IDs each.
@@ -55,6 +64,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 Before merging relevant changes, run or verify:
 
 ```bash
+python tools/validate_project_contract.py
 python -m pip install \
   -r requirements-analytics.txt \
   -r requirements-forecast.txt \

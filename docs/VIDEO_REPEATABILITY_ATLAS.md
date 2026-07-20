@@ -264,3 +264,7 @@ Atlas 仍沒有 repository-specific 90-minute timeout、processing cache 或 per
 9. Release Notes 可嵌 GIF，但 Release Assets 維持 ZIP-only；
 10. Visual Lab 可搜尋、篩選及下載影片 bundle；
 11. 圖片 Atlas 既有測試與 Pages build 不退化。
+
+## Synchronized contract anchor
+
+Video samples use FFprobe/FFmpeg validation, retain random `seed` as evidence but not cohort identity, and remain in deterministic bundles containing up to **15 prompt** IDs. The full corpus excludes runs listed in `config/release-quarantine.json`.
