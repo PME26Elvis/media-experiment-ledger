@@ -15,15 +15,15 @@
 ## 即時統計
 
 <!-- AUTO:LEDGER_STATS:START -->
-> 此區塊由 GitHub Actions 全量重建；只統計正式 `media-exp-*` Releases，`media-input-*` snapshot 不會重複計入。
+> 此區塊由 GitHub Actions 全量重建；只統計正式 `media-exp-*` 中非 quarantine runs 的封存媒體，`media-input-*` snapshot 與純 metadata fixture 不會重複計入。
 
 | 統計項目 | 數值 |
 |---|---:|
 | 正式 Experiment Releases | 9 |
 | 實驗日期範圍 | 2026-06-29 → 2026-07-13 |
-| 圖片總數 | 937 |
-| 影片總數 | 40 |
-| 最新 Prompt Repeatability Atlas | [media-analysis-all-c45c1b53c1f7-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c45c1b53c1f7-v1) |
+| 圖片總數 | 387 |
+| 影片總數 | 33 |
+| 最新 Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v1) |
 <!-- AUTO:LEDGER_STATS:END -->
 
 ## Prompt Repeatability Atlas 歷史
@@ -33,11 +33,12 @@
 
 | 發布日期 | 圖譜類型 | 資料範圍 | 圖片 | 影片 | 可比較 Prompt | Release |
 |---|---|---|---:|---:|---:|---|
+| 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v1) |
 | 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-c45c1b53c1f7-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c45c1b53c1f7-v1) |
 | 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-34912876cb25-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-34912876cb25-v1) |
-| 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-f5fdcae2c78b-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
-| 2026-07-19 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-8b850904b063-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1) |
-| 2026-07-19 | 歷史單次圖譜 | 2026-07-13 | 3 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
+| 2026-07-20 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 33 | 80 | [`media-analysis-all-f5fdcae2c78b-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
+| 2026-07-19 | 全域重現性圖譜 | 2026-06-29 → 2026-07-13 | 937 | 33 | 80 | [`media-analysis-all-8b850904b063-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1) |
+| 2026-07-19 | 歷史單次圖譜 | 2026-07-13 | 937 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
 <!-- AUTO:ATLAS_HISTORY:END -->
 
 ## 核心能力
