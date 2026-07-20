@@ -137,7 +137,7 @@ Companion tags use:
 media-analysis-all-<dataset-fingerprint>-vN
 ```
 
-Release Notes default to four image JPEG highlights and two animated video GIF highlights. Release assets remain ZIP-only; versioned repository preview paths provide inline Notes and Visual Lab media.
+Release Notes are split into **Image highlights** and **Video highlights**. Images dynamically include at most 15 cohorts with at least four verified unique samples, covering the strongest cohort in each category before filling by descending sample count. Videos include every comparable cohort by default. Release assets remain ZIP-only; versioned repository preview paths provide inline Notes and Visual Lab media.
 
 See the [shared/image Atlas specification](docs/PROMPT_REPEATABILITY_ATLAS.md) and [video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md).
 
@@ -173,6 +173,7 @@ The site includes Overview, Analytics, Visual Lab with image/video filtering and
 - [Codespaces publishing — English](docs/CODESPACES_PUBLISHING.en.md)
 - [Shared and image Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md)
 - [Video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md)
+- [Repository guidance for future coding agents](AGENTS.md)
 - [繁體中文 README](README.md)
 
 ## Development

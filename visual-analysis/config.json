@@ -1,7 +1,9 @@
 {
-  "release_notes_highlights": 4,
-  "release_notes_image_highlights": 4,
-  "release_notes_video_highlights": 2,
+  "release_notes_highlights": 15,
+  "release_notes_image_highlights": 15,
+  "release_notes_image_min_samples": 4,
+  "release_notes_video_highlights": "all",
+  "release_notes_video_min_samples": 2,
   "prompts_per_bundle": 15,
   "video_prompts_per_bundle": 15,
   "extended_min_samples": 5,

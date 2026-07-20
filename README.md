@@ -144,7 +144,7 @@ Atlas Release tag 使用：
 media-analysis-all-<dataset-fingerprint>-vN
 ```
 
-Release Notes 預設精選 4 張圖片 JPEG 與 2 個影片 GIF。所有 Release Assets 本身維持 ZIP-only；版本化 repo preview 路徑用於 Notes 與 Visual Lab 內嵌顯示。
+Release Notes 會分成 **Image highlights** 與 **Video highlights**。圖片動態選取最多 15 個至少具有 4 個唯一樣本的 cohorts，先涵蓋不同 category 的最強項目，再按樣本數補滿；影片則預設完整放入所有可比較 cohorts。所有 Release Assets 本身維持 ZIP-only；版本化 repo preview 路徑用於 Notes 與 Visual Lab 內嵌顯示。
 
 相關文件：
 
@@ -190,6 +190,7 @@ Release Notes 預設精選 4 張圖片 JPEG 與 2 個影片 GIF。所有 Release
 - [Codespaces 發布指南](docs/CODESPACES_PUBLISHING.md)
 - [圖片與共用 Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md)
 - [影片 Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md)
+- [未來 coding agents 的 repository 操作原則](AGENTS.md)
 - [English README](README.en.md)
 
 ## 開發與驗證
