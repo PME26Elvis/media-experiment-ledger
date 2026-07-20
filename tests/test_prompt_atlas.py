@@ -233,31 +233,89 @@ class PromptAtlasTests(unittest.TestCase):
                     self.assertGreater(rendered.width, 400)
                     self.assertGreater(rendered.height, 300)
 
-    def test_release_packages_are_zip_only_and_include_full_pages(self) -> None:
+    def test_release_packages_group_fifteen_prompt_ids_per_zip(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             output = Path(temp)
             for directory in ("primary", "extended", "sidecars", "full"):
                 (output / directory).mkdir(parents=True, exist_ok=True)
-            (output / "primary" / "primary.jpg").write_bytes(b"primary")
-            (output / "extended" / "extended.jpg").write_bytes(b"extended")
-            (output / "sidecars" / "sidecar.json").write_text(json.dumps({"ok": True}), encoding="utf-8")
-            (output / "full" / "i0001-cohort").mkdir(parents=True)
-            (output / "full" / "i0001-cohort" / "page.jpg").write_bytes(b"full")
-            entry = AtlasEntry(
-                "i0001", "product", "prompt", "model-a", "cohort", 9,
-                "media-exp-2026-07-09", "primary.jpg", "sidecar.json", "extended.jpg",
-                full_files=["i0001-cohort/page.jpg"],
+
+            entries: list[AtlasEntry] = []
+            for index in range(1, 17):
+                prompt_id = f"i{index:04d}"
+                primary = f"{prompt_id}-primary.jpg"
+                sidecar = f"{prompt_id}-sidecar.json"
+                full_name = f"{prompt_id}-cohort/page.jpg"
+                (output / "primary" / primary).write_bytes(b"primary")
+                (output / "sidecars" / sidecar).write_text(
+                    json.dumps({"prompt_id": prompt_id}),
+                    encoding="utf-8",
+                )
+                (output / "full" / f"{prompt_id}-cohort").mkdir(parents=True)
+                (output / "full" / full_name).write_bytes(b"full")
+                entries.append(
+                    AtlasEntry(
+                        prompt_id,
+                        "product",
+                        "prompt",
+                        "model-a",
+                        f"cohort-{index}",
+                        2,
+                        "media-exp-2026-07-09",
+                        primary,
+                        sidecar,
+                        None,
+                        full_files=[full_name],
+                    )
+                )
+
+            # A second cohort for i0001 must remain in the same bundle.
+            (output / "primary" / "i0001-second.jpg").write_bytes(b"primary-2")
+            (output / "sidecars" / "i0001-second.json").write_text("{}", encoding="utf-8")
+            (output / "full" / "i0001-second").mkdir(parents=True)
+            (output / "full" / "i0001-second" / "page.jpg").write_bytes(b"full-2")
+            entries.append(
+                AtlasEntry(
+                    "i0001",
+                    "product",
+                    "prompt",
+                    "model-b",
+                    "cohort-second",
+                    2,
+                    "media-exp-2026-07-09",
+                    "i0001-second.jpg",
+                    "i0001-second.json",
+                    None,
+                    full_files=["i0001-second/page.jpg"],
+                )
             )
-            assets = create_release_packages(output, [entry], {"entries": []}, {"max_release_asset_gib": 0.01})
-            self.assertTrue(assets)
+
+            report = {"entries": []}
+            assets = create_release_packages(
+                output,
+                entries,
+                report,
+                {
+                    "max_release_asset_gib": 0.01,
+                    "prompts_per_bundle": 15,
+                },
+            )
             self.assertTrue(all(path.suffix == ".zip" for path in assets))
-            bundle = output / "release-assets" / "prompt-i0001-atlas.zip"
-            with zipfile.ZipFile(bundle) as archive:
+            bundles = sorted((output / "release-assets").glob("prompt-atlas-bundle-*.zip"))
+            self.assertEqual(len(bundles), 2)
+
+            first_bundle_entries = [entry for entry in entries if entry.prompt_id <= "i0015"]
+            self.assertEqual(len({entry.bundle_file for entry in first_bundle_entries}), 1)
+            self.assertEqual(entries[15].bundle_file, bundles[1].name)
+            self.assertEqual(report["prompt_bundle_count"], 2)
+            self.assertEqual(report["prompts_per_bundle"], 15)
+
+            with zipfile.ZipFile(bundles[0]) as archive:
                 names = set(archive.namelist())
-            self.assertIn("primary/primary.jpg", names)
-            self.assertIn("extended/extended.jpg", names)
+            self.assertIn("primary/i0001-primary.jpg", names)
+            self.assertIn("primary/i0001-second.jpg", names)
             self.assertIn("full/i0001-cohort/page.jpg", names)
-            self.assertIn("sidecars/sidecar.json", names)
+            self.assertIn("full/i0001-second/page.jpg", names)
+            self.assertIn("bundle-manifests/prompt-bundle-001.json", names)
 
 
 if __name__ == "__main__":
