@@ -14,10 +14,7 @@ from prompt_atlas_data import command
 ANALYSIS_VERSION_RE = re.compile(r"-v(\d+)$")
 
 
-def choose_highlights(
-    entries: Sequence[AtlasEntry],
-    limit: int,
-) -> list[AtlasEntry]:
+def choose_highlights(entries: Sequence[AtlasEntry], limit: int) -> list[AtlasEntry]:
     ranked = sorted(
         entries,
         key=lambda entry: (
@@ -55,9 +52,7 @@ def release_page_url(repo: str, tag: str) -> str:
 
 
 def asset_map(repo: str, tag: str) -> tuple[dict[str, str], str]:
-    release = json.loads(
-        command(["gh", "api", f"repos/{repo}/releases/tags/{tag}"]).stdout
-    )
+    release = json.loads(command(["gh", "api", f"repos/{repo}/releases/tags/{tag}"]).stdout)
     return (
         {
             str(asset["name"]): str(asset["browser_download_url"])
@@ -85,16 +80,50 @@ def analysis_tag_for_dataset(
         if not match:
             continue
         row = (int(match.group(1)), tag)
-        if release.get("isDraft"):
-            drafts.append(row)
-        else:
-            published.append(row)
+        (drafts if release.get("isDraft") else published).append(row)
     if drafts:
         return max(drafts)[1], True, False
     if published and not force:
         return max(published)[1], False, True
     next_version = max([number for number, _ in drafts + published], default=0) + 1
     return f"{base}-v{next_version}", False, False
+
+
+def complete_asset_names(assets: dict[str, str]) -> list[str]:
+    return sorted(
+        name
+        for name in assets
+        if name.startswith("prompt-repeatability-atlas-complete")
+    )
+
+
+def publication_result(
+    tag: str,
+    release_url: str,
+    assets: dict[str, str],
+    entries: Sequence[AtlasEntry],
+    config: dict[str, Any],
+    *,
+    resumed: bool,
+    reused: bool,
+) -> dict[str, Any]:
+    complete_names = complete_asset_names(assets)
+    highlights = choose_highlights(
+        entries,
+        int(config.get("release_notes_highlights", 4)),
+    )
+    return {
+        "analysis_tag": tag,
+        "analysis_url": release_url,
+        "archive_url": next((assets.get(name) for name in complete_names if assets.get(name)), None),
+        "archive_urls": [assets[name] for name in complete_names if name in assets],
+        "report_url": assets.get("atlas-metadata.zip"),
+        "gallery_url": assets.get("offline-gallery.zip"),
+        "highlights": [entry.prompt_id for entry in highlights],
+        "assets": assets,
+        "resumed_draft": resumed,
+        "reused_published": reused,
+    }
 
 
 def publish_release(
@@ -139,42 +168,20 @@ def publish_release(
     non_zip = [path.name for path in release_assets if path.suffix.lower() != ".zip"]
     if non_zip:
         raise RuntimeError(
-            "Atlas Release assets must all be ZIP containers: "
-            + ", ".join(non_zip)
+            "Atlas Release assets must all be ZIP containers: " + ", ".join(non_zip)
         )
 
     if reused:
         assets, release_url = asset_map(repo, tag)
-        return {
-            "analysis_tag": tag,
-            "analysis_url": release_url,
-            "archive_url": next(
-                (
-                    assets.get(path.name)
-                    for path in release_assets
-                    if path.name.startswith("prompt-repeatability-atlas-complete")
-                ),
-                None,
-            ),
-            "archive_urls": [
-                assets[path.name]
-                for path in release_assets
-                if path.name.startswith("prompt-repeatability-atlas-complete")
-                and path.name in assets
-            ],
-            "report_url": assets.get("atlas-metadata.zip"),
-            "gallery_url": assets.get("offline-gallery.zip"),
-            "highlights": [
-                entry.prompt_id
-                for entry in choose_highlights(
-                    entries,
-                    int(config.get("release_notes_highlights", 4)),
-                )
-            ],
-            "assets": assets,
-            "resumed_draft": False,
-            "reused_published": True,
-        }
+        return publication_result(
+            tag,
+            release_url,
+            assets,
+            entries,
+            config,
+            resumed=False,
+            reused=True,
+        )
 
     preliminary = output_root / "release-notes-preliminary.md"
     preliminary.write_text(
@@ -224,15 +231,14 @@ def publish_release(
         entries,
         int(config.get("release_notes_highlights", 4)),
     )
-    complete_names = sorted(
-        name
-        for name in planned_assets
-        if name.startswith("prompt-repeatability-atlas-complete")
-    )
+    complete_names = complete_asset_names(planned_assets)
     complete_links = " · ".join(
         f"[Complete part {index + 1}]({planned_assets[name]})"
         for index, name in enumerate(complete_names)
     )
+    prompts_per_bundle = max(1, int(config.get("prompts_per_bundle", 15)))
+    bundle_count = int(report.get("prompt_bundle_count") or 0)
+
     notes = [
         "# Prompt Repeatability Atlas",
         "",
@@ -242,9 +248,10 @@ def publish_release(
         f"- Experiment Releases scanned: **{report.get('release_count_scanned', 0)}**",
         f"- Date range: **{report.get('date_from') or '—'} → {report.get('date_to') or '—'}**",
         f"- Comparable controlled cohorts: **{len(entries)}**",
+        f"- Prompt bundles: **{bundle_count}**, up to **{prompts_per_bundle} prompt IDs per ZIP**",
         f"- Embedded previews: **{len(highlights)}**",
-        "- Every Release asset is a ZIP container; there are no naked JPG, JSON, or HTML assets.",
-        "- Each prompt has a dedicated ZIP containing its primary card, temporal overview, complete paginated contact sheets, sidecars, and source index.",
+        "- Every Release asset is a ZIP container; there are no naked JPG, JSON, GIF, or HTML assets.",
+        "- Each grouped prompt bundle contains primary cards, temporal overviews, complete paginated contact sheets, sidecars, and a bundle manifest.",
         "",
         complete_links or f"[All ZIP assets]({release_url})",
         f"[Metadata package]({planned_assets.get('atlas-metadata.zip', release_url)}) · "
@@ -271,7 +278,7 @@ def publish_release(
                     "",
                 ]
             )
-        notes.extend([f"[Download this prompt bundle]({bundle})", ""])
+        notes.extend([f"[Download the containing {prompts_per_bundle}-prompt bundle]({bundle})", ""])
     notes.extend(
         [
             "## Interpretation",
@@ -309,22 +316,12 @@ def publish_release(
         )
     if any(not name.endswith(".zip") for name in assets):
         raise RuntimeError(f"Published release {tag} contains a non-ZIP asset")
-    return {
-        "analysis_tag": tag,
-        "analysis_url": verified_release_url or release_url,
-        "archive_url": next(
-            (
-                assets.get(name)
-                for name in complete_names
-                if assets.get(name)
-            ),
-            None,
-        ),
-        "archive_urls": [assets[name] for name in complete_names if name in assets],
-        "report_url": assets.get("atlas-metadata.zip"),
-        "gallery_url": assets.get("offline-gallery.zip"),
-        "highlights": [entry.prompt_id for entry in highlights],
-        "assets": assets,
-        "resumed_draft": resumed,
-        "reused_published": False,
-    }
+    return publication_result(
+        tag,
+        verified_release_url or release_url,
+        assets,
+        entries,
+        config,
+        resumed=resumed,
+        reused=False,
+    )
