@@ -11,7 +11,7 @@ A release-backed experiment platform for structured image and video generation r
 - [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) normally fills fields missing from legacy Atlas schemas. An audited `authoritative: true` correction is allowed only when the report itself is proven wrong by the source Release, original history, and entry evidence. Current totals never rewrite immutable snapshots.
 - Formal reporting separates **API completion events** from **archived media**; new publication is blocked when those counts differ.
 - The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
-- YOLOX-Tiny / ONNX Runtime / COCO object detection now has an independent workflow, `media-yolo-*` Release family, ZIP packages, indexes, and YOLO Lab implementation; the first production full-corpus verification is pending. See the [full contract](docs/YOLO_OBJECT_DETECTION_SPEC.md) and [YOLO Lab](web/src/content/docs/yolo-lab.mdx).
+- YOLOX-Tiny / ONNX Runtime / COCO object detection is live with an independent workflow, `media-yolo-*` Releases, ZIP-only assets, indexes, README history, and [YOLO Lab](web/src/content/docs/yolo-lab.mdx). The first Release, `media-yolo-all-2026-07-13-v1`, processed all 387 canonical images, observed detections in 313, and produced 1,533 boxes. See the [full contract](docs/YOLO_OBJECT_DETECTION_SPEC.md).
 
 ## Live repository statistics
 
