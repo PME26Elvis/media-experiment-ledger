@@ -28,6 +28,9 @@ on:
       - 'tools/update_readme_summary.py'
       - 'tools/release_packaging.py'
       - 'tools/release_publishing.py'
+      - 'tools/release_policy.py'
+      - 'config/release-quarantine.json'
+      - 'project-contract.json'
       - 'requirements-visual-analysis.txt'
       - 'visual-analysis/config.json'
 
