@@ -2,7 +2,7 @@
 
 > 此報告由 GitHub Actions 全量重建，不使用持久化 state 或 cache。
 
-- Generated at (UTC): `2026-07-20T09:00:59+00:00`
+- Generated at (UTC): `2026-07-20T09:16:49+00:00`
 - Repository: `PME26Elvis/media-experiment-ledger`
 - Releases audited: **9**
 - Canonical runs: **11**
