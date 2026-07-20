@@ -1,0 +1,104 @@
+name: Audit experiment Releases
+
+on:
+  workflow_dispatch:
+    inputs:
+      verify_archives:
+        description: Download every media ZIP and verify members, CRC, size, and SHA-256
+        required: false
+        default: true
+        type: boolean
+      repair_notes:
+        description: Rewrite managed media-exp-* Release Notes from audit evidence
+        required: false
+        default: true
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/audit-experiment-releases.yml'
+      - 'tools/audit_experiment_releases.py'
+      - 'tools/release_policy.py'
+      - 'config/release-quarantine.json'
+      - 'project-contract.json'
+
+concurrency:
+  group: experiment-release-audit
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Audit all formal experiment Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_ARCHIVES: ${{ inputs.verify_archives }}
+          REPAIR_NOTES: ${{ inputs.repair_notes }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --repo '${{ github.repository }}'
+            --json-output data/audits/experiment-releases.json
+            --markdown-output docs/reports/EXPERIMENT_RELEASE_AUDIT.md
+          )
+          if [[ '${{ github.event_name }}' == 'push' || '${VERIFY_ARCHIVES:-true}' == 'true' ]]; then
+            args+=(--verify-archives)
+          fi
+          if [[ '${{ github.event_name }}' == 'push' || '${REPAIR_NOTES:-true}' == 'true' ]]; then
+            args+=(--repair-notes)
+          fi
+          python tools/audit_experiment_releases.py "${args[@]}"
+
+      - name: Upload complete audit evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: experiment-release-audit-${{ github.run_id }}
+          path: |
+            data/audits/experiment-releases.json
+            docs/reports/EXPERIMENT_RELEASE_AUDIT.md
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit canonical audit reports
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(
+            data/audits/experiment-releases.json
+            docs/reports/EXPERIMENT_RELEASE_AUDIT.md
+          )
+          if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
+            echo 'Audit reports are unchanged'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "${paths[@]}"
+          git commit -m 'audit: refresh experiment Release integrity report'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt $attempt raced with another workflow; retrying after rebase"
+          done
+          echo 'Unable to publish audit reports after three attempts' >&2
+          exit 1
