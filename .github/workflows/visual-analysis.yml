@@ -24,6 +24,7 @@ on:
       - 'tools/prompt_atlas_publish.py'
       - 'tools/prompt_atlas_build.py'
       - 'tools/prompt_atlas_packages.py'
+      - 'tools/prompt_atlas_video.py'
       - 'tools/update_readme_summary.py'
       - 'tools/release_packaging.py'
       - 'tools/release_publishing.py'
@@ -53,13 +54,15 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install renderer and free CJK font
+      - name: Install image/video renderers and free CJK font
         shell: bash
         run: |
           set -euo pipefail
           python -m pip install -r requirements-visual-analysis.txt
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends fonts-noto-cjk
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-noto-cjk
+          ffmpeg -version | head -n 1
+          ffprobe -version | head -n 1
 
       - name: Resolve full-corpus build identity
         id: build
@@ -82,7 +85,7 @@ jobs:
           echo "batch_id=$batch_id" >> "$GITHUB_OUTPUT"
           echo "force=$force" >> "$GITHUB_OUTPUT"
 
-      - name: Build and publish all-data Atlas
+      - name: Build and publish all-data image/video Atlas
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -147,7 +150,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add "${paths[@]}"
-          git commit -m 'visual: publish Atlas index and repository summary'
+          git commit -m 'visual: publish image and video Atlas index'
 
           # Analytics may update generated site files concurrently. Rebase and
           # retry immediately; no sleep/poll loop or persistent state is used.
