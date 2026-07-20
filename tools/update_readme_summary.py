@@ -13,6 +13,8 @@ from pathlib import Path
 from typing import Any, Sequence
 from urllib.parse import quote
 
+from release_policy import is_quarantined, media_counts_from_file_records
+
 MEDIA_TAG_RE = re.compile(r"^media-exp-(\d{4}-\d{2}-\d{2})(?:-s\d{2})?$")
 ATLAS_TAG_RE = re.compile(r"^media-analysis-")
 ZH_STATS_START = "<!-- AUTO:LEDGER_STATS:START -->"
@@ -127,6 +129,9 @@ def fallback_output_counts(repo: str, tag: str, root: Path) -> tuple[int, int]:
     images = 0
     videos = 0
     for path in sorted(target.glob("run_*-outputs.jsonl")):
+        run_id = path.name.removesuffix("-outputs.jsonl")
+        if is_quarantined(tag, run_id):
+            continue
         with path.open("r", encoding="utf-8", errors="replace") as handle:
             for raw in handle:
                 try:
@@ -167,13 +172,27 @@ def summarize_experiments(
                 for run in manifest.get("runs", []):
                     if not isinstance(run, dict):
                         continue
-                    key = (str(run.get("run_id") or ""), str(run.get("digest") or ""))
+                    run_id = str(run.get("run_id") or "")
+                    if is_quarantined(tag, run_id):
+                        continue
+                    key = (run_id, str(run.get("digest") or ""))
                     if key in seen_runs:
                         continue
                     seen_runs.add(key)
-                    stats = run.get("stats") if isinstance(run.get("stats"), dict) else {}
-                    images += int(stats.get("image_completed") or 0)
-                    videos += int(stats.get("video_completed") or 0)
+                    has_file_records = isinstance(run.get("files"), list)
+                    files = run.get("files") if has_file_records else []
+                    if has_file_records:
+                        # Explicit file records are authoritative, including an
+                        # explicit metadata-only run whose archived media count is zero.
+                        archived = media_counts_from_file_records(files)
+                        images += archived["images"]
+                        videos += archived["videos"]
+                    else:
+                        # Legacy manifests predate file records. Preserve backwards
+                        # compatibility while new manifests use archived-file truth.
+                        stats = run.get("stats") if isinstance(run.get("stats"), dict) else {}
+                        images += int(stats.get("archived_images", stats.get("image_completed", 0)) or 0)
+                        videos += int(stats.get("archived_videos", stats.get("video_completed", 0)) or 0)
         else:
             images, videos = fallback_output_counts(repo, tag, root)
         per_release[tag] = {
@@ -255,8 +274,18 @@ def atlas_history(
         report = atlas_report(repo, tag, root)
         report = report or {}
         selected_tags = tags_for_report(report, totals)
-        images = sum(int(totals.per_release[tag]["images"]) for tag in selected_tags) if selected_tags else None
-        videos = sum(int(totals.per_release[tag]["videos"]) for tag in selected_tags) if selected_tags else None
+        report_images = report.get("metadata_image_samples")
+        report_videos = report.get("metadata_video_samples")
+        images = (
+            int(report_images)
+            if report_images is not None
+            else (sum(int(totals.per_release[tag]["images"]) for tag in selected_tags) if selected_tags else None)
+        )
+        videos = (
+            int(report_videos)
+            if report_videos is not None
+            else (sum(int(totals.per_release[tag]["videos"]) for tag in selected_tags) if selected_tags else None)
+        )
         date_from = str(report.get("date_from") or "")
         date_to = str(report.get("date_to") or "")
         if not date_from and len(selected_tags) == 1:
@@ -304,7 +333,7 @@ def render_stats_zh(totals: ExperimentTotals, history: Sequence[AtlasHistoryRow]
     date_range = f"{totals.date_from} → {totals.date_to}" if totals.date_from and totals.date_to else "—"
     return "\n".join(
         [
-            "> 此區塊由 GitHub Actions 全量重建；只統計正式 `media-exp-*` Releases，`media-input-*` snapshot 不會重複計入。",
+            "> 此區塊由 GitHub Actions 全量重建；只統計正式 `media-exp-*` 中非 quarantine runs 的封存媒體，`media-input-*` snapshot 與純 metadata fixture 不會重複計入。",
             "",
             "| 統計項目 | 數值 |",
             "|---|---:|",
@@ -323,7 +352,7 @@ def render_stats_en(totals: ExperimentTotals, history: Sequence[AtlasHistoryRow]
     date_range = f"{totals.date_from} → {totals.date_to}" if totals.date_from and totals.date_to else "—"
     return "\n".join(
         [
-            "> Rebuilt from all Releases by GitHub Actions. Only formal `media-exp-*` Releases are counted; `media-input-*` snapshots are excluded.",
+            "> Rebuilt from all Releases by GitHub Actions. Totals count archived media from non-quarantined runs in formal `media-exp-*` Releases; `media-input-*` snapshots and metadata-only fixtures are excluded.",
             "",
             "| Metric | Value |",
             "|---|---:|",

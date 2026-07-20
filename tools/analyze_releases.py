@@ -19,6 +19,8 @@ from typing import Any, Iterable, Sequence
 
 import matplotlib.pyplot as plt
 
+from release_policy import is_quarantined, quarantine_policy_digest
+
 TAG_RE = re.compile(r"^media-exp-(\d{4}-\d{2}-\d{2})(?:-s\d{2})?$")
 
 
@@ -206,6 +208,9 @@ def ingest(tag: str, root: Path, checks: list[dict[str, Any]]) -> tuple[list[dic
         dates.append(date)
         digests.append(str(manifest.get("content_digest") or ""))
         for entry in manifest.get("runs", []):
+            run_id = str(entry.get("run_id") or "") if isinstance(entry, dict) else ""
+            if is_quarantined(tag, run_id):
+                continue
             run, errors = summarize(date, tag, entry, root)
             run_rows.append(run)
             error_rows.extend(errors)
@@ -214,6 +219,7 @@ def ingest(tag: str, root: Path, checks: list[dict[str, Any]]) -> tuple[list[dic
         "manifest_digests": sorted(digests),
         "processed_at_utc": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "media_verification": checks,
+        "quarantine_policy_digest": quarantine_policy_digest(),
     }
 
 

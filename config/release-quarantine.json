@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "policy": "Preserve immutable historical Release assets, but exclude invalid runs from all canonical statistics, Atlas builds, README totals, audits, and future derived analyses.",
+  "excluded_runs": [
+    {
+      "tag": "media-exp-2026-06-29",
+      "run_id": "run_20260629_232751",
+      "classification": "empty_placeholder",
+      "reason_zh": "此 run 在 manifest 中為 0 files、0 bytes、0 完成事件，屬於誤發布的空目錄，不代表一次有效實驗。",
+      "reason_en": "The manifest records zero files, zero bytes, and zero completed events. This is an accidentally published empty directory, not a valid experiment run.",
+      "evidence": {
+        "source_bytes": 0,
+        "file_count": 0,
+        "image_completed_events": 0,
+        "video_completed_events": 0
+      }
+    },
+    {
+      "tag": "media-exp-2026-06-29",
+      "run_id": "run_test",
+      "classification": "synthetic_fixture",
+      "reason_zh": "此測試 fixture 只有 1 個約 0.3 MiB 的 metadata 檔，卻包含 550 個 image_completed 與 7 個 video_completed 事件、全部延遲為 0，且沒有對應封存媒體；它不應進入正式資料母體。",
+      "reason_en": "This synthetic fixture contains only one roughly 0.3 MiB metadata file but reports 550 image_completed and 7 video_completed events with zero latency and no corresponding archived media. It must not enter the formal corpus.",
+      "evidence": {
+        "source_bytes": 352949,
+        "file_count": 1,
+        "image_completed_events": 550,
+        "video_completed_events": 7,
+        "archived_image_files": 0,
+        "archived_video_files": 0
+      }
+    }
+  ]
+}

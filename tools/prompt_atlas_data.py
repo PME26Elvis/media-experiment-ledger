@@ -11,6 +11,8 @@ from typing import Any, Sequence
 
 from PIL import Image
 
+from release_policy import metadata_is_quarantined, quarantine_policy_digest
+
 from prompt_atlas_core import (
     MEDIA_TAG_RE,
     Sample,
@@ -20,7 +22,7 @@ from prompt_atlas_core import (
     normalized_settings,
 )
 
-ATLAS_DATASET_SCHEMA_VERSION = 2
+ATLAS_DATASET_SCHEMA_VERSION = 3
 
 
 class CommandError(RuntimeError):
@@ -43,6 +45,8 @@ def command(args: Sequence[str], *, check: bool = True) -> subprocess.CompletedP
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if metadata_is_quarantined(path):
+        return []
     rows: list[dict[str, Any]] = []
     with path.open("r", encoding="utf-8", errors="replace") as handle:
         for number, raw in enumerate(handle, 1):
@@ -114,6 +118,7 @@ def dataset_fingerprint(rows: Sequence[dict[str, Any]], config: dict[str, Any]) 
             for row in rows
         ],
         "policy": config,
+        "quarantine_policy_digest": quarantine_policy_digest(),
     }
     return hashlib.sha256(canonical(payload).encode("utf-8")).hexdigest()
 

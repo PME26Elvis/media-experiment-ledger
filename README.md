@@ -4,6 +4,14 @@
 
 這是一個以 GitHub Releases 為資料層的媒體生成實驗平台，用來管理圖片／影片 prompt、不可變更的實驗資料、可重建分析、圖片與影片 Prompt Repeatability Atlas、預測模型與 GitHub Pages 儀表板，同時避免把大型原始結果直接提交進 Git history。
 
+## 專案契約與資料完整性
+
+- [`project-contract.json`](project-contract.json) 是機器可驗證的同步錨點；[`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) 是人類可讀版本。
+- [`config/release-quarantine.json`](config/release-quarantine.json) 保留歷史資產但排除已確認的空 run／metadata fixture。
+- 正式統計分開呈現 **API 完成事件** 與 **封存媒體**；新發布若兩者數量不一致會被阻止。
+- [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) 會全量排查所有 `media-exp-*` manifests、JSONL、ZIP members、size、SHA-256 與 CRC。
+- YOLOX-Tiny／ONNX Runtime／COCO 物件偵測目前為[詳盡規格](docs/YOLO_OBJECT_DETECTION_SPEC.md)，狀態是 **specified, not implemented**。
+
 ## 即時統計
 
 <!-- AUTO:LEDGER_STATS:START -->
@@ -138,6 +146,8 @@ manifest-2026-06-29.json
 - 所有唯一影片都產生 10%／50%／90% keyframe sheets；
 - seed 保存在 sidecar 作為觀察證據，但不放進 cohort key；
 - 每 15 個 video prompt IDs 一個 deterministic ZIP bundle。
+
+圖片與影片維持每 15 個 prompt IDs 一個 ZIP bundle。
 
 Atlas Release tag 使用：
 

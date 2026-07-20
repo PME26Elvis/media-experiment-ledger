@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
+from release_policy import media_counts_from_file_records
+
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 SECRET_PATTERNS = (
     re.compile(r"Authorization\s*[:=]\s*Bearer\s+[A-Za-z0-9._~+/=-]{16,}", re.I),
@@ -246,6 +248,9 @@ def inspect_run(run_dir: Path) -> RunPlan:
     stats = event_stats(outputs, errors)
     stats["file_count"] = len(all_files)
     stats["source_bytes"] = sum(p.stat().st_size for p in all_files)
+    archived = media_counts_from_file_records(file_records)
+    stats["archived_images"] = archived["images"]
+    stats["archived_videos"] = archived["videos"]
     return RunPlan(
         run_id,
         run_dir,
