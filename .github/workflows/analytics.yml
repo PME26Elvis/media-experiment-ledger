@@ -8,6 +8,10 @@ on:
     paths:
       - "web/**"
       - "tools/forecast_*.py"
+      - "tools/analyze_releases.py"
+      - "tools/release_policy.py"
+      - "config/release-quarantine.json"
+      - "project-contract.json"
       - "tools/validate_site_build.py"
       - "requirements-forecast.txt"
       - ".github/workflows/analytics.yml"
@@ -101,6 +105,10 @@ jobs:
           args=()
           if [[ "$EVENT_NAME" == "release" ]]; then
             args+=(--mode exact_tag --exact-tag "$EVENT_TAG")
+          elif [[ "$EVENT_NAME" == "push" ]]; then
+            # Contract, quarantine, or analytics-code changes must rebuild the
+            # complete canonical corpus rather than retaining polluted state.
+            args+=(--mode rebuild_all)
           else
             mode="${INPUT_MODE:-new_only}"
             args+=(--mode "$mode")
