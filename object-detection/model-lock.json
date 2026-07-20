@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "model_family": "YOLOX-Tiny",
+  "training_dataset": "COCO 2017 80 classes",
+  "upstream_repository": "https://github.com/Megvii-BaseDetection/YOLOX",
+  "upstream_release": "0.1.1rc0",
+  "license": "Apache-2.0",
+  "download_url": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny.onnx",
+  "expected_size_bytes": 20219662,
+  "sha256": "427cc366d34e27ff7a03e2899b5e3671425c262ea2291f88bb942bc1cc70b0f7",
+  "input_width": 416,
+  "input_height": 416,
+  "input_layout": "NCHW",
+  "input_dtype": "float32",
+  "input_color_order": "RGB",
+  "normalization": "none; float32 values remain in 0..255",
+  "output_schema": "YOLOX raw [1,3549,85], decoded with strides 8/16/32",
+  "labels_path": "object-detection/coco-80.json",
+  "labels_sha256": "76ce1473f01bd271bab54429737358a97160629cf970c5ec8384c2777dd0bae9",
+  "preprocessing_schema_version": 1,
+  "postprocessing_schema_version": 1
+}
