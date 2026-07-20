@@ -60,6 +60,9 @@ def validate() -> list[str]:
                 f"project-contract.json requires {value!r}"
             )
 
+    if "must not change" not in str(atlas.get("yolo_independence") or ""):
+        errors.append("Atlas contract must explicitly prohibit YOLO from changing Atlas")
+
     history_overrides_path = ROOT / str(atlas.get("history_overrides_file") or "")
     history_overrides = read_json(history_overrides_path)
     overrides = history_overrides.get("overrides")
@@ -103,6 +106,33 @@ def validate() -> list[str]:
             keys.add(key)
             if not item.get("reason_zh") or not item.get("reason_en"):
                 errors.append(f"Quarantine entry {key} requires bilingual reasons")
+
+    yolo = planned.get("yolo_object_detection") if isinstance(planned, dict) else {}
+    expected_yolo = {
+        "status": "specified_not_implemented",
+        "workflow_path": ".github/workflows/yolo-object-detection.yml",
+        "atlas_coupling": "none",
+        "default_execution_plan": "one full GitHub-hosted CPU job",
+        "design_corpus_images": 3000,
+        "job_timeout_minutes": 350,
+        "matrix_sharding_v1": False,
+        "persistent_state": False,
+        "cross_run_cache_skip": False,
+        "published_result_reuse": False,
+        "visual_lab_join_key": "image_sha256",
+    }
+    for key, value in expected_yolo.items():
+        if yolo.get(key) != value:
+            errors.append(
+                f"planned_analysis.yolo_object_detection.{key}={yolo.get(key)!r}; "
+                f"expected {value!r}"
+            )
+    if "media-yolo" not in str(yolo.get("release_strategy") or ""):
+        errors.append("YOLO release strategy must use the independent media-yolo-* family")
+    if "media-yolo-all" not in str(yolo.get("release_pattern") or ""):
+        errors.append("YOLO release pattern must describe media-yolo-all-* tags")
+    if "from scratch" not in str(yolo.get("rebuild_policy") or ""):
+        errors.append("YOLO rebuild policy must require a full from-scratch rerun")
 
     surfaces = contract.get("synchronized_surfaces")
     if not isinstance(surfaces, list):
@@ -150,6 +180,8 @@ def validate() -> list[str]:
             "Traditional Chinese",
             "normal merge",
             "YOLOX-Tiny",
+            "media-yolo-all-<latest-experiment-date>-vN",
+            "published-result reuse",
         ],
         errors,
     )
@@ -161,6 +193,9 @@ def validate() -> list[str]:
             "Prompt Repeatability Atlas",
             "atlas-history-overrides.json",
             "YOLOX-Tiny",
+            "yolo-object-detection.yml",
+            "media-yolo-all-<latest-experiment-date>-vN",
+            "published-result reuse",
             "Contract validation",
         ],
         errors,
@@ -175,7 +210,6 @@ def validate() -> list[str]:
         ["seed", "FFprobe", "15 prompt"],
         errors,
     )
-    yolo = planned.get("yolo_object_detection") if isinstance(planned, dict) else {}
     spec_path = ROOT / str(yolo.get("spec") or "")
     require_text(
         spec_path,
@@ -184,9 +218,13 @@ def validate() -> list[str]:
             "ONNX Runtime",
             "COCO",
             "6 hours",
-            "matrix",
-            "namespaced",
             "specified_not_implemented",
+            ".github/workflows/yolo-object-detection.yml",
+            "media-yolo-all-<latest-experiment-date>-vN",
+            "v1 不做 matrix",
+            "Content-addressed publication reuse",
+            "Atlas 非回歸契約",
+            "image_sha256",
         ],
         errors,
     )
