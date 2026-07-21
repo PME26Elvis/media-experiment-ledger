@@ -1,0 +1,37 @@
+name: One-time Pages cleanup and NanoDet documentation sync
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pages-nanodet-sync.yml'
+      - 'tools/apply_pages_nanodet_sync.py'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+      - name: Synchronize README and remove tracked Pages output
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/apply_pages_nanodet_sync.py
+          if git ls-files --error-unmatch site >/dev/null 2>&1 || [[ -n "$(git ls-files 'site/**')" ]]; then
+            git rm -r site
+          fi
+      - name: Commit deterministic cleanup
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- README.md README.en.md site tools/apply_pages_nanodet_sync.py
+          git commit -m 'Remove tracked Pages build output and sync detector plan'
+          git push origin HEAD:${{ github.head_ref }}
