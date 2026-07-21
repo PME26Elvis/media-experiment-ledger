@@ -7,33 +7,22 @@ on:
       - 'tools/prepare_nanodet_model.py'
       - 'tools/nanodet_core.py'
       - 'object-detection/nanodet-model-lock.json'
-      - 'requirements-nanodet-export.txt'
+      - 'requirements-nanodet.txt'
 
 permissions:
   contents: read
 
 jobs:
-  export-smoke:
+  model-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - name: Install pinned PyTorch CPU
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install \
-            torch==1.13.1+cpu torchvision==0.14.1+cpu \
-            --index-url https://download.pytorch.org/whl/cpu
-      - name: Install export dependencies
-        run: python -m pip install -r requirements-nanodet-export.txt
-      - name: Checkout exact official NanoDet tag
-        run: |
-          git clone --depth 1 --branch v1.0.0-alpha-1 \
-            https://github.com/RangiLyu/nanodet.git '${{ runner.temp }}/nanodet-upstream'
-          python -m pip install -e '${{ runner.temp }}/nanodet-upstream' --no-deps
+          python-version: '3.12'
+      - name: Install minimal ONNX Runtime dependencies
+        run: python -m pip install -r requirements-nanodet.txt
       - name: Record official Release asset inventory
         env:
           GH_TOKEN: ${{ github.token }}
@@ -41,41 +30,15 @@ jobs:
           gh api repos/RangiLyu/nanodet/releases/tags/v1.0.0-alpha-1 > nanodet-release.json
           jq '[.assets[] | {name,size,browser_download_url,content_type}]' nanodet-release.json > nanodet-release-assets.json
           cat nanodet-release-assets.json
-      - name: Export official checkpoint and record immutable hashes
-        id: export
+      - name: Download official ONNX, record checksum, and execute real shape smoke
         shell: bash
         run: |
-          set +e
-          mkdir -p '${{ runner.temp }}/nanodet-model'
+          set -euo pipefail
           python tools/prepare_nanodet_model.py \
             --lock object-detection/nanodet-model-lock.json \
-            --upstream '${{ runner.temp }}/nanodet-upstream' \
             --output '${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' \
-            --report '${{ runner.temp }}/nanodet-model/export-report.json' \
-            --allow-unpinned > nanodet-export.log 2>&1
-          status=$?
-          cat nanodet-export.log
-          echo "status=$status" >> "$GITHUB_OUTPUT"
-          exit "$status"
-      - name: Run real ONNX Runtime shape smoke
-        run: |
-          MODEL='${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' python - <<'PY'
-          import json, os
-          import numpy as np
-          import onnxruntime as ort
-          session = ort.InferenceSession(os.environ['MODEL'], providers=['CPUExecutionProvider'])
-          input_meta = session.get_inputs()[0]
-          output = session.run(None, {input_meta.name: np.zeros((1,3,320,320), dtype=np.float32)})[0]
-          if list(output.shape) != [1, 2125, 112]:
-              raise SystemExit(f'Unexpected NanoDet output shape: {output.shape}')
-          result = {'input': input_meta.name, 'output_shape': list(output.shape)}
-          print(json.dumps(result, indent=2))
-          with open('nanodet-onnx-smoke.json','w') as handle: json.dump(result, handle, indent=2)
-          PY
-      - name: Expose immutable supply-chain values
-        run: |
-          cat '${{ runner.temp }}/nanodet-model/export-report.json'
-          cp '${{ runner.temp }}/nanodet-model/export-report.json' nanodet-bootstrap-report.json
+            --report nanodet-bootstrap-report.json \
+            --allow-unpinned | tee nanodet-model-smoke.log
       - name: Upload complete bootstrap evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,8 +46,7 @@ jobs:
           name: nanodet-model-bootstrap-${{ github.run_id }}
           path: |
             nanodet-release-assets.json
-            nanodet-export.log
+            nanodet-model-smoke.log
             nanodet-bootstrap-report.json
-            nanodet-onnx-smoke.json
           if-no-files-found: warn
           retention-days: 7
