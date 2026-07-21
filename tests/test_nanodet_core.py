@@ -36,17 +36,21 @@ class NanoDetCoreTests(unittest.TestCase):
         self.assertAlmostEqual(float(prepared.tensor[0, 1, 0, 0]), expected_g, places=5)
         self.assertAlmostEqual(float(prepared.tensor[0, 2, 0, 0]), expected_r, places=5)
 
-    def test_center_priors_match_official_320_shape(self) -> None:
+    def test_center_priors_match_official_half_stride_formula(self) -> None:
         priors = center_priors(320, 320, [8, 16, 32, 64])
         self.assertEqual(priors.shape, (2125, 4))
-        np.testing.assert_array_equal(priors[0], np.array([0, 0, 8, 8]))
-        np.testing.assert_array_equal(priors[-1], np.array([256, 256, 64, 64]))
+        np.testing.assert_array_equal(priors[0], np.array([4, 4, 8, 8]))
+        np.testing.assert_array_equal(priors[1599], np.array([316, 316, 8, 8]))
+        np.testing.assert_array_equal(priors[1600], np.array([8, 8, 16, 16]))
+        np.testing.assert_array_equal(priors[-1], np.array([288, 288, 64, 64]))
 
     def test_synthetic_distribution_decodes_and_scales_to_original(self) -> None:
         prepared = prepare_image(Image.new("RGB", (640, 320), "white"), LOCK)
         raw = np.zeros((1, 2125, 112), dtype=np.float32)
         raw[0, 0, 0] = 0.95
-        # Four distributions, each concentrated at distance bin 1.
+        # Four distributions, each concentrated at distance bin 1. The first
+        # official prior is (4,4) at stride 8, yielding [-4,-4,12,12] before
+        # clipping and [0,0,24,12] after scaling back to 640x320.
         for side in range(4):
             start = 80 + side * 8
             raw[0, 0, start : start + 8] = -10
@@ -67,8 +71,8 @@ class NanoDetCoreTests(unittest.TestCase):
         x1, y1, x2, y2 = detection.bbox_xyxy
         self.assertAlmostEqual(x1, 0.0, places=4)
         self.assertAlmostEqual(y1, 0.0, places=4)
-        self.assertAlmostEqual(x2, 16.0, places=3)
-        self.assertAlmostEqual(y2, 8.0, places=3)
+        self.assertAlmostEqual(x2, 24.0, places=3)
+        self.assertAlmostEqual(y2, 12.0, places=3)
 
     def test_wrong_output_shape_is_rejected(self) -> None:
         prepared = prepare_image(Image.new("RGB", (320, 320), "white"), LOCK)
