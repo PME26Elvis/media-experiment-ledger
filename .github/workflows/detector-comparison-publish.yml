@@ -97,8 +97,8 @@ jobs:
               workflow = api(f'repos/{repo}/actions/workflows/{workflow_path}')
               if int(run.get('workflow_id')) != int(workflow.get('id')):
                   raise SystemExit(f'Run {run_id} is not from {workflow_path}')
-              if run.get('head_branch') != 'main' and run.get('event') != 'workflow_dispatch':
-                  raise SystemExit(f'Run {run_id} is not an authorized main/manual run')
+              if run.get('head_branch') != 'main':
+                  raise SystemExit(f'Run {run_id} must use the trusted main branch')
               artifacts = api(f'repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100').get('artifacts', [])
               names = [row['name'] for row in artifacts if not row.get('expired') and row.get('name','').startswith(prefix)]
               if len(names) != 1:
