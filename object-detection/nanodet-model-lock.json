@@ -15,7 +15,7 @@
   "strides": [8, 16, 32, 64],
   "reg_max": 7,
   "labels_path": "object-detection/coco-80.json",
-  "labels_sha256": "453d7fbc1940da6c9e54185ff8e8d1c7816034e7c6a294ee7ae9d04f6cd902e5",
+  "labels_sha256": "76ce1473f01bd271bab54429737358a97160629cf970c5ec8384c2777dd0bae9",
   "preprocess": {
     "color_order": "BGR",
     "keep_ratio": false,
