@@ -2,6 +2,35 @@
   "repository": "PME26Elvis/media-experiment-ledger",
   "failed_runs": [
     {
+      "run_id": 29799402918,
+      "name": "One-time deploy diagnostic",
+      "workflow_id": 317130281,
+      "event": "pull_request",
+      "head_sha": "cf5e84e98e5a46a3a234de3522070be686c6e3c1",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:46:16Z",
+      "updated_at": "2026-07-21T03:46:36Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799402918",
+      "jobs": [
+        {
+          "id": 88537303386,
+          "name": "diagnose",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799402918/job/88537303386",
+          "failed_steps": [
+            {
+              "name": "Commit diagnostic report",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-07-21T03:46:33Z",
+              "completed_at": "2026-07-21T03:46:33Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "run_id": 29799270874,
       "name": "One-time deploy diagnostic",
       "workflow_id": 317130281,
@@ -257,43 +286,6 @@
               "number": 5,
               "started_at": "2026-07-20T15:12:30Z",
               "completed_at": "2026-07-20T15:12:30Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29753791404,
-      "name": "Validate ledger tooling",
-      "workflow_id": 312436950,
-      "event": "pull_request",
-      "head_sha": "c5e313c61dd171ada0569e4ff1ffdff38ca548d8",
-      "head_branch": "agent/implement-yolo-object-detection",
-      "created_at": "2026-07-20T15:08:06Z",
-      "updated_at": "2026-07-20T15:08:59Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29753791404",
-      "jobs": [
-        {
-          "id": 88390822955,
-          "name": "test",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29753791404/job/88390822955",
-          "failed_steps": [
-            {
-              "name": "Validate synchronized project contract",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 5,
-              "started_at": "2026-07-20T15:08:56Z",
-              "completed_at": "2026-07-20T15:08:56Z"
-            },
-            {
-              "name": "Upload unittest diagnostic log on failure",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 9,
-              "started_at": "2026-07-20T15:08:56Z",
-              "completed_at": "2026-07-20T15:08:56Z"
             }
           ]
         }
