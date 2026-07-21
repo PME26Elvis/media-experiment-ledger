@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "verified_at_utc": "2026-07-21T04:08:00+00:00",
+  "repository": "PME26Elvis/media-experiment-ledger",
+  "merge_sha": "d5276ffb4b5aa5f28830f9f8beb38f0002ab590f",
+  "workflow": {
+    "id": 29800253872,
+    "name": "Build analytics, forecasts, and Pages",
+    "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29800253872",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": {
+      "build": "success",
+      "Deploy GitHub Pages": "success",
+      "Commit canonical analytics and forecasts": "success"
+    }
+  },
+  "site_base": "https://pme26elvis.github.io/media-experiment-ledger/",
+  "live_checks": {
+    "/": {"status": 200, "size_bytes": 15553},
+    "overview/": {"status": 200, "size_bytes": 29771},
+    "analytics/": {"status": 200, "size_bytes": 26958},
+    "visual-lab/": {"status": 200, "size_bytes": 40695},
+    "yolo-lab/": {"status": 200, "size_bytes": 30951},
+    "forecast/": {"status": 200, "size_bytes": 31062},
+    "architecture/": {"status": 200, "size_bytes": 47696},
+    "frontend-stack/": {"status": 200, "size_bytes": 51101},
+    "data/analytics.json": {"status": 200, "size_bytes": 13069},
+    "data/forecast.json": {"status": 200, "size_bytes": 29907},
+    "data/visual-analysis.json": {"status": 200, "size_bytes": 65872},
+    "data/yolo/latest.json": {"status": 200, "size_bytes": 1631221}
+  },
+  "contract": {
+    "compiled_site_tracked": false,
+    "deployment_independent_of_writeback": true,
+    "primary_route_count": 7,
+    "json_artifact_count": 4
+  }
+}
