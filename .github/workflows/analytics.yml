@@ -56,19 +56,17 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
-  analyze-forecast-and-deploy:
+  build:
     if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'media-exp-')
     runs-on: ubuntu-latest
     timeout-minutes: 180
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -106,8 +104,6 @@ jobs:
           if [[ "$EVENT_NAME" == "release" ]]; then
             args+=(--mode exact_tag --exact-tag "$EVENT_TAG")
           elif [[ "$EVENT_NAME" == "push" ]]; then
-            # Contract, quarantine, or analytics-code changes must rebuild the
-            # complete canonical corpus rather than retaining polluted state.
             args+=(--mode rebuild_all)
           else
             mode="${INPUT_MODE:-new_only}"
@@ -153,20 +149,6 @@ jobs:
       - name: Validate Pages routes and artifact URLs
         run: python tools/validate_site_build.py
 
-      - name: Commit analytics, forecast artifacts, and generated site
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -z "$(git status --porcelain -- analytics forecasts site)" ]]; then
-            echo "No generated changes"
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add analytics forecasts site
-          git commit -m "analytics: refresh intelligence and forecast site"
-          git push origin HEAD:main
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
@@ -175,6 +157,74 @@ jobs:
         with:
           path: site
 
+      - name: Upload generated analytics writeback
+        uses: actions/upload-artifact@v4
+        with:
+          name: analytics-writeback-${{ github.run_id }}
+          path: |
+            analytics/
+            forecasts/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 6
+
+  deploy:
+    name: Deploy GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  writeback:
+    name: Commit canonical analytics and forecasts
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download generated analytics writeback
+        uses: actions/download-artifact@v5
+        with:
+          name: analytics-writeback-${{ github.run_id }}
+          path: .
+
+      - name: Commit generated analytics and forecasts
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(analytics forecasts)
+          if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
+            echo "Canonical analytics and forecasts are unchanged"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${paths[@]}"
+          git commit -m "analytics: refresh intelligence and forecasts"
+
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+            echo "Push attempt $attempt raced with another workflow; retrying after rebase"
+          done
+          echo "Unable to publish analytics and forecasts after three attempts" >&2
+          exit 1
