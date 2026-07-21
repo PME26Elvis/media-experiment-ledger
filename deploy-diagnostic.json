@@ -2,6 +2,35 @@
   "repository": "PME26Elvis/media-experiment-ledger",
   "failed_runs": [
     {
+      "run_id": 29799070118,
+      "name": "One-time deploy diagnostic",
+      "workflow_id": 317130281,
+      "event": "pull_request",
+      "head_sha": "b1f55d12ed8004c4230b91cbdb8efcbc17d01219",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:38:53Z",
+      "updated_at": "2026-07-21T03:39:15Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799070118",
+      "jobs": [
+        {
+          "id": 88536375262,
+          "name": "diagnose",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799070118/job/88536375262",
+          "failed_steps": [
+            {
+              "name": "Commit diagnostic report",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-07-21T03:39:12Z",
+              "completed_at": "2026-07-21T03:39:13Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "run_id": 29756403351,
       "name": "Build analytics, forecasts, and Pages",
       "workflow_id": 312437485,
@@ -281,35 +310,6 @@
               "number": 9,
               "started_at": "2026-07-20T15:04:10Z",
               "completed_at": "2026-07-20T15:04:11Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29748623708,
-      "name": "Build analytics, forecasts, and Pages",
-      "workflow_id": 312437485,
-      "event": "push",
-      "head_sha": "7f918e0c5af31987f9f0dd369b639ff6bc8131af",
-      "head_branch": "main",
-      "created_at": "2026-07-20T13:59:10Z",
-      "updated_at": "2026-07-20T14:01:02Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29748623708",
-      "jobs": [
-        {
-          "id": 88372935136,
-          "name": "analyze-forecast-and-deploy",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29748623708/job/88372935136",
-          "failed_steps": [
-            {
-              "name": "Commit analytics, forecast artifacts, and generated site",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 12,
-              "started_at": "2026-07-20T14:00:57Z",
-              "completed_at": "2026-07-20T14:00:59Z"
             }
           ]
         }
