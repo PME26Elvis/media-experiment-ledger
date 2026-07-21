@@ -589,7 +589,7 @@ Implemented surfaces:
 - `tools/build_detector_artifact.py`: shared complete-corpus-from-scratch artifact builder with normalized success/failure sidecars and deterministic ZIPs;
 - separate read-only YOLOX and NanoDet inference workflows that publish workflow artifacts only;
 - an exact-run publisher that validates `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release order, canonical image SHA set, labels, thresholds, package hashes, ZIP CRC, and full sidecar coverage before publication;
-- agreement/disagreement metrics, Original | YOLOX-Tiny | NanoDet-Plus tri-panels, comparison ZIPs, latest/history indexes, and Detector Lab;
+- agreement/disagreement metrics, full-corpus offline Original | YOLOX-Tiny | NanoDet-Plus tri-panels, up to 20 versioned representative previews, comparison ZIPs, latest/history indexes, and Detector Lab;
 - legacy `media-yolo-*` automation retired to explicit manual recovery; new production publications use `media-detection-*`.
 
 ### Model supply-chain decision
