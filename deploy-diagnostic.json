@@ -2,6 +2,64 @@
   "repository": "PME26Elvis/media-experiment-ledger",
   "failed_runs": [
     {
+      "run_id": 29799509627,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "0010a18e6b75983e7946d7b64ed1e5cd920df20f",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:48:43Z",
+      "updated_at": "2026-07-21T03:49:41Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799509627",
+      "jobs": [
+        {
+          "id": 88537606706,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799509627/job/88537606706",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:49:36Z",
+              "completed_at": "2026-07-21T03:49:36Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799470786,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "b34fda6bbf955134a96716cdbf4b7124a48f80a2",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:47:51Z",
+      "updated_at": "2026-07-21T03:49:03Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799470786",
+      "jobs": [
+        {
+          "id": 88537495832,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799470786/job/88537495832",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:48:59Z",
+              "completed_at": "2026-07-21T03:48:59Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "run_id": 29799402918,
       "name": "One-time deploy diagnostic",
       "workflow_id": 317130281,
