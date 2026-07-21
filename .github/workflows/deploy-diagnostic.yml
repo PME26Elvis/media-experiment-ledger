@@ -35,6 +35,7 @@ jobs:
           runs = json.loads(gh('api', f'repos/{repo}/actions/runs?per_page=50'))['workflow_runs']
           selected = [r for r in runs if r.get('conclusion') == 'failure'][:10]
           report = []
+          analytics_run_ids = []
           for run in selected:
               jobs = json.loads(gh('api', f"repos/{repo}/actions/runs/{run['id']}/jobs?per_page=100"))['jobs']
               item = {
@@ -59,14 +60,23 @@ jobs:
                       'failed_steps': failed_steps,
                   })
               report.append(item)
+              if run['name'] == 'Build analytics, forecasts, and Pages':
+                  analytics_run_ids.append(run['id'])
           with open('deploy-diagnostic.json', 'w', encoding='utf-8') as f:
               json.dump({'repository': repo, 'failed_runs': report}, f, ensure_ascii=False, indent=2)
+          with open('deploy-failure-log.txt', 'w', encoding='utf-8') as f:
+              for run_id in analytics_run_ids[:2]:
+                  f.write(f'===== RUN {run_id} =====\n')
+                  result = subprocess.run(['gh', 'run', 'view', str(run_id), '--repo', repo, '--log-failed'], text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                  lines = result.stdout.splitlines()
+                  f.write('\n'.join(lines[-220:]))
+                  f.write('\n\n')
           PY
       - name: Commit diagnostic report
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add deploy-diagnostic.json
-          git commit -m 'Capture recent deploy failures'
+          git add deploy-diagnostic.json deploy-failure-log.txt
+          git commit -m 'Capture deploy failure logs'
           git push origin HEAD:${{ github.head_ref }}
