@@ -7,7 +7,7 @@ on:
       - 'tools/finalize_nanodet_production.py'
 
 permissions:
-  actions: read
+  actions: write
   contents: read
 
 jobs:
@@ -22,6 +22,13 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+
+      - name: Dispatch current main Pages build and deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run analytics.yml --repo "${{ github.repository }}" --ref main
+          echo 'Dispatched main analytics/Pages build; finalizer will wait for live Detector Lab convergence.'
 
       - name: Resolve production evidence and build synchronized patch
         run: python tools/finalize_nanodet_production.py
