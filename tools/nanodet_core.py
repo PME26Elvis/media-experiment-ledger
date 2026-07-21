@@ -103,13 +103,14 @@ def _softmax(values: np.ndarray, axis: int = -1) -> np.ndarray:
 
 
 def center_priors(input_height: int, input_width: int, strides: Sequence[int]) -> np.ndarray:
+    """Generate NanoDet centers using the official ``(index + 0.5) * stride`` rule."""
     rows: list[np.ndarray] = []
     for stride in strides:
         height = math.ceil(input_height / stride)
         width = math.ceil(input_width / stride)
         y, x = np.meshgrid(
-            np.arange(height, dtype=np.float32) * stride,
-            np.arange(width, dtype=np.float32) * stride,
+            (np.arange(height, dtype=np.float32) + 0.5) * stride,
+            (np.arange(width, dtype=np.float32) + 0.5) * stride,
             indexing="ij",
         )
         flat_x = x.reshape(-1)
@@ -145,6 +146,7 @@ def postprocess_predictions(
         raise ValueError(
             f"NanoDet point count mismatch: model={output.shape[0]}, priors={priors.shape[0]}"
         )
+    # The official ONNX export applies sigmoid to the first 80 class channels.
     class_scores = output[:, : len(labels)]
     distributions = output[:, len(labels):].reshape(-1, 4, reg_max + 1)
     probabilities = _softmax(distributions)
