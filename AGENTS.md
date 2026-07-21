@@ -120,3 +120,15 @@ python tools/validate_site_build.py
 ```
 
 For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For future NanoDet work, validate official checkpoint integrity, deterministic ONNX export, normalized sidecars, exact-run artifact pairing, and comparison-language guardrails.
+
+<!-- NANODET:AGENTS:START -->
+## Multi-detector behavior
+
+- Multi-detector status is `implemented_pending_production` until the production evidence fields in `project-contract.json` are populated.
+- Inference workflows are read-only and artifact-only. Pair only exact workflow run IDs; never combine independently selected "latest" runs.
+- NanoDet-Plus uses the SHA-pinned official immutable pre-exported ONNX and `requirements-nanodet.txt`; do not reintroduce the obsolete Lightning checkpoint exporter without a new audited decision.
+- The publisher must verify batch, corpus fingerprint, quarantine digest, source Releases, canonical image SHA set, COCO labels, thresholds, sidecar coverage, package hashes, and ZIP CRC before creating `media-detection-*`.
+- Detector Lab is the primary combined UI. YOLO Lab remains a legacy historical view.
+- Use agreement/disagreement language only. No accuracy claim is allowed without ground truth.
+- Multi-detector work must not change Atlas workflow, Releases, previews, indexes, history, or finalizer.
+<!-- NANODET:AGENTS:END -->

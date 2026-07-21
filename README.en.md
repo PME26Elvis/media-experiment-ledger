@@ -218,3 +218,15 @@ npm run build --prefix web
 |---|---|---:|---:|---:|---|---|
 | 2026-07-20 | 2026-06-29 → 2026-07-13 | 387 | 313 | 1,533 | YOLOX-Tiny | [`media-yolo-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-yolo-all-2026-07-13-v1) |
 <!-- AUTO:YOLO_HISTORY_EN:END -->
+
+<!-- NANODET:README_EN:START -->
+## YOLOX + NanoDet multi-detector analysis
+
+The new pipeline is **`implemented_pending_production`**. YOLOX-Tiny and NanoDet-Plus-m-320 each rebuild the complete canonical corpus from scratch and upload short-lived workflow artifacts only. A third publisher pairs exact workflow run IDs and validates the full corpus/hash contract before creating a ZIP-only `media-detection-*` Release.
+
+- [Detector Lab](web/src/content/docs/detector-lab.mdx) presents Original / YOLOX / NanoDet tri-panels, class overlap, box IoU, and agreement/disagreement.
+- This is not an accuracy benchmark. Without human COCO ground truth, the project does not claim precision, recall, mAP, false positives, or which detector is correct.
+- NanoDet uses the official immutable ONNX; CI executes real size, SHA, input-shape, output-shape, and ONNX Runtime checks.
+- Prompt Repeatability Atlas remains completely independent and shares no workflow, Release, index, preview, or finalizer.
+- Full contract: [NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md).
+<!-- NANODET:README_EN:END -->

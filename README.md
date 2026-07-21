@@ -235,3 +235,15 @@ npm run build --prefix web
 |---|---|---:|---:|---:|---|---|
 | 2026-07-20 | 2026-06-29 → 2026-07-13 | 387 | 313 | 1,533 | YOLOX-Tiny | [`media-yolo-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-yolo-all-2026-07-13-v1) |
 <!-- AUTO:YOLO_HISTORY:END -->
+
+<!-- NANODET:README:START -->
+## YOLOX + NanoDet 多模型偵測
+
+新管線狀態為 **`implemented_pending_production`**。YOLOX-Tiny 與 NanoDet-Plus-m-320 分別在完整 canonical corpus 從零推論，只上傳短期 workflow artifact；第三個 publisher 以 exact workflow run IDs 與完整 corpus/hash 契約配對，通過後才建立 ZIP-only `media-detection-*` Release。
+
+- [Detector Lab](web/src/content/docs/detector-lab.mdx) 呈現 Original／YOLOX／NanoDet 三欄比較、class overlap、box IoU 與 agreement／disagreement。
+- 這不是 accuracy benchmark；沒有人工 COCO ground truth 時，不宣稱 precision、recall、mAP、false positive 或哪個模型比較正確。
+- NanoDet 使用官方 immutable ONNX，size、SHA、輸入與輸出 shape 皆由 CI 真實驗證。
+- Prompt Repeatability Atlas 完全獨立，不共用 workflow、Release、index、preview 或 finalizer。
+- 完整契約：[NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md)。
+<!-- NANODET:README:END -->

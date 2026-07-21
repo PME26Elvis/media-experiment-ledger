@@ -1,6 +1,6 @@
 # Multi-detector YOLOX + NanoDet pipeline specification
 
-> Status: **`specified_not_implemented`**  
+> Status: **`implemented_pending_production`**  
 > Decision: separate detector inference workflows, one aggregate publisher workflow, one combined detector Release family  
 > Atlas impact: **none**
 
@@ -576,3 +576,27 @@ Inference remains full-corpus and from scratch on every invocation. Workflow art
 - No Atlas workflow, Release, Notes, preview count, index or history is modified.
 - Existing 15-image/all-eligible-video Atlas Release Notes contract remains covered by tests.
 - All three workflows have deterministic package manifests and explicit recovery behavior.
+
+<!-- NANODET:IMPLEMENTATION:START -->
+## 18. Implementation status — 2026-07-21
+
+The approved architecture is now implemented in the feature branch and is intentionally marked **`implemented_pending_production`** until the first full-corpus A/B run and combined Release are verified.
+
+Implemented surfaces:
+
+- `tools/nanodet_core.py`: official BGR/direct-resize preprocessing, 2,125 center priors, distribution-to-box decode, class-aware NMS, and original-image coordinate recovery;
+- `object-detection/nanodet-model-lock.json`: official immutable pre-exported ONNX asset `nanodet-plus-m_320.onnx`, exact 4,793,615-byte size, SHA-256 `4f12723cce3d48e47ca92cb925ba74d97a965c069208edca660bbb9f7ce2c610`, input `[1,3,320,320]`, and output `[1,2125,112]`;
+- `tools/build_detector_artifact.py`: shared complete-corpus-from-scratch artifact builder with normalized success/failure sidecars and deterministic ZIPs;
+- separate read-only YOLOX and NanoDet inference workflows that publish workflow artifacts only;
+- an exact-run publisher that validates `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release order, canonical image SHA set, labels, thresholds, package hashes, ZIP CRC, and full sidecar coverage before publication;
+- agreement/disagreement metrics, Original | YOLOX-Tiny | NanoDet-Plus tri-panels, comparison ZIPs, latest/history indexes, and Detector Lab;
+- legacy `media-yolo-*` automation retired to explicit manual recovery; new production publications use `media-detection-*`.
+
+### Model supply-chain decision
+
+The alpha tag's legacy checkpoint exporter imports a removed `LightningLoggerBase` API. A reproducible bootstrap run proved that incompatibility before publication. The same official immutable Release provides a fixed-shape ONNX asset, so production uses that shorter supply chain instead of adding an obsolete PyTorch/Lightning environment. Every CI and production run downloads the official ONNX, checks exact size and SHA-256, creates an ONNX Runtime CPU session, and executes a real shape smoke.
+
+### Promotion gate
+
+The status changes from `implemented_pending_production` to `implemented` only after all of the following are recorded: successful YOLOX run ID, successful NanoDet run ID, publisher run ID, immutable `media-detection-all-*` Release, ZIP-only asset verification, detector index/writeback commit, live Detector Lab JSON/previews, and Atlas non-regression.
+<!-- NANODET:IMPLEMENTATION:END -->

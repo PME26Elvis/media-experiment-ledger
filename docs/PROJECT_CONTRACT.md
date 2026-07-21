@@ -130,3 +130,13 @@ python tools/validate_site_build.py
 ```
 
 `validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、分析規格、Pages workflow、`.gitignore`、route/data validator、YOLO model lock、labels、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
+
+<!-- NANODET:PROJECT_CONTRACT:START -->
+## Multi-detector implementation boundary
+
+The YOLOX + NanoDet pipeline is `implemented_pending_production`. Two read-only inference workflows produce short-lived artifacts; one publisher downloads exact workflow run IDs, verifies an identical canonical corpus contract, and creates the immutable `media-detection-*` product. Detector Lab reads `data/detection/latest.json`; YOLO Lab remains a legacy `media-yolo-*` view.
+
+NanoDet-Plus-m-320 uses the SHA-pinned official immutable ONNX asset and ONNX Runtime CPU. The repository records model size/SHA and real `[1,3,320,320] → [1,2125,112]` execution. Generated media lacks human COCO ground truth, so only agreement/disagreement metrics are valid.
+
+Production promotion requires verified A/B/publisher workflow IDs, Release assets, writeback, live Pages, and Atlas non-regression. Until then, all production fields remain null.
+<!-- NANODET:PROJECT_CONTRACT:END -->
