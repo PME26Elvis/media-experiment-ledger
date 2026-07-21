@@ -1,0 +1,194 @@
+name: Publish YOLOX + NanoDet comparison
+
+on:
+  workflow_run:
+    workflows:
+      - Detector inference — YOLOX-Tiny
+      - Detector inference — NanoDet-Plus
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      yolox_run_id:
+        description: Exact successful YOLOX workflow run ID
+        required: true
+        type: string
+      nanodet_run_id:
+        description: Exact successful NanoDet workflow run ID
+        required: true
+        type: string
+      publish_release:
+        description: Publish the immutable media-detection-* Release
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: detector-comparison-publisher
+  cancel-in-progress: false
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.resolve.outputs.ready }}
+      yolox_run_id: ${{ steps.resolve.outputs.yolox_run_id }}
+      nanodet_run_id: ${{ steps.resolve.outputs.nanodet_run_id }}
+      yolox_artifact: ${{ steps.resolve.outputs.yolox_artifact }}
+      nanodet_artifact: ${{ steps.resolve.outputs.nanodet_artifact }}
+    steps:
+      - name: Resolve exact safe run pair
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          TRIGGER_REPOSITORY: ${{ github.event.workflow_run.repository.full_name }}
+          TRIGGER_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          TRIGGER_SHA: ${{ github.event.workflow_run.head_sha }}
+          TRIGGER_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          INPUT_YOLOX_RUN: ${{ inputs.yolox_run_id }}
+          INPUT_NANODET_RUN: ${{ inputs.nanodet_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, subprocess
+          repo = os.environ['GITHUB_REPOSITORY']
+          event = os.environ['EVENT_NAME']
+          def api(path):
+              result = subprocess.run(['gh','api',path], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+              if result.returncode:
+                  raise SystemExit(result.stderr or result.stdout)
+              return json.loads(result.stdout)
+          if event == 'workflow_run':
+              if os.environ.get('TRIGGER_REPOSITORY') != repo:
+                  raise SystemExit('Refusing artifacts from another repository')
+              if os.environ.get('TRIGGER_BRANCH') != 'main':
+                  raise SystemExit('Refusing workflow_run artifacts not targeting main')
+              if os.environ.get('TRIGGER_CONCLUSION') != 'success':
+                  print('Trigger did not succeed; no publication')
+                  with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('ready=false\n')
+                  raise SystemExit(0)
+              sha = os.environ['TRIGGER_SHA']
+              def latest(workflow):
+                  payload = api(f'repos/{repo}/actions/workflows/{workflow}/runs?head_sha={sha}&status=success&per_page=20')
+                  rows = [row for row in payload.get('workflow_runs', []) if row.get('head_sha') == sha and row.get('conclusion') == 'success' and row.get('head_branch') == 'main']
+                  return max(rows, key=lambda row: row['id'])['id'] if rows else None
+              yolox_run = latest('detector-yolox-inference.yml')
+              nanodet_run = latest('detector-nanodet-inference.yml')
+              if not yolox_run or not nanodet_run:
+                  print('Counterpart detector artifact is not ready yet; later completion will retry')
+                  with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('ready=false\n')
+                  raise SystemExit(0)
+          else:
+              yolox_run = int(os.environ['INPUT_YOLOX_RUN'])
+              nanodet_run = int(os.environ['INPUT_NANODET_RUN'])
+          def validate_run(run_id, workflow_path, prefix):
+              run = api(f'repos/{repo}/actions/runs/{run_id}')
+              if run.get('conclusion') != 'success':
+                  raise SystemExit(f'Run {run_id} is not successful')
+              if run.get('repository',{}).get('full_name') != repo:
+                  raise SystemExit(f'Run {run_id} belongs to another repository')
+              workflow = api(f'repos/{repo}/actions/workflows/{workflow_path}')
+              if int(run.get('workflow_id')) != int(workflow.get('id')):
+                  raise SystemExit(f'Run {run_id} is not from {workflow_path}')
+              if run.get('head_branch') != 'main' and run.get('event') != 'workflow_dispatch':
+                  raise SystemExit(f'Run {run_id} is not an authorized main/manual run')
+              artifacts = api(f'repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100').get('artifacts', [])
+              names = [row['name'] for row in artifacts if not row.get('expired') and row.get('name','').startswith(prefix)]
+              if len(names) != 1:
+                  raise SystemExit(f'Run {run_id} expected exactly one {prefix} artifact; found {names}')
+              return names[0]
+          yolox_name = validate_run(yolox_run, 'detector-yolox-inference.yml', 'detector-yolox-')
+          nanodet_name = validate_run(nanodet_run, 'detector-nanodet-inference.yml', 'detector-nanodet-')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('ready=true\n')
+              out.write(f'yolox_run_id={yolox_run}\n')
+              out.write(f'nanodet_run_id={nanodet_run}\n')
+              out.write(f'yolox_artifact={yolox_name}\n')
+              out.write(f'nanodet_artifact={nanodet_name}\n')
+          PY
+
+  publish:
+    if: needs.resolve.outputs.ready == 'true'
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Checkout trusted publisher from main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-yolo.txt
+      - name: Install comparison runtime
+        run: python -m pip install -r requirements-yolo.txt
+      - name: Download exact YOLOX artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ needs.resolve.outputs.yolox_artifact }}
+          path: ${{ runner.temp }}/inputs/yolox
+          run-id: ${{ needs.resolve.outputs.yolox_run_id }}
+          github-token: ${{ github.token }}
+      - name: Download exact NanoDet artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ needs.resolve.outputs.nanodet_artifact }}
+          path: ${{ runner.temp }}/inputs/nanodet
+          run-id: ${{ needs.resolve.outputs.nanodet_run_id }}
+          github-token: ${{ github.token }}
+      - name: Validate pair, build comparison and publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish='${{ inputs.publish_release }}'
+          if [[ '${{ github.event_name }}' == 'workflow_run' ]]; then publish='true'; fi
+          args=(
+            --repo '${{ github.repository }}'
+            --yolox-root '${{ runner.temp }}/inputs/yolox'
+            --nanodet-root '${{ runner.temp }}/inputs/nanodet'
+          )
+          if [[ "$publish" == 'true' ]]; then args+=(--publish); fi
+          python tools/publish_detector_comparison.py "${args[@]}"
+      - name: Upload recovery outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detector-comparison-recovery-${{ github.run_id }}
+          path: |
+            object-detection/comparison-output/
+            data/detection/
+            web/public/data/detection/
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0
+      - name: Commit detector indexes and versioned previews
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(data/detection web/public/data/detection)
+          if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
+            echo 'Detector indexes and previews are unchanged'; exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "${paths[@]}"
+          git commit -m 'detectors: publish YOLOX and NanoDet comparison index'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
