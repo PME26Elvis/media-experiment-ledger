@@ -1,0 +1,14 @@
+---
+title: Detector Lab
+description: Exact-corpus YOLOX-Tiny and NanoDet-Plus agreement and disagreement analysis.
+---
+
+import DetectorLab from '../../components/DetectorLab.astro';
+
+# YOLOX + NanoDet Detector Lab
+
+This page reads the latest immutable `media-detection-*` publication. Both detectors must describe the same source Releases, quarantine policy, canonical image SHA set, labels, thresholds, and analysis batch before the publisher accepts them.
+
+The generated images do not have human-verified COCO ground truth. Counts, class overlap, matched boxes, IoU, and disagreement are **detector observations**, not accuracy, precision, recall, false-positive, or mAP measurements.
+
+<DetectorLab />

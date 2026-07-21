@@ -25,7 +25,7 @@ After every production build, `tools/validate_site_build.py` confirms that:
 - all seven primary routes have compiled `index.html` files;
 - Overview contains base-safe links to every primary route;
 - Analytics, Forecast, Visual Lab, and YOLO Lab expose the correct base-prefixed JSON URLs;
-- all four deployed JSON artifacts parse as objects;
+- all five deployed JSON artifacts parse as objects;
 - no malformed base paths are present;
 - the generated Pages artifact remains below the configured total/per-file size guards.
 
@@ -52,3 +52,9 @@ The production workflow separates build, deploy, and canonical-data writeback. A
 7. writes JSON, Markdown, model-card, chart, and compact history artifacts under `forecasts/`.
 
 The forecasts are explicitly confidence-scored because the current active-date sample is small.
+
+<!-- NANODET:WEB:START -->
+## Detector Lab integration
+
+The site now has **eight primary routes** and **five deployed JSON artifacts**. Detector Lab is the combined YOLOX/NanoDet route and reads `data/detection/latest.json`; YOLO Lab remains available for immutable legacy YOLO-only history. The new route uses the same base-safe `sitePath()` helper, Astro build boundary, ephemeral `site/` artifact, and `actions/upload-pages-artifact` deployment contract.
+<!-- NANODET:WEB:END -->

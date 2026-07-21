@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "status": "waiting_for_first_publication",
+  "generated_at_utc": null,
+  "release_tag": null,
+  "release_url": null,
+  "analysis_batch_id": null,
+  "date_from": null,
+  "date_to": null,
+  "corpus_fingerprint": null,
+  "detectors": {},
+  "thresholds": {
+    "confidence": 0.25,
+    "nms_iou": 0.45,
+    "max_detections": 100
+  },
+  "summary": {
+    "images_compared": 0,
+    "states": {},
+    "yolox_total_detections": 0,
+    "nanodet_total_detections": 0,
+    "matched_boxes": 0,
+    "mean_disagreement_score": 0,
+    "class_counts": [],
+    "top_disagreements": [],
+    "top_agreements": []
+  },
+  "previews": [],
+  "interpretation": "These are observations from two COCO-pretrained detectors, not ground-truth labels or an accuracy benchmark. Agreement does not prove correctness, and disagreement does not identify which detector is correct."
+}

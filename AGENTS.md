@@ -27,7 +27,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
 - YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, README history, 387-image coverage, and Atlas non-regression were verified.
-- The planned YOLOX + NanoDet comparison architecture is `specified_not_implemented`; follow `docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md` and do not imply the workflows or `media-detection-*` Release family exist until implemented and production-verified.
+- YOLOX + NanoDet is `implemented_pending_production`; the workflows, indexes, Detector Lab, and `media-detection-*` publisher exist, but do not call the feature production-verified until the evidence fields in `project-contract.json` are populated.
 
 ## Repository source-of-truth rules
 
@@ -49,7 +49,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Pages deployment depends on the validated build artifact, not on a successful Git push.
 - Canonical writeback is limited to `analytics/` and `forecasts/`, downloaded from a short-lived workflow artifact and committed with fetch/rebase/push retries.
 - Never add `site/` to writeback paths; doing so duplicates versioned Atlas GIF/JPEG and detector previews and causes large generated commits.
-- `tools/validate_site_build.py` must cover all primary routes, Analytics/Forecast/Visual Lab/YOLO Lab JSON URLs, JSON parsing, malformed base paths, and Pages artifact size guards.
+- `tools/validate_site_build.py` must cover all primary routes, Analytics/Forecast/Visual Lab/Detector Lab/YOLO Lab JSON URLs, JSON parsing, malformed base paths, and Pages artifact size guards.
 
 ## Atlas behavior
 
@@ -81,13 +81,13 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - YOLO failure must not affect Atlas, and Atlas failure must not affect YOLO.
 - Tests must lock the existing Atlas preview contract as a non-regression requirement.
 
-## Planned multi-detector behavior
+## Multi-detector behavior
 
-- Planned inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the planned publisher is `.github/workflows/detector-comparison-publish.yml`.
+- Inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the publisher is `.github/workflows/detector-comparison-publish.yml`.
 - The initial publisher must accept **exact workflow run IDs**. Never pair "latest successful" detector runs.
 - Both artifacts must have identical `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release list, canonical image SHA set, and COCO labels hash.
 - Workflow artifacts are short-lived transport only, never source of truth, inference cache, or persistent processing state.
-- The planned combined Release family is `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
+- The combined Release family is `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
 - The comparison gallery uses Original / YOLOX-Tiny / NanoDet-Plus tri-panels plus a full offline HTML ZIP.
 - Without human-verified ground truth, describe agreement, disagreement, coverage, IoU, class distributions, and runtime. Never claim accuracy, precision, recall, or mAP on this generated corpus.
 - Multi-detector workflows and Releases remain independent of Atlas. They may not change Atlas Notes, previews, indexes, Releases, history, or workflow success.
@@ -120,3 +120,16 @@ python tools/validate_site_build.py
 ```
 
 For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For future NanoDet work, validate official checkpoint integrity, deterministic ONNX export, normalized sidecars, exact-run artifact pairing, and comparison-language guardrails.
+
+<!-- NANODET:AGENTS:START -->
+## Multi-detector implementation rules
+
+- Multi-detector status is `implemented_pending_production` until the production evidence fields in `project-contract.json` are populated.
+- Inference workflows are read-only and artifact-only. Pair only exact workflow run IDs; never combine independently selected "latest" runs.
+- NanoDet-Plus uses the SHA-pinned official immutable pre-exported ONNX and `requirements-nanodet.txt`; do not reintroduce the obsolete Lightning checkpoint exporter without a new audited decision.
+- The publisher must verify batch, corpus fingerprint, quarantine digest, source Releases, canonical image SHA set, COCO labels, thresholds, sidecar coverage, package hashes, and ZIP CRC before creating `media-detection-*`.
+- The offline comparison gallery must cover every canonical image. Detector Lab and Release Notes use at most 20 representative versioned previews.
+- Detector Lab is the primary combined UI. YOLO Lab remains a legacy historical view.
+- Use agreement/disagreement language only. No accuracy claim is allowed without ground truth.
+- Multi-detector work must not change Atlas workflow, Releases, previews, indexes, history, or finalizer.
+<!-- NANODET:AGENTS:END -->

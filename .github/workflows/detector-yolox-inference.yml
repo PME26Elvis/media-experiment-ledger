@@ -1,0 +1,88 @@
+name: Detector inference — YOLOX-Tiny
+
+on:
+  workflow_dispatch:
+    inputs:
+      analysis_batch_id:
+        description: Immutable batch ID shared with NanoDet; blank derives from the requested commit
+        required: false
+        type: string
+      confidence_threshold:
+        description: Detection confidence threshold
+        required: false
+        default: '0.25'
+        type: string
+      nms_iou_threshold:
+        description: Class-aware NMS IoU threshold
+        required: false
+        default: '0.45'
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/detector-yolox-inference.yml'
+      - '.github/workflows/detector-comparison-publish.yml'
+      - 'tools/build_detector_artifact.py'
+      - 'tools/publish_detector_comparison.py'
+      - 'tools/yolo_*.py'
+      - 'object-detection/model-lock.json'
+      - 'object-detection/coco-80.json'
+      - 'config/release-quarantine.json'
+      - 'requirements-yolo.txt'
+
+concurrency:
+  group: detector-yolox-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  infer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Checkout requested code
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements-yolo.txt
+      - name: Install detector runtime
+        run: python -m pip install -r requirements-yolo.txt
+      - name: Resolve immutable batch ID
+        id: batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested='${{ inputs.analysis_batch_id }}'
+          if [[ -n "$requested" ]]; then batch="$requested"; else batch="detection-${GITHUB_SHA}"; fi
+          if [[ ! "$batch" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{7,160}$ ]]; then
+            echo "Invalid analysis batch ID: $batch" >&2; exit 1
+          fi
+          echo "value=$batch" >> "$GITHUB_OUTPUT"
+      - name: Run complete canonical corpus from scratch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python tools/build_detector_artifact.py \
+            --repo '${{ github.repository }}' \
+            --analysis-batch-id '${{ steps.batch.outputs.value }}' \
+            --detector yolox-tiny \
+            --output-dir '${{ runner.temp }}/detector-yolox' \
+            --confidence-threshold '${{ inputs.confidence_threshold || '0.25' }}' \
+            --nms-iou-threshold '${{ inputs.nms_iou_threshold || '0.45' }}'
+      - name: Upload transport artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: detector-yolox-${{ steps.batch.outputs.value }}
+          path: ${{ runner.temp }}/detector-yolox/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Summarize
+        run: |
+          echo '## YOLOX detector artifact' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Batch: `${{ steps.batch.outputs.value }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Product: short-lived workflow artifact only; no Release or main writeback' >> "$GITHUB_STEP_SUMMARY"

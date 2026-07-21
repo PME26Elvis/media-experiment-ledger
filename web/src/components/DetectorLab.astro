@@ -1,0 +1,144 @@
+---
+import { sitePath } from '../lib/sitePath';
+const dataUrl = sitePath('data/detection/latest.json');
+---
+
+<section class="detector-lab" data-detector-root data-url={dataUrl}>
+  <div class="detector-hero panel-surface">
+    <div>
+      <span class="eyebrow">MULTI-DETECTOR OBSERVATORY</span>
+      <h2>Compare what YOLOX-Tiny and NanoDet-Plus observe in the same canonical images.</h2>
+      <p>Every pair comes from one verified corpus snapshot and one immutable analysis batch. This is an agreement study, not an accuracy benchmark.</p>
+    </div>
+    <div class="detector-controls">
+      <label>Prompt, category, class, or SHA<input type="search" data-detector-search placeholder="i0001, portrait, person…" /></label>
+      <label>Agreement state<select data-detector-state>
+        <option value="">All states</option>
+        <option value="both-empty">Both empty</option>
+        <option value="yolox-only-nonempty">YOLOX only nonempty</option>
+        <option value="nanodet-only-nonempty">NanoDet only nonempty</option>
+        <option value="both-nonempty">Both nonempty</option>
+      </select></label>
+      <label>Sort<select data-detector-sort>
+        <option value="disagreement-desc">Highest disagreement</option>
+        <option value="disagreement-asc">Strongest agreement</option>
+        <option value="prompt">Prompt ID</option>
+        <option value="count">Most detections</option>
+      </select></label>
+      <a class="detector-release" data-detector-release hidden target="_blank" rel="noreferrer">Open combined Release</a>
+    </div>
+  </div>
+
+  <div class="detector-warning" role="note">
+    <strong>Interpretation boundary</strong>
+    <span data-detector-interpretation>Detector agreement does not prove correctness, and disagreement does not identify which detector is correct.</span>
+  </div>
+
+  <div class="detector-metrics" data-detector-metrics>
+    <article><span>Status</span><strong>Loading</strong><small>Reading combined detector index</small></article>
+    <article><span>Corpus</span><strong>—</strong><small>Canonical images compared</small></article>
+    <article><span>YOLOX</span><strong>—</strong><small>COCO detections</small></article>
+    <article><span>NanoDet</span><strong>—</strong><small>COCO detections</small></article>
+    <article><span>Matched</span><strong>—</strong><small>Same-class boxes at IoU ≥ 0.50</small></article>
+  </div>
+
+  <div class="detector-split">
+    <section class="panel-surface detector-state-panel">
+      <div class="detector-section-head"><h3>Agreement states</h3><span data-detector-score>Mean disagreement —</span></div>
+      <div class="detector-state-grid" data-detector-states></div>
+    </section>
+    <section class="panel-surface detector-class-panel">
+      <div class="detector-section-head"><h3>Largest class-count deltas</h3><span>Observation counts, not accuracy</span></div>
+      <div class="detector-class-table" data-detector-classes></div>
+    </section>
+  </div>
+
+  <div class="detector-section-head detector-results-head">
+    <div><h3>Representative tri-panels</h3><p data-detector-status>Loading comparison previews…</p></div>
+    <span>Original · YOLOX-Tiny · NanoDet-Plus</span>
+  </div>
+  <div class="detector-grid" data-detector-grid></div>
+</section>
+
+<script>
+  for (const root of document.querySelectorAll('[data-detector-root]')) {
+    const search = root.querySelector('[data-detector-search]');
+    const state = root.querySelector('[data-detector-state]');
+    const sort = root.querySelector('[data-detector-sort]');
+    const status = root.querySelector('[data-detector-status]');
+    const grid = root.querySelector('[data-detector-grid]');
+    const release = root.querySelector('[data-detector-release]');
+    const interpretation = root.querySelector('[data-detector-interpretation]');
+    const metrics = [...root.querySelectorAll('[data-detector-metrics] article')];
+    const stateGrid = root.querySelector('[data-detector-states]');
+    const classTable = root.querySelector('[data-detector-classes]');
+    const score = root.querySelector('[data-detector-score]');
+    let rows = [];
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[character]));
+    const stateLabel = (value) => ({
+      'both-empty': 'Both empty',
+      'yolox-only-nonempty': 'YOLOX only',
+      'nanodet-only-nonempty': 'NanoDet only',
+      'both-nonempty': 'Both nonempty'
+    }[value] || value || 'Unknown');
+    const render = () => {
+      const needle = search.value.trim().toLowerCase();
+      const selectedState = state.value;
+      const filtered = rows.filter((row) => {
+        const haystack = [row.prompt_id, row.category, row.image_sha256, row.state,
+          ...(row.shared_classes || []), ...(row.yolox_only_classes || []), ...(row.nanodet_only_classes || [])].join(' ').toLowerCase();
+        return (!needle || haystack.includes(needle)) && (!selectedState || row.state === selectedState);
+      }).sort((left, right) => {
+        if (sort.value === 'disagreement-asc') return Number(left.disagreement_score || 0) - Number(right.disagreement_score || 0) || String(left.image_sha256).localeCompare(String(right.image_sha256));
+        if (sort.value === 'prompt') return String(left.prompt_id || '').localeCompare(String(right.prompt_id || '')) || String(left.image_sha256).localeCompare(String(right.image_sha256));
+        if (sort.value === 'count') return (Number(right.yolox_detection_count || 0) + Number(right.nanodet_detection_count || 0)) - (Number(left.yolox_detection_count || 0) + Number(left.nanodet_detection_count || 0));
+        return Number(right.disagreement_score || 0) - Number(left.disagreement_score || 0) || String(left.image_sha256).localeCompare(String(right.image_sha256));
+      });
+      status.textContent = `${filtered.length.toLocaleString()} of ${rows.length.toLocaleString()} representative comparisons match`;
+      grid.innerHTML = filtered.map((row) => {
+        const shared = (row.shared_classes || []).join(', ') || 'none';
+        const yoloxOnly = (row.yolox_only_classes || []).join(', ') || 'none';
+        const nanodetOnly = (row.nanodet_only_classes || []).join(', ') || 'none';
+        const image = row.preview_url
+          ? `<a class="detector-image" href="${escapeHtml(row.preview_url)}" target="_blank" rel="noreferrer"><img loading="lazy" decoding="async" src="${escapeHtml(row.preview_url)}" alt="Original, YOLOX and NanoDet comparison"></a>`
+          : '<div class="detector-image detector-missing">Preview will appear after the first combined Release.</div>';
+        return `<article class="detector-card">${image}<div class="detector-card-body"><div class="detector-card-head"><strong>${escapeHtml(row.prompt_id || String(row.image_sha256).slice(0,12))}</strong><span>${escapeHtml(stateLabel(row.state))}</span></div><small>${escapeHtml(row.category || 'uncategorized')} · disagreement ${Number(row.disagreement_score || 0).toFixed(3)}</small><div class="detector-counts"><b>YOLOX ${Number(row.yolox_detection_count || 0)}</b><b>NanoDet ${Number(row.nanodet_detection_count || 0)}</b><b>matched ${Number(row.matched_box_count || 0)}</b></div><dl><div><dt>Shared</dt><dd>${escapeHtml(shared)}</dd></div><div><dt>YOLOX only</dt><dd>${escapeHtml(yoloxOnly)}</dd></div><div><dt>NanoDet only</dt><dd>${escapeHtml(nanodetOnly)}</dd></div></dl><code>${escapeHtml(String(row.image_sha256 || '').slice(0,20))}</code></div></article>`;
+      }).join('');
+      if (!filtered.length) grid.innerHTML = '<div class="detector-empty panel-surface">No representative comparisons match the current filters.</div>';
+    };
+    fetch(root.dataset.url, { cache: 'no-store' }).then((response) => {
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return response.json();
+    }).then((data) => {
+      rows = Array.isArray(data.previews) ? data.previews : [];
+      const summary = data.summary || {};
+      if (data.release_url) { release.href = data.release_url; release.hidden = false; }
+      interpretation.textContent = data.interpretation || interpretation.textContent;
+      const values = [
+        [data.status === 'published' ? 'Published' : 'Waiting', data.release_tag || 'No combined Release yet'],
+        [Number(summary.images_compared || 0).toLocaleString(), `${data.date_from || '—'} → ${data.date_to || '—'}`],
+        [Number(summary.yolox_total_detections || 0).toLocaleString(), 'YOLOX-Tiny observations'],
+        [Number(summary.nanodet_total_detections || 0).toLocaleString(), 'NanoDet-Plus observations'],
+        [Number(summary.matched_boxes || 0).toLocaleString(), 'Deterministic same-class matching']
+      ];
+      metrics.forEach((tile, index) => { tile.querySelector('strong').textContent = values[index][0]; tile.querySelector('small').textContent = values[index][1]; });
+      const states = summary.states || {};
+      stateGrid.innerHTML = ['both-empty','yolox-only-nonempty','nanodet-only-nonempty','both-nonempty'].map((key) => `<article><span>${escapeHtml(stateLabel(key))}</span><strong>${Number(states[key] || 0).toLocaleString()}</strong></article>`).join('');
+      score.textContent = `Mean disagreement ${Number(summary.mean_disagreement_score || 0).toFixed(3)}`;
+      const classRows = Array.isArray(summary.class_counts) ? [...summary.class_counts].sort((a,b) => Math.abs(Number(b.delta || 0)) - Math.abs(Number(a.delta || 0))).slice(0,12) : [];
+      classTable.innerHTML = classRows.length ? `<table><thead><tr><th>Class</th><th>YOLOX</th><th>NanoDet</th><th>Δ</th></tr></thead><tbody>${classRows.map((row) => `<tr><td>${escapeHtml(row.class_name)}</td><td>${Number(row.yolox || 0).toLocaleString()}</td><td>${Number(row.nanodet || 0).toLocaleString()}</td><td>${Number(row.delta || 0) > 0 ? '+' : ''}${Number(row.delta || 0).toLocaleString()}</td></tr>`).join('')}</tbody></table>` : '<p>No comparison class counts have been published yet.</p>';
+      render();
+    }).catch((error) => {
+      status.textContent = `Detector comparison data could not be loaded: ${error.message}`;
+      status.classList.add('error');
+      grid.innerHTML = '<div class="detector-empty panel-surface">Run both detector inference workflows and the exact-run publisher to create the first comparison.</div>';
+    });
+    search.addEventListener('input', render);
+    state.addEventListener('change', render);
+    sort.addEventListener('change', render);
+  }
+</script>
+
+<style>
+  .detector-lab{margin-top:1rem}.detector-hero{display:grid;grid-template-columns:1.3fr .7fr;gap:1.25rem;align-items:end}.detector-hero h2{margin:.2rem 0 .45rem;font-size:clamp(1.75rem,3vw,2.8rem);letter-spacing:-.045em}.detector-hero p{margin:0;color:var(--soft-text);max-width:75ch}.detector-controls{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}.detector-controls label{color:var(--soft-text);font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.detector-controls input,.detector-controls select{display:block;width:100%;margin-top:.3rem;min-height:2.65rem;border-radius:.7rem;border:1px solid var(--panel-border);color:inherit;background:rgba(5,14,25,.72);padding:.55rem .7rem}.detector-controls label:first-child,.detector-release{grid-column:1/-1}.detector-release{display:flex;align-items:center;justify-content:center;min-height:2.7rem;border-radius:.72rem;text-decoration:none;color:#06111d;background:linear-gradient(135deg,var(--cyan),var(--green));font-weight:850}.detector-warning{display:flex;gap:.8rem;align-items:flex-start;margin:1rem 0;padding:.85rem 1rem;border:1px solid rgba(255,190,92,.36);border-radius:.9rem;background:rgba(255,164,69,.08);color:var(--soft-text)}.detector-warning strong{color:#ffd38c;white-space:nowrap}.detector-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.75rem;margin:1rem 0}.detector-metrics article{padding:1rem;border-radius:1rem;background:var(--panel-bg);border:1px solid var(--panel-border);min-width:0}.detector-metrics span,.detector-metrics small{display:block;color:var(--soft-text)}.detector-metrics strong{display:block;margin:.3rem 0;font-size:clamp(1.2rem,2.2vw,1.8rem)}.detector-split{display:grid;grid-template-columns:.85fr 1.15fr;gap:1rem}.detector-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}.detector-section-head h3{margin:0}.detector-section-head span,.detector-section-head p{color:var(--soft-text);font-size:.75rem}.detector-state-grid{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin-top:.8rem}.detector-state-grid article{padding:.75rem;border:1px solid var(--panel-border);border-radius:.75rem;background:rgba(4,12,23,.45)}.detector-state-grid span{display:block;color:var(--soft-text);font-size:.72rem}.detector-state-grid strong{font-size:1.3rem}.detector-class-table{margin-top:.7rem;overflow:auto}.detector-class-table table{width:100%;border-collapse:collapse;font-size:.78rem}.detector-class-table th,.detector-class-table td{padding:.45rem;border-bottom:1px solid var(--panel-border);text-align:right}.detector-class-table th:first-child,.detector-class-table td:first-child{text-align:left}.detector-class-table p{color:var(--soft-text)}.detector-results-head{margin:1.3rem 0 .7rem}.detector-results-head p{margin:.2rem 0 0}.detector-results-head p.error{color:var(--pink)}.detector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.detector-card{overflow:hidden;border:1px solid rgba(91,216,255,.28);border-radius:1.1rem;background:var(--panel-bg)}.detector-image{display:block;aspect-ratio:3/1.3;background:#07101d;overflow:hidden}.detector-image img{width:100%;height:100%;object-fit:contain}.detector-missing{display:grid;place-items:center;padding:1rem;color:var(--soft-text);text-align:center}.detector-card-body{padding:1rem}.detector-card-head{display:flex;justify-content:space-between;gap:1rem}.detector-card-head strong{color:var(--cyan)}.detector-card-head span{color:var(--green);font-size:.72rem;font-weight:800}.detector-card-body small{color:var(--soft-text)}.detector-counts{display:flex;flex-wrap:wrap;gap:.4rem;margin:.75rem 0}.detector-counts b{padding:.25rem .5rem;border-radius:999px;background:rgba(91,216,255,.11);color:var(--cyan);font-size:.68rem}.detector-card dl{display:grid;gap:.35rem;margin:.7rem 0}.detector-card dl div{display:grid;grid-template-columns:6rem 1fr;gap:.5rem}.detector-card dt{color:var(--soft-text);font-size:.7rem}.detector-card dd{margin:0;font-size:.75rem}.detector-card code{color:var(--green);font-size:.68rem}.detector-empty{grid-column:1/-1;text-align:center;padding:2rem;color:var(--soft-text)}@media(max-width:78rem){.detector-hero,.detector-split{grid-template-columns:1fr}.detector-metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:52rem){.detector-controls,.detector-grid{grid-template-columns:1fr}.detector-metrics{grid-template-columns:1fr 1fr}.detector-warning,.detector-section-head{display:block}.detector-warning strong{display:block;margin-bottom:.3rem}}
+</style>

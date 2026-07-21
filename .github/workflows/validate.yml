@@ -18,6 +18,7 @@ on:
       - "requirements-forecast.txt"
       - "requirements-visual-analysis.txt"
       - "requirements-yolo.txt"
+      - "requirements-nanodet.txt"
       - ".github/workflows/**"
   push:
     branches: [main]
@@ -37,6 +38,7 @@ on:
       - "requirements-forecast.txt"
       - "requirements-visual-analysis.txt"
       - "requirements-yolo.txt"
+      - "requirements-nanodet.txt"
       - ".github/workflows/**"
 
 permissions:
@@ -56,14 +58,16 @@ jobs:
             requirements-forecast.txt
             requirements-visual-analysis.txt
             requirements-yolo.txt
-      - name: Install Python, YOLO, and FFmpeg test dependencies
+            requirements-nanodet.txt
+      - name: Install Python, detector, and FFmpeg test dependencies
         run: |
           set -euo pipefail
           python -m pip install \
             -r requirements-analytics.txt \
             -r requirements-forecast.txt \
             -r requirements-visual-analysis.txt \
-            -r requirements-yolo.txt
+            -r requirements-yolo.txt \
+            -r requirements-nanodet.txt
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends ffmpeg
           ffmpeg -version | head -n 1
@@ -81,6 +85,8 @@ jobs:
           python -m unittest discover -s tests -v 2>&1 | tee unittest.log
       - name: Verify pinned YOLOX-Tiny ONNX execution
         run: python tools/yolo_model_smoke.py
+      - name: Verify pinned NanoDet-Plus ONNX execution
+        run: python tools/nanodet_model_smoke.py
       - name: Upload validation diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4

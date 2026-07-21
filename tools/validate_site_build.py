@@ -11,6 +11,7 @@ PRIMARY_ROUTES = (
     "overview",
     "analytics",
     "visual-lab",
+    "detector-lab",
     "yolo-lab",
     "forecast",
     "architecture",
@@ -20,6 +21,7 @@ DATA_ARTIFACTS = (
     ("analytics", Path("data/analytics.json"), "analytics", "data-analytics-url"),
     ("forecast", Path("data/forecast.json"), "forecast", "data-forecast-url"),
     ("visual-analysis", Path("data/visual-analysis.json"), "visual-lab", "data-url"),
+    ("detector-comparison", Path("data/detection/latest.json"), "detector-lab", "data-url"),
     ("yolo", Path("data/yolo/latest.json"), "yolo-lab", "data-url"),
 )
 MAX_SITE_BYTES = 1_000_000_000
