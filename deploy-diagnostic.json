@@ -2,6 +2,93 @@
   "repository": "PME26Elvis/media-experiment-ledger",
   "failed_runs": [
     {
+      "run_id": 29799607844,
+      "name": "One-time deploy diagnostic",
+      "workflow_id": 317130281,
+      "event": "pull_request",
+      "head_sha": "c91a2f8b5451348e13c246300539c72ed66e89d3",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:50:57Z",
+      "updated_at": "2026-07-21T03:51:13Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799607844",
+      "jobs": [
+        {
+          "id": 88537886909,
+          "name": "diagnose",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799607844/job/88537886909",
+          "failed_steps": [
+            {
+              "name": "Commit diagnostic report",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-07-21T03:51:10Z",
+              "completed_at": "2026-07-21T03:51:11Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799592878,
+      "name": "One-time deploy diagnostic",
+      "workflow_id": 317130281,
+      "event": "pull_request",
+      "head_sha": "147618bf158d32ade757e4b7067b2b7ea31811c7",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:50:36Z",
+      "updated_at": "2026-07-21T03:50:57Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799592878",
+      "jobs": [
+        {
+          "id": 88537844380,
+          "name": "diagnose",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799592878/job/88537844380",
+          "failed_steps": [
+            {
+              "name": "Commit diagnostic report",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-07-21T03:50:53Z",
+              "completed_at": "2026-07-21T03:50:54Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799558268,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "30bf5e13238d252a13d3515736b42191b1a1fe4a",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:49:51Z",
+      "updated_at": "2026-07-21T03:50:52Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799558268",
+      "jobs": [
+        {
+          "id": 88537746582,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799558268/job/88537746582",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:50:46Z",
+              "completed_at": "2026-07-21T03:50:46Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "run_id": 29799509627,
       "name": "Validate ledger tooling",
       "workflow_id": 312436950,
@@ -199,93 +286,6 @@
               "number": 12,
               "started_at": "2026-07-20T15:44:40Z",
               "completed_at": "2026-07-20T15:44:42Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29755935327,
-      "name": "Validate ledger tooling",
-      "workflow_id": 312436950,
-      "event": "pull_request",
-      "head_sha": "b4b78694a8aad3ed34612c270cec93076f00d464",
-      "head_branch": "agent/finalize-yolo-production-status",
-      "created_at": "2026-07-20T15:36:31Z",
-      "updated_at": "2026-07-20T15:37:56Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29755935327",
-      "jobs": [
-        {
-          "id": 88398128940,
-          "name": "test",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29755935327/job/88398128940",
-          "failed_steps": [
-            {
-              "name": "Run complete unittest suite",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 7,
-              "started_at": "2026-07-20T15:37:24Z",
-              "completed_at": "2026-07-20T15:37:51Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29755820720,
-      "name": "Validate ledger tooling",
-      "workflow_id": 312436950,
-      "event": "pull_request",
-      "head_sha": "8f1a66923520d5d68162d70e123afb961a4928b6",
-      "head_branch": "agent/finalize-yolo-production-status",
-      "created_at": "2026-07-20T15:35:03Z",
-      "updated_at": "2026-07-20T15:35:56Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29755820720",
-      "jobs": [
-        {
-          "id": 88397739939,
-          "name": "test",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29755820720/job/88397739939",
-          "failed_steps": [
-            {
-              "name": "Validate synchronized project contract",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 5,
-              "started_at": "2026-07-20T15:35:52Z",
-              "completed_at": "2026-07-20T15:35:53Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29754742138,
-      "name": "Build analytics, forecasts, and Pages",
-      "workflow_id": 312437485,
-      "event": "push",
-      "head_sha": "1502c7d2ababf1bd9c34c0ca021e85f7e125a8a6",
-      "head_branch": "main",
-      "created_at": "2026-07-20T15:20:45Z",
-      "updated_at": "2026-07-20T15:22:45Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29754742138",
-      "jobs": [
-        {
-          "id": 88394074159,
-          "name": "analyze-forecast-and-deploy",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29754742138/job/88394074159",
-          "failed_steps": [
-            {
-              "name": "Commit analytics, forecast artifacts, and generated site",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 12,
-              "started_at": "2026-07-20T15:22:39Z",
-              "completed_at": "2026-07-20T15:22:41Z"
             }
           ]
         }
