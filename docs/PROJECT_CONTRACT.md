@@ -10,9 +10,10 @@
 2. `visual-analysis/config.json`：Atlas 實際執行參數。
 3. `config/release-quarantine.json`：歷史無效 run 的版本化例外。
 4. `config/atlas-history-overrides.json`：舊 Atlas schema 缺失欄位，以及極少數經證據確認 report 本身錯誤時的審核記錄。
-5. README、`AGENTS.md` 與本文件：人類／agent 操作說明。
-6. Atlas、影片與 YOLO 規格：各分析模組的完整契約。
-7. tests 與 validation workflow：防止上述內容靜默漂移。
+5. `.github/workflows/analytics.yml` 與 `tools/validate_site_build.py`：Pages build、deploy、writeback 與路由／資料驗證契約。
+6. README、`AGENTS.md` 與本文件：人類／agent 操作說明。
+7. Atlas、影片、YOLO 與 multi-detector 規格：各分析模組的完整契約。
+8. tests 與 validation workflow：防止上述內容靜默漂移。
 
 ## Source of truth
 
@@ -31,6 +32,7 @@
 - image/video Prompt Repeatability Atlas；
 - Experiment Release Audit；
 - YOLO object-detection corpus；
+- 未來 NanoDet 與 multi-detector comparison corpus；
 - 任何其他全資料衍生分析。
 
 目前 2026-06-29 的 `run_test` 是 synthetic fixture，另有一個 0 files／0 bytes 的空 run；兩者保留在歷史 Release 中，但不再被當作正式實驗。
@@ -46,6 +48,19 @@
 
 新 run 在發布前必須滿足完成事件數等於對應封存檔案數，且不得為空 run 或測試命名。歷史 Release Notes 由 auditor 改成清楚分列 API events 與 archived media。
 
+## Pages build boundary
+
+`web/` 是可追蹤的 Astro/Starlight source；`site/` 是編譯產物。
+
+- `site/` 必須列在 `.gitignore`，不得提交至 `main`。
+- Pages workflow 分成獨立的 **build**、**deploy**、**writeback** jobs。
+- build 會產生 analytics／forecast、暫存 browser JSON、建置 Astro、驗證七個 primary routes 與四份 JSON，再以 `actions/upload-pages-artifact` 上傳 `site/`。
+- deploy 只依賴 build artifact，不依賴任何 `git push`，因此 bot writeback race 不能阻止已驗證網站部署。
+- writeback 只下載短期 workflow artifact 中的 `analytics/` 與 `forecasts/`，再以 fetch/rebase/push retry 寫回 `main`。
+- writeback 不得包含 `site/`、`web/public/` 或任何 Atlas／detector preview 複本。
+- `tools/validate_site_build.py` 必須驗證 `overview`、`analytics`、`visual-lab`、`yolo-lab`、`forecast`、`architecture`、`frontend-stack`，以及 `analytics.json`、`forecast.json`、`visual-analysis.json`、`yolo/latest.json`。
+- Pages artifact 另有 1 GB 總量與 100 MB 單檔防呆；這是 repo contract 的預警門檻，不是宣稱 GitHub 平台的絕對限制。
+
 ## Prompt Repeatability Atlas
 
 - 使用全部已發布、非 quarantine 的正式 corpus，每次全量重建，不使用隱藏 incremental state。
@@ -55,7 +70,7 @@
 - 影片 seed 保留為 sample evidence，但因 harvester 每次隨機化，seed 不進 repeatability identity。
 - Image Release Notes 最多 15 個、至少 4 unique samples，先覆蓋 category 再按樣本數補滿。
 - Video Release Notes 預設放入所有至少 2 unique samples 的可比較 cohorts。
-- Atlas Release Notes 繼續直接嵌入 image comparison cards 與 eligible video GIF previews；YOLO 的規格、workflow、Notes 或 Release 不得縮減這個行為。
+- Atlas Release Notes 繼續直接嵌入 image comparison cards 與 eligible video GIF previews；任何 detector 規格、workflow、Notes 或 Release 都不得縮減這個行為。
 - Atlas workflow 維持 `.github/workflows/visual-analysis.yml`，Release 家族維持 `media-analysis-*`。
 - Atlas 歷史表通常以 immutable Atlas report 的明確值為準；舊 schema 缺欄位時才讀一般 override。
 - 只有當 report 本身已由 source Release、原始歷史表與 entry evidence 證實錯誤時，override 才可標記 `authoritative: true` 並優先於 report。兩者皆無則顯示未知，絕不以目前 corpus totals 回填舊快照。
@@ -80,6 +95,20 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 
 首個 main full-corpus workflow 已完成；published Release、ZIP-only assets、latest/history writeback、20 張版本化 previews、YOLO Lab、Pages build 與 Atlas 非回歸均已驗證。
 
+## Planned YOLOX + NanoDet pipeline
+
+新規格 [`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `specified_not_implemented`。目前只定義可實作契約，尚未宣稱 NanoDet inference、comparison gallery 或 `media-detection-*` Release 已上線。
+
+核准方向：
+
+- Workflow A：YOLOX-Tiny 全量 inference，只上傳短期 transport artifact。
+- Workflow B：NanoDet-Plus-m-320 全量 inference，只上傳短期 transport artifact。
+- Workflow C：使用**明確的兩個 workflow run IDs**下載 artifacts，驗證共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
+- workflow artifacts 不是 source of truth、state、cache 或 published-result reuse；最終 immutable Release 才是正式產品。
+- comparison gallery 使用 `Original | YOLOX-Tiny | NanoDet-Plus` tri-panel，另有完整 offline HTML ZIP。
+- 由於沒有 human-verified ground truth，只能報告 agreement、disagreement、coverage、box IoU、class distribution 與 runtime；不得稱為 accuracy、precision、recall 或此 corpus 的 mAP。
+- 現有 `media-yolo-*` Releases 保持不可變歷史；Atlas 完全不受影響。
+
 ## Git and publication behavior
 
 - 預設 feature branch → PR → validation → normal merge commit。
@@ -100,4 +129,4 @@ npm run build --prefix web
 python tools/validate_site_build.py
 ```
 
-`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、三份分析規格、YOLO model lock、labels、workflow、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
+`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、分析規格、Pages workflow、`.gitignore`、route/data validator、YOLO model lock、labels、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
