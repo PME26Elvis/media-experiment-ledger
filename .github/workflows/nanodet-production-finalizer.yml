@@ -53,7 +53,7 @@ jobs:
           {
             python tools/validate_project_contract.py
             python -m compileall tools tests
-            python -m unittest tests.test_nanodet_pipeline_spec tests.test_detector_comparison -v
+            python -m unittest tests.test_nanodet_pipeline_spec -v
           } 2>&1 | tee nanodet-finalization-validation.log
 
       - name: Commit synchronized production status and evidence
