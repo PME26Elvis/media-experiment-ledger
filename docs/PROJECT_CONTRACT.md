@@ -97,7 +97,7 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 
 ## YOLOX + NanoDet implementation
 
-[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented_pending_production`。NanoDet inference、exact-run publisher、comparison gallery、indexes 與 Detector Lab 已實作；首個 `media-detection-*` Release 尚待 main 上的完整 production A/B/C 驗證。
+[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`。NanoDet inference、exact-run publisher、comparison gallery、indexes 與 Detector Lab 已實作；首個 `media-detection-*` Release 尚待 main 上的完整 production A/B/C 驗證。
 
 核准方向：
 
@@ -133,11 +133,11 @@ python tools/validate_site_build.py
 `validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、分析規格、Pages workflow、`.gitignore`、route/data validator、YOLO model lock、labels、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
 
 <!-- NANODET:PROJECT_CONTRACT:START -->
-## Multi-detector implementation boundary
+## Multi-detector production boundary
 
-The YOLOX + NanoDet pipeline is `implemented_pending_production`. Two read-only inference workflows produce short-lived artifacts; one publisher downloads exact workflow run IDs, verifies an identical canonical corpus contract, and creates the immutable `media-detection-*` product. Detector Lab reads `data/detection/latest.json`; YOLO Lab remains a legacy `media-yolo-*` view.
+The YOLOX + NanoDet pipeline is `implemented`. Read-only full-corpus runs `29812888677` and `29812888709` were paired by publisher `29813188073` and published as `media-detection-all-2026-07-13-v1`. The index/writeback commit is `9bef82a565ac25db97708628acfe8f56e1cc3b29`.
 
-NanoDet-Plus-m-320 uses the SHA-pinned official immutable ONNX asset and ONNX Runtime CPU. The repository records model size/SHA and real `[1,3,320,320] → [1,2125,112]` execution. Generated media lacks human COCO ground truth, so only agreement/disagreement metrics are valid. The offline gallery covers the full canonical corpus while the web index stages at most 20 representative previews.
+Production covers 387 canonical images with zero detector failures, 1,533 YOLOX boxes, 3,243 NanoDet boxes, 902 same-class matched boxes, and mean disagreement 0.557421. Detector Lab and its JSON were verified on live Pages. All Release assets are ZIP containers.
 
-Production promotion requires verified A/B/publisher workflow IDs, Release assets, writeback, live Pages, and Atlas non-regression. Until then, all production fields remain null.
+Generated media lacks human COCO ground truth; only agreement/disagreement observations are valid. Atlas is independent, and its index blob remained `3778183686ca7603e3c6d49013ff643182445cec` across detector writeback. See `docs/reports/NANODET_PRODUCTION_EVIDENCE.md`.
 <!-- NANODET:PROJECT_CONTRACT:END -->

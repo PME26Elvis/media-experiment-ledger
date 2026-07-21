@@ -1,0 +1,1548 @@
+{
+  "analysis_batch_id": "detection-233b11b0368c4b9b98eb6cc148b25fde84ee5e94",
+  "corpus_fingerprint": "f08b71b86e701f571412e513039879c6052ed7f88d12e9c7d841de6cf339b9b2",
+  "date_from": "2026-06-29",
+  "date_to": "2026-07-13",
+  "detectors": {
+    "nanodet-plus-m-320": {
+      "model_sha256": "4f12723cce3d48e47ca92cb925ba74d97a965c069208edca660bbb9f7ce2c610",
+      "successful_images": 387,
+      "summary": {
+        "empty_detection_images": 19,
+        "expected_images": 387,
+        "failed_images": 0,
+        "failure_classes": {},
+        "images_by_prompt": {
+          "i0001": 9,
+          "i0002": 9,
+          "i0003": 9,
+          "i0004": 8,
+          "i0005": 8,
+          "i0006": 8,
+          "i0007": 8,
+          "i0008": 8,
+          "i0009": 7,
+          "i0010": 7,
+          "i0011": 7,
+          "i0012": 6,
+          "i0013": 6,
+          "i0014": 6,
+          "i0015": 6,
+          "i0016": 6,
+          "i0017": 6,
+          "i0018": 6,
+          "i0019": 6,
+          "i0020": 6,
+          "i0021": 6,
+          "i0022": 5,
+          "i0023": 5,
+          "i0024": 5,
+          "i0025": 5,
+          "i0026": 5,
+          "i0027": 5,
+          "i0028": 5,
+          "i0029": 4,
+          "i0030": 4,
+          "i0031": 4,
+          "i0032": 4,
+          "i0033": 3,
+          "i0034": 3,
+          "i0035": 3,
+          "i0036": 3,
+          "i0037": 3,
+          "i0038": 3,
+          "i0039": 3,
+          "i0040": 3,
+          "i0041": 3,
+          "i0042": 3,
+          "i0043": 3,
+          "i0044": 3,
+          "i0045": 3,
+          "i0046": 3,
+          "i0047": 3,
+          "i0048": 3,
+          "i0049": 3,
+          "i0050": 3,
+          "i0051": 3,
+          "i0052": 3,
+          "i0053": 3,
+          "i0054": 3,
+          "i0055": 3,
+          "i0056": 3,
+          "i0057": 3,
+          "i0058": 3,
+          "i0059": 3,
+          "i0060": 2,
+          "i0061": 2,
+          "i0062": 2,
+          "i0063": 2,
+          "i0064": 2,
+          "i0065": 2,
+          "i0066": 2,
+          "i0067": 2,
+          "i0068": 2,
+          "i0069": 2,
+          "i0070": 2,
+          "i0071": 2,
+          "i0072": 2,
+          "i0073": 2,
+          "i0074": 2,
+          "i0075": 2,
+          "i0076": 2,
+          "i0077": 2,
+          "i0078": 2,
+          "i0079": 2,
+          "i0080": 2,
+          "i0081": 1,
+          "i0082": 1,
+          "i0083": 1,
+          "i0084": 1,
+          "i0085": 1,
+          "i0086": 1,
+          "i0087": 1,
+          "i0088": 1,
+          "i0089": 1,
+          "i0090": 1,
+          "i0091": 1,
+          "i0092": 1,
+          "i0093": 1,
+          "i0094": 1,
+          "i0095": 1,
+          "i0096": 1,
+          "i0097": 1,
+          "i0098": 1,
+          "i0099": 1,
+          "i0100": 1,
+          "i0101": 1,
+          "i0102": 1,
+          "i0103": 1,
+          "i0104": 1,
+          "i0105": 1,
+          "i0106": 1,
+          "i0107": 1,
+          "i0108": 1,
+          "i0109": 1,
+          "i0110": 1,
+          "i0111": 1,
+          "i0112": 1,
+          "i0113": 1,
+          "i0114": 1,
+          "i0115": 1,
+          "i0116": 1,
+          "i0117": 1,
+          "i0118": 1,
+          "i0119": 1,
+          "i0120": 1,
+          "i0121": 1,
+          "i0122": 1,
+          "i0123": 1,
+          "i0124": 1,
+          "i0125": 1,
+          "i0126": 1,
+          "i0127": 1,
+          "i0128": 1,
+          "i0129": 1,
+          "i0130": 1,
+          "i0131": 1,
+          "i0132": 1,
+          "i0133": 1,
+          "i0134": 1,
+          "i0135": 1,
+          "i0136": 1,
+          "i0137": 1,
+          "i0138": 1,
+          "i0139": 1,
+          "i0140": 1,
+          "i0141": 1,
+          "i0142": 1,
+          "i0143": 1,
+          "i0144": 1,
+          "i0145": 1
+        },
+        "images_by_release": {
+          "media-exp-2026-06-30": 40,
+          "media-exp-2026-07-02": 32,
+          "media-exp-2026-07-03": 28,
+          "media-exp-2026-07-05": 80,
+          "media-exp-2026-07-11": 59,
+          "media-exp-2026-07-12": 145,
+          "media-exp-2026-07-13": 3
+        },
+        "images_with_detections": 368,
+        "mean_detection_confidence": 0.3760429737897009,
+        "mean_detections_per_successful_image": 8.37984496124031,
+        "successful_images": 387,
+        "top_classes": [
+          {
+            "class_name": "person",
+            "count": 580
+          },
+          {
+            "class_name": "potted plant",
+            "count": 340
+          },
+          {
+            "class_name": "dining table",
+            "count": 193
+          },
+          {
+            "class_name": "chair",
+            "count": 187
+          },
+          {
+            "class_name": "vase",
+            "count": 177
+          },
+          {
+            "class_name": "cup",
+            "count": 174
+          },
+          {
+            "class_name": "bowl",
+            "count": 148
+          },
+          {
+            "class_name": "bottle",
+            "count": 145
+          },
+          {
+            "class_name": "cell phone",
+            "count": 86
+          },
+          {
+            "class_name": "car",
+            "count": 76
+          },
+          {
+            "class_name": "broccoli",
+            "count": 74
+          },
+          {
+            "class_name": "bench",
+            "count": 71
+          },
+          {
+            "class_name": "suitcase",
+            "count": 70
+          },
+          {
+            "class_name": "book",
+            "count": 54
+          },
+          {
+            "class_name": "couch",
+            "count": 40
+          },
+          {
+            "class_name": "mouse",
+            "count": 37
+          },
+          {
+            "class_name": "donut",
+            "count": 37
+          },
+          {
+            "class_name": "carrot",
+            "count": 35
+          },
+          {
+            "class_name": "knife",
+            "count": 33
+          },
+          {
+            "class_name": "remote",
+            "count": 31
+          },
+          {
+            "class_name": "tv",
+            "count": 31
+          },
+          {
+            "class_name": "laptop",
+            "count": 30
+          },
+          {
+            "class_name": "keyboard",
+            "count": 29
+          },
+          {
+            "class_name": "cake",
+            "count": 29
+          },
+          {
+            "class_name": "sink",
+            "count": 28
+          },
+          {
+            "class_name": "clock",
+            "count": 27
+          },
+          {
+            "class_name": "bicycle",
+            "count": 25
+          },
+          {
+            "class_name": "spoon",
+            "count": 25
+          },
+          {
+            "class_name": "boat",
+            "count": 25
+          },
+          {
+            "class_name": "oven",
+            "count": 23
+          },
+          {
+            "class_name": "microwave",
+            "count": 23
+          },
+          {
+            "class_name": "sandwich",
+            "count": 23
+          },
+          {
+            "class_name": "orange",
+            "count": 22
+          },
+          {
+            "class_name": "bed",
+            "count": 21
+          },
+          {
+            "class_name": "umbrella",
+            "count": 20
+          },
+          {
+            "class_name": "traffic light",
+            "count": 20
+          },
+          {
+            "class_name": "cat",
+            "count": 19
+          },
+          {
+            "class_name": "refrigerator",
+            "count": 19
+          },
+          {
+            "class_name": "fork",
+            "count": 18
+          },
+          {
+            "class_name": "motorcycle",
+            "count": 16
+          },
+          {
+            "class_name": "train",
+            "count": 16
+          },
+          {
+            "class_name": "scissors",
+            "count": 15
+          },
+          {
+            "class_name": "toaster",
+            "count": 12
+          },
+          {
+            "class_name": "handbag",
+            "count": 11
+          },
+          {
+            "class_name": "toilet",
+            "count": 11
+          },
+          {
+            "class_name": "bird",
+            "count": 10
+          },
+          {
+            "class_name": "pizza",
+            "count": 10
+          },
+          {
+            "class_name": "truck",
+            "count": 10
+          },
+          {
+            "class_name": "apple",
+            "count": 10
+          },
+          {
+            "class_name": "banana",
+            "count": 8
+          },
+          {
+            "class_name": "bus",
+            "count": 8
+          },
+          {
+            "class_name": "skateboard",
+            "count": 7
+          },
+          {
+            "class_name": "backpack",
+            "count": 7
+          },
+          {
+            "class_name": "sheep",
+            "count": 7
+          },
+          {
+            "class_name": "wine glass",
+            "count": 6
+          },
+          {
+            "class_name": "airplane",
+            "count": 6
+          },
+          {
+            "class_name": "parking meter",
+            "count": 5
+          },
+          {
+            "class_name": "snowboard",
+            "count": 3
+          },
+          {
+            "class_name": "kite",
+            "count": 3
+          },
+          {
+            "class_name": "hot dog",
+            "count": 3
+          },
+          {
+            "class_name": "dog",
+            "count": 3
+          },
+          {
+            "class_name": "skis",
+            "count": 2
+          },
+          {
+            "class_name": "tie",
+            "count": 2
+          },
+          {
+            "class_name": "toothbrush",
+            "count": 2
+          },
+          {
+            "class_name": "fire hydrant",
+            "count": 2
+          },
+          {
+            "class_name": "teddy bear",
+            "count": 2
+          },
+          {
+            "class_name": "surfboard",
+            "count": 1
+          }
+        ],
+        "total_detections": 3243
+      },
+      "timing": {
+        "inference_seconds": 5.851319114000063,
+        "inventory_and_archive_seconds": 67.858503528,
+        "mean_images_per_second": 3.364356609870519,
+        "per_image_p50_seconds": 0.2980248870000253,
+        "per_image_p95_seconds": 0.3276939649999804,
+        "runner_cpu_count": 4,
+        "total_seconds": 195.838071426
+      },
+      "workflow_run_id": "29812888709"
+    },
+    "yolox-tiny": {
+      "model_sha256": "427cc366d34e27ff7a03e2899b5e3671425c262ea2291f88bb942bc1cc70b0f7",
+      "successful_images": 387,
+      "summary": {
+        "empty_detection_images": 74,
+        "expected_images": 387,
+        "failed_images": 0,
+        "failure_classes": {},
+        "images_by_prompt": {
+          "i0001": 9,
+          "i0002": 9,
+          "i0003": 9,
+          "i0004": 8,
+          "i0005": 8,
+          "i0006": 8,
+          "i0007": 8,
+          "i0008": 8,
+          "i0009": 7,
+          "i0010": 7,
+          "i0011": 7,
+          "i0012": 6,
+          "i0013": 6,
+          "i0014": 6,
+          "i0015": 6,
+          "i0016": 6,
+          "i0017": 6,
+          "i0018": 6,
+          "i0019": 6,
+          "i0020": 6,
+          "i0021": 6,
+          "i0022": 5,
+          "i0023": 5,
+          "i0024": 5,
+          "i0025": 5,
+          "i0026": 5,
+          "i0027": 5,
+          "i0028": 5,
+          "i0029": 4,
+          "i0030": 4,
+          "i0031": 4,
+          "i0032": 4,
+          "i0033": 3,
+          "i0034": 3,
+          "i0035": 3,
+          "i0036": 3,
+          "i0037": 3,
+          "i0038": 3,
+          "i0039": 3,
+          "i0040": 3,
+          "i0041": 3,
+          "i0042": 3,
+          "i0043": 3,
+          "i0044": 3,
+          "i0045": 3,
+          "i0046": 3,
+          "i0047": 3,
+          "i0048": 3,
+          "i0049": 3,
+          "i0050": 3,
+          "i0051": 3,
+          "i0052": 3,
+          "i0053": 3,
+          "i0054": 3,
+          "i0055": 3,
+          "i0056": 3,
+          "i0057": 3,
+          "i0058": 3,
+          "i0059": 3,
+          "i0060": 2,
+          "i0061": 2,
+          "i0062": 2,
+          "i0063": 2,
+          "i0064": 2,
+          "i0065": 2,
+          "i0066": 2,
+          "i0067": 2,
+          "i0068": 2,
+          "i0069": 2,
+          "i0070": 2,
+          "i0071": 2,
+          "i0072": 2,
+          "i0073": 2,
+          "i0074": 2,
+          "i0075": 2,
+          "i0076": 2,
+          "i0077": 2,
+          "i0078": 2,
+          "i0079": 2,
+          "i0080": 2,
+          "i0081": 1,
+          "i0082": 1,
+          "i0083": 1,
+          "i0084": 1,
+          "i0085": 1,
+          "i0086": 1,
+          "i0087": 1,
+          "i0088": 1,
+          "i0089": 1,
+          "i0090": 1,
+          "i0091": 1,
+          "i0092": 1,
+          "i0093": 1,
+          "i0094": 1,
+          "i0095": 1,
+          "i0096": 1,
+          "i0097": 1,
+          "i0098": 1,
+          "i0099": 1,
+          "i0100": 1,
+          "i0101": 1,
+          "i0102": 1,
+          "i0103": 1,
+          "i0104": 1,
+          "i0105": 1,
+          "i0106": 1,
+          "i0107": 1,
+          "i0108": 1,
+          "i0109": 1,
+          "i0110": 1,
+          "i0111": 1,
+          "i0112": 1,
+          "i0113": 1,
+          "i0114": 1,
+          "i0115": 1,
+          "i0116": 1,
+          "i0117": 1,
+          "i0118": 1,
+          "i0119": 1,
+          "i0120": 1,
+          "i0121": 1,
+          "i0122": 1,
+          "i0123": 1,
+          "i0124": 1,
+          "i0125": 1,
+          "i0126": 1,
+          "i0127": 1,
+          "i0128": 1,
+          "i0129": 1,
+          "i0130": 1,
+          "i0131": 1,
+          "i0132": 1,
+          "i0133": 1,
+          "i0134": 1,
+          "i0135": 1,
+          "i0136": 1,
+          "i0137": 1,
+          "i0138": 1,
+          "i0139": 1,
+          "i0140": 1,
+          "i0141": 1,
+          "i0142": 1,
+          "i0143": 1,
+          "i0144": 1,
+          "i0145": 1
+        },
+        "images_by_release": {
+          "media-exp-2026-06-30": 40,
+          "media-exp-2026-07-02": 32,
+          "media-exp-2026-07-03": 28,
+          "media-exp-2026-07-05": 80,
+          "media-exp-2026-07-11": 59,
+          "media-exp-2026-07-12": 145,
+          "media-exp-2026-07-13": 3
+        },
+        "images_with_detections": 313,
+        "mean_detection_confidence": 0.5620891128506197,
+        "mean_detections_per_successful_image": 3.9612403100775193,
+        "successful_images": 387,
+        "top_classes": [
+          {
+            "class_name": "person",
+            "count": 326
+          },
+          {
+            "class_name": "potted plant",
+            "count": 237
+          },
+          {
+            "class_name": "chair",
+            "count": 102
+          },
+          {
+            "class_name": "dining table",
+            "count": 95
+          },
+          {
+            "class_name": "cup",
+            "count": 94
+          },
+          {
+            "class_name": "vase",
+            "count": 86
+          },
+          {
+            "class_name": "bottle",
+            "count": 64
+          },
+          {
+            "class_name": "cell phone",
+            "count": 51
+          },
+          {
+            "class_name": "car",
+            "count": 49
+          },
+          {
+            "class_name": "bench",
+            "count": 49
+          },
+          {
+            "class_name": "bowl",
+            "count": 48
+          },
+          {
+            "class_name": "suitcase",
+            "count": 35
+          },
+          {
+            "class_name": "couch",
+            "count": 30
+          },
+          {
+            "class_name": "bicycle",
+            "count": 22
+          },
+          {
+            "class_name": "remote",
+            "count": 19
+          },
+          {
+            "class_name": "keyboard",
+            "count": 17
+          },
+          {
+            "class_name": "boat",
+            "count": 16
+          },
+          {
+            "class_name": "clock",
+            "count": 15
+          },
+          {
+            "class_name": "book",
+            "count": 15
+          },
+          {
+            "class_name": "spoon",
+            "count": 14
+          },
+          {
+            "class_name": "bed",
+            "count": 13
+          },
+          {
+            "class_name": "mouse",
+            "count": 13
+          },
+          {
+            "class_name": "tv",
+            "count": 11
+          },
+          {
+            "class_name": "motorcycle",
+            "count": 10
+          },
+          {
+            "class_name": "umbrella",
+            "count": 10
+          },
+          {
+            "class_name": "bird",
+            "count": 8
+          },
+          {
+            "class_name": "laptop",
+            "count": 8
+          },
+          {
+            "class_name": "sink",
+            "count": 8
+          },
+          {
+            "class_name": "train",
+            "count": 8
+          },
+          {
+            "class_name": "toothbrush",
+            "count": 6
+          },
+          {
+            "class_name": "fork",
+            "count": 6
+          },
+          {
+            "class_name": "oven",
+            "count": 6
+          },
+          {
+            "class_name": "backpack",
+            "count": 5
+          },
+          {
+            "class_name": "refrigerator",
+            "count": 4
+          },
+          {
+            "class_name": "knife",
+            "count": 3
+          },
+          {
+            "class_name": "cake",
+            "count": 3
+          },
+          {
+            "class_name": "truck",
+            "count": 3
+          },
+          {
+            "class_name": "handbag",
+            "count": 3
+          },
+          {
+            "class_name": "airplane",
+            "count": 3
+          },
+          {
+            "class_name": "scissors",
+            "count": 2
+          },
+          {
+            "class_name": "wine glass",
+            "count": 2
+          },
+          {
+            "class_name": "traffic light",
+            "count": 2
+          },
+          {
+            "class_name": "microwave",
+            "count": 2
+          },
+          {
+            "class_name": "skis",
+            "count": 1
+          },
+          {
+            "class_name": "dog",
+            "count": 1
+          },
+          {
+            "class_name": "broccoli",
+            "count": 1
+          },
+          {
+            "class_name": "toilet",
+            "count": 1
+          },
+          {
+            "class_name": "fire hydrant",
+            "count": 1
+          },
+          {
+            "class_name": "banana",
+            "count": 1
+          },
+          {
+            "class_name": "parking meter",
+            "count": 1
+          },
+          {
+            "class_name": "kite",
+            "count": 1
+          },
+          {
+            "class_name": "snowboard",
+            "count": 1
+          },
+          {
+            "class_name": "bus",
+            "count": 1
+          }
+        ],
+        "total_detections": 1533
+      },
+      "timing": {
+        "inference_seconds": 16.493557756000243,
+        "inventory_and_archive_seconds": 70.02862928600001,
+        "mean_images_per_second": 2.976164323929248,
+        "model_download_seconds": 0.27266435299999614,
+        "per_image_p50_seconds": 0.3384724349999999,
+        "per_image_p95_seconds": 0.3669977006999858,
+        "runner_cpu_count": 4,
+        "total_seconds": 214.13993618400002
+      },
+      "workflow_run_id": "29812888677"
+    }
+  },
+  "history_index_blob_sha": "c7ae9b1311e29e5d30f13a323ed399f73bfbb99f",
+  "interpretation": "These are observations from two COCO-pretrained detectors, not ground-truth labels or an accuracy benchmark. Agreement does not prove correctness, and disagreement does not identify which detector is correct.",
+  "latest_index_blob_sha": "65bfe798536607b24f811f9d60ef6bf107fa1c23",
+  "pages": {
+    "analysis_batch_id": "detection-233b11b0368c4b9b98eb6cc148b25fde84ee5e94",
+    "detector_lab_url": "https://pme26elvis.github.io/media-experiment-ledger/detector-lab/",
+    "index_url": "https://pme26elvis.github.io/media-experiment-ledger/data/detection/latest.json",
+    "status": "verified"
+  },
+  "publisher": {
+    "created_at": "2026-07-21T08:09:28Z",
+    "event": "workflow_run",
+    "head_sha": "5982ddfc66a594fb5101e04b125baec8f5fd2dc1",
+    "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29813188073",
+    "recovery_artifact": "detector-comparison-recovery-29813188073",
+    "run_id": 29813188073,
+    "updated_at": "2026-07-21T08:16:51Z"
+  },
+  "release": {
+    "asset_count": 13,
+    "asset_total_bytes": 812138310,
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/detector-comparison-complete-part001.zip",
+        "download_count": 0,
+        "id": 484428035,
+        "name": "detector-comparison-complete-part001.zip",
+        "size_bytes": 68984597
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/detector-comparison-gallery.zip",
+        "download_count": 0,
+        "id": 484428034,
+        "name": "detector-comparison-gallery.zip",
+        "size_bytes": 68862788
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/detector-comparison-metadata.zip",
+        "download_count": 0,
+        "id": 484428033,
+        "name": "detector-comparison-metadata.zip",
+        "size_bytes": 121875
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/nanodet-coco-annotated-part001.zip",
+        "download_count": 0,
+        "id": 484428036,
+        "name": "nanodet-coco-annotated-part001.zip",
+        "size_bytes": 168796352
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/nanodet-coco-complete-part001.zip",
+        "download_count": 0,
+        "id": 484428037,
+        "name": "nanodet-coco-complete-part001.zip",
+        "size_bytes": 170297671
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/nanodet-coco-detections-part001.zip",
+        "download_count": 0,
+        "id": 484428045,
+        "name": "nanodet-coco-detections-part001.zip",
+        "size_bytes": 723195
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/nanodet-coco-metadata.zip",
+        "download_count": 0,
+        "id": 484428052,
+        "name": "nanodet-coco-metadata.zip",
+        "size_bytes": 433672
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/nanodet-coco-offline-gallery.zip",
+        "download_count": 0,
+        "id": 484428060,
+        "name": "nanodet-coco-offline-gallery.zip",
+        "size_bytes": 344518
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/yolox-coco-annotated-part001.zip",
+        "download_count": 0,
+        "id": 484428066,
+        "name": "yolox-coco-annotated-part001.zip",
+        "size_bytes": 165675390
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/yolox-coco-complete-part001.zip",
+        "download_count": 0,
+        "id": 484428090,
+        "name": "yolox-coco-complete-part001.zip",
+        "size_bytes": 166786788
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/yolox-coco-detections-part001.zip",
+        "download_count": 0,
+        "id": 484428093,
+        "name": "yolox-coco-detections-part001.zip",
+        "size_bytes": 581267
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/yolox-coco-metadata.zip",
+        "download_count": 0,
+        "id": 484428110,
+        "name": "yolox-coco-metadata.zip",
+        "size_bytes": 309819
+      },
+      {
+        "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/media-detection-all-2026-07-13-v1/yolox-coco-offline-gallery.zip",
+        "download_count": 0,
+        "id": 484428125,
+        "name": "yolox-coco-offline-gallery.zip",
+        "size_bytes": 220378
+      }
+    ],
+    "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1",
+    "published_at": "2026-07-21T08:16:31Z",
+    "tag": "media-detection-all-2026-07-13-v1"
+  },
+  "release_family": [
+    {
+      "draft": false,
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1",
+      "published_at": "2026-07-21T08:16:31Z",
+      "tag": "media-detection-all-2026-07-13-v1"
+    }
+  ],
+  "repository": "PME26Elvis/media-experiment-ledger",
+  "representative_preview_count": 20,
+  "schema_version": 1,
+  "status": "verified",
+  "summary": {
+    "class_counts": [
+      {
+        "class_name": "airplane",
+        "delta": -3,
+        "nanodet": 6,
+        "yolox": 3
+      },
+      {
+        "class_name": "apple",
+        "delta": -10,
+        "nanodet": 10,
+        "yolox": 0
+      },
+      {
+        "class_name": "backpack",
+        "delta": -2,
+        "nanodet": 7,
+        "yolox": 5
+      },
+      {
+        "class_name": "banana",
+        "delta": -7,
+        "nanodet": 8,
+        "yolox": 1
+      },
+      {
+        "class_name": "bed",
+        "delta": -8,
+        "nanodet": 21,
+        "yolox": 13
+      },
+      {
+        "class_name": "bench",
+        "delta": -22,
+        "nanodet": 71,
+        "yolox": 49
+      },
+      {
+        "class_name": "bicycle",
+        "delta": -3,
+        "nanodet": 25,
+        "yolox": 22
+      },
+      {
+        "class_name": "bird",
+        "delta": -2,
+        "nanodet": 10,
+        "yolox": 8
+      },
+      {
+        "class_name": "boat",
+        "delta": -9,
+        "nanodet": 25,
+        "yolox": 16
+      },
+      {
+        "class_name": "book",
+        "delta": -39,
+        "nanodet": 54,
+        "yolox": 15
+      },
+      {
+        "class_name": "bottle",
+        "delta": -81,
+        "nanodet": 145,
+        "yolox": 64
+      },
+      {
+        "class_name": "bowl",
+        "delta": -100,
+        "nanodet": 148,
+        "yolox": 48
+      },
+      {
+        "class_name": "broccoli",
+        "delta": -73,
+        "nanodet": 74,
+        "yolox": 1
+      },
+      {
+        "class_name": "bus",
+        "delta": -7,
+        "nanodet": 8,
+        "yolox": 1
+      },
+      {
+        "class_name": "cake",
+        "delta": -26,
+        "nanodet": 29,
+        "yolox": 3
+      },
+      {
+        "class_name": "car",
+        "delta": -27,
+        "nanodet": 76,
+        "yolox": 49
+      },
+      {
+        "class_name": "carrot",
+        "delta": -35,
+        "nanodet": 35,
+        "yolox": 0
+      },
+      {
+        "class_name": "cat",
+        "delta": -19,
+        "nanodet": 19,
+        "yolox": 0
+      },
+      {
+        "class_name": "cell phone",
+        "delta": -35,
+        "nanodet": 86,
+        "yolox": 51
+      },
+      {
+        "class_name": "chair",
+        "delta": -85,
+        "nanodet": 187,
+        "yolox": 102
+      },
+      {
+        "class_name": "clock",
+        "delta": -12,
+        "nanodet": 27,
+        "yolox": 15
+      },
+      {
+        "class_name": "couch",
+        "delta": -10,
+        "nanodet": 40,
+        "yolox": 30
+      },
+      {
+        "class_name": "cup",
+        "delta": -80,
+        "nanodet": 174,
+        "yolox": 94
+      },
+      {
+        "class_name": "dining table",
+        "delta": -98,
+        "nanodet": 193,
+        "yolox": 95
+      },
+      {
+        "class_name": "dog",
+        "delta": -2,
+        "nanodet": 3,
+        "yolox": 1
+      },
+      {
+        "class_name": "donut",
+        "delta": -37,
+        "nanodet": 37,
+        "yolox": 0
+      },
+      {
+        "class_name": "fire hydrant",
+        "delta": -1,
+        "nanodet": 2,
+        "yolox": 1
+      },
+      {
+        "class_name": "fork",
+        "delta": -12,
+        "nanodet": 18,
+        "yolox": 6
+      },
+      {
+        "class_name": "handbag",
+        "delta": -8,
+        "nanodet": 11,
+        "yolox": 3
+      },
+      {
+        "class_name": "hot dog",
+        "delta": -3,
+        "nanodet": 3,
+        "yolox": 0
+      },
+      {
+        "class_name": "keyboard",
+        "delta": -12,
+        "nanodet": 29,
+        "yolox": 17
+      },
+      {
+        "class_name": "kite",
+        "delta": -2,
+        "nanodet": 3,
+        "yolox": 1
+      },
+      {
+        "class_name": "knife",
+        "delta": -30,
+        "nanodet": 33,
+        "yolox": 3
+      },
+      {
+        "class_name": "laptop",
+        "delta": -22,
+        "nanodet": 30,
+        "yolox": 8
+      },
+      {
+        "class_name": "microwave",
+        "delta": -21,
+        "nanodet": 23,
+        "yolox": 2
+      },
+      {
+        "class_name": "motorcycle",
+        "delta": -6,
+        "nanodet": 16,
+        "yolox": 10
+      },
+      {
+        "class_name": "mouse",
+        "delta": -24,
+        "nanodet": 37,
+        "yolox": 13
+      },
+      {
+        "class_name": "orange",
+        "delta": -22,
+        "nanodet": 22,
+        "yolox": 0
+      },
+      {
+        "class_name": "oven",
+        "delta": -17,
+        "nanodet": 23,
+        "yolox": 6
+      },
+      {
+        "class_name": "parking meter",
+        "delta": -4,
+        "nanodet": 5,
+        "yolox": 1
+      },
+      {
+        "class_name": "person",
+        "delta": -254,
+        "nanodet": 580,
+        "yolox": 326
+      },
+      {
+        "class_name": "pizza",
+        "delta": -10,
+        "nanodet": 10,
+        "yolox": 0
+      },
+      {
+        "class_name": "potted plant",
+        "delta": -103,
+        "nanodet": 340,
+        "yolox": 237
+      },
+      {
+        "class_name": "refrigerator",
+        "delta": -15,
+        "nanodet": 19,
+        "yolox": 4
+      },
+      {
+        "class_name": "remote",
+        "delta": -12,
+        "nanodet": 31,
+        "yolox": 19
+      },
+      {
+        "class_name": "sandwich",
+        "delta": -23,
+        "nanodet": 23,
+        "yolox": 0
+      },
+      {
+        "class_name": "scissors",
+        "delta": -13,
+        "nanodet": 15,
+        "yolox": 2
+      },
+      {
+        "class_name": "sheep",
+        "delta": -7,
+        "nanodet": 7,
+        "yolox": 0
+      },
+      {
+        "class_name": "sink",
+        "delta": -20,
+        "nanodet": 28,
+        "yolox": 8
+      },
+      {
+        "class_name": "skateboard",
+        "delta": -7,
+        "nanodet": 7,
+        "yolox": 0
+      },
+      {
+        "class_name": "skis",
+        "delta": -1,
+        "nanodet": 2,
+        "yolox": 1
+      },
+      {
+        "class_name": "snowboard",
+        "delta": -2,
+        "nanodet": 3,
+        "yolox": 1
+      },
+      {
+        "class_name": "spoon",
+        "delta": -11,
+        "nanodet": 25,
+        "yolox": 14
+      },
+      {
+        "class_name": "suitcase",
+        "delta": -35,
+        "nanodet": 70,
+        "yolox": 35
+      },
+      {
+        "class_name": "surfboard",
+        "delta": -1,
+        "nanodet": 1,
+        "yolox": 0
+      },
+      {
+        "class_name": "teddy bear",
+        "delta": -2,
+        "nanodet": 2,
+        "yolox": 0
+      },
+      {
+        "class_name": "tie",
+        "delta": -2,
+        "nanodet": 2,
+        "yolox": 0
+      },
+      {
+        "class_name": "toaster",
+        "delta": -12,
+        "nanodet": 12,
+        "yolox": 0
+      },
+      {
+        "class_name": "toilet",
+        "delta": -10,
+        "nanodet": 11,
+        "yolox": 1
+      },
+      {
+        "class_name": "toothbrush",
+        "delta": 4,
+        "nanodet": 2,
+        "yolox": 6
+      },
+      {
+        "class_name": "traffic light",
+        "delta": -18,
+        "nanodet": 20,
+        "yolox": 2
+      },
+      {
+        "class_name": "train",
+        "delta": -8,
+        "nanodet": 16,
+        "yolox": 8
+      },
+      {
+        "class_name": "truck",
+        "delta": -7,
+        "nanodet": 10,
+        "yolox": 3
+      },
+      {
+        "class_name": "tv",
+        "delta": -20,
+        "nanodet": 31,
+        "yolox": 11
+      },
+      {
+        "class_name": "umbrella",
+        "delta": -10,
+        "nanodet": 20,
+        "yolox": 10
+      },
+      {
+        "class_name": "vase",
+        "delta": -91,
+        "nanodet": 177,
+        "yolox": 86
+      },
+      {
+        "class_name": "wine glass",
+        "delta": -4,
+        "nanodet": 6,
+        "yolox": 2
+      }
+    ],
+    "images_compared": 387,
+    "matched_boxes": 902,
+    "mean_disagreement_score": 0.5574208811369509,
+    "nanodet_total_detections": 3243,
+    "states": {
+      "both-empty": 13,
+      "both-nonempty": 307,
+      "nanodet-only-nonempty": 61,
+      "yolox-only-nonempty": 6
+    },
+    "top_agreements": [
+      "2c0310ffc2182ac2d6e3f438d0cfcbb3e981a36affacd784cb3325a3b5d4f569",
+      "36d4a201fa8ba235c6ad814bede7d19614204e3ea4d04e5e03852c0bf8758408",
+      "3818322cfee6895c38054e3be246b5530ce8a3845a44ed0b1af90d990df8b2c1",
+      "58d2419bf910a08786f3bd922512b3df9c251d2cadcc7f361846317b431688bc",
+      "60ec3e3a5baf59451bcc6da84a148c12dcb34219aa80562c830341e2e2a0bccf",
+      "915ef7961409fb99de2b3627e10a3197e22d27ab93f0df94466b989f56488798",
+      "9781a5854e1a0e8735c50dd6c73b0d6ad8b19664f18915a1f68419d059997878",
+      "994d145175daf004405a3a3863bc5813b893f5a82e712728af93086ad35f07de",
+      "a4f1d3b39570b693a27517d7b4fa1584adb90afffadb1bb59456ed92aa78b003",
+      "b516118767e3384411fefeb866d3974ea5407f0aebe02b9526f505d69cb62a1f",
+      "dd0c71614579459d396ff1d13b15a514e7b0025f3b50901e223ad00d8625aaa8",
+      "e2991741cd48aba529af0faa974e02c330e8e5ab5f5e01a74ffba6c0130a73c6",
+      "e51c4bea46f7ec18ce360c9c3aa2f8337cf4a28f7f359d757ddac679d85951ad",
+      "7fb8d2eaa2a91a8d0d3a63645a0e7233abc5d41d77dc9dd49323e546be9ac701",
+      "ca3486ff9bc1dd08509f8abd7776352e6ebd5583d8b4dfc73dff6cb104a1fda1",
+      "1fcfefa74deadd13d38532d9b97aef5de655ff08d4b7f5bee7a2ed3b3845f7cf",
+      "e91850f017ecff99b5af070cc4133087b3d6ae1fabd6a461f73f4765be9ed4b2",
+      "503fc593b52d2a67737f3d6f1fd00215b088869dfa2ace54ef013d5714a870c9",
+      "886c41d136e526ed9eea0331eaa4d62f5024b96f3cda6690a895eb51d37c1c62",
+      "b9a0b6e4a9d74b1c1903e233639c348549ac388219a66812ae45127f830885c2",
+      "63a9d20593eb7d3d5ef05592fa5d7a1914a8d0f97308bcf191a270e25e0065b9",
+      "3f81c88faded4fd17627479c4e2bdf8d0ae7d912e46e54c4f026367b8f555720",
+      "f1f864c13398463b5b7987b77c76b3dc8c0eb51d7d64f1bf75509725b4f1f7bb",
+      "b78190a524373391a7e673c2d0edbd9b66e11144223d60eec6cf3742fe539694",
+      "15293ac4d939507469d63e95e8be9ed7bd93e20acd1c3cbfe5ef01140b12dc34",
+      "ac7122ec32d1688e1a80c9d5dd44cca8b1ed2f4a8321519e3bd27cb0d2b8b009",
+      "e2794ff8a5b1c3682129395390dacf97e5caa787d0442eb253b5c24764b424d1",
+      "a01b929d79b9f71cef451b4c17eb8cb88047d0b8ec731e2442418281904aae76",
+      "f88a5edb15afe610be8f3d8513c06af6060a4a97e81242acc79d799f220ea614",
+      "691f72dcc0ea1b3240bd7fe9723ecb9a4ece921ea31c18cb6207b1bd13b9b668",
+      "27bc112a2693760635fef1a08763552cd3f76262e06b9729dc936e9216ceb7b6",
+      "d64d88dc3d03fdbc230d792e6c3648d91e2c428fb8edb9870d85cd3249f13f72",
+      "bdbc665ea938e42ffdea5266c63e16fb6eb758ee59f91f3d11a54ceb00a18075",
+      "008ffddba21a9dfdeea75e2f53ffc5c49c4864289799556b22c248c6d80e926a",
+      "fb3889a7200d337090609e60941a6409cd2e35c0d95b5dd989a7568374cb67a9",
+      "9462f8e8c7a1fd9df0a0cd8908538598aaf13bcdd2b136cd507d14625e7fe884",
+      "a5aa7c1fad896077d704f135060f133cd5f7856bb28665feafd6ecd6ef5ebed7",
+      "5d83c5fd3c1c1f1e3e67bdb595610dfc1779ba00b10b441e323480402258562d",
+      "5ed0ea46a861e945550d6cf4d05dd4360f8550a53f45ebb308714c0ec008ca67",
+      "266eaf09d39a43ddf28610cabcbce1da2d00941d38cad845429c2004e4939197",
+      "32ca74479891c995fdf409cf3f8f7f6a2ef0e2a79812c4f3fd8960bca2a9b402",
+      "7578bd2b7b4eb634ef5ddfab886fd0d7d10371662600a11791930c229fc868be",
+      "e4b6ef319b99f1e0a2eab3c8604b2f339bf081fd4a52bbbb8698088bc5eeb5b5",
+      "da5849c1a8d5fb93368755533aeeade91dbca157b1b5a27c022ee8225795852b",
+      "9947f658f3781619049b2b37a34efec4ff363d0a157e2741e645302d66f6a8c2",
+      "ad3859f47708d0e86a7878e5b0b8a70c346463a8e55ac2ad76630d0656373df3",
+      "7658e392e61ffbe4b83ff50ea0cfbea10c2a582e03431365581d512e70ce1455",
+      "e8758d1ea781bf6737c87d0dafe73cc3cd6ca45266361309d3ae0cbe72917b13",
+      "6a52774a5325cb7c6661c5f1895b9a013d039b6f13c3fa340690a3d564de99a2",
+      "22dc2c05c125f970105fa578f5f88b76d1b49b1764c9ea4ff8baed2f96f55b1a"
+    ],
+    "top_disagreements": [
+      "023c29cbd04babd24b37894fc5cc2023f12b22d925b6769a629dfbf053d762d1",
+      "0b0c96b8a7083355526bb2dfb22a9d24f4dce4296644b5ae99e8739911987e18",
+      "16728dc8ddeaacbf0411f042734001257b8c48bbed017785f7052bbd8a87c073",
+      "17348ef23ba3c1eade6b4c9f4b69802322e8f81660b81fb6232e8803ab0eaf08",
+      "191e346288bb5ab4ae68053c5bea8fe4a4b8358241d661af1da4bad44a6bf1bb",
+      "1b7bc4cb16629d7152162265bde051f63c25518aa9cccaef8505f7910ee0d234",
+      "21a9f7399d49d4000b49b84198872c538892722f42f0ac8af7e048eb472553a0",
+      "25ede3a6733fe57d9f00bdbd2022861103a7fbcb0d448e36e66ce517a703beda",
+      "2e8674d82752626486e33ed68fad9109b5e13bcc227a53d782cc681b08faaac7",
+      "2f91d1997d4cca1e0e2dea12d071c195f6e347b5dd819fec19aed2c0e09e5fdb",
+      "31c786a4f68bde78df4ad7bbcb16406fc227775ea71da6bb7245b15db0b02fed",
+      "3758b68ec98b4d1a644c35c58c4be767fec7b89738d842f6723cea3d4d42f5b0",
+      "376edfe0ca9d4f0d06d14283b84e97f40e7120543988b5eec6844a397aeff155",
+      "3b0978a1e130bf634d7e51fbed45ceb480da5ba8c7e0a85315bdedd18d6a4d1f",
+      "3d6bb5ae8544a5c662f067473a29055ba41b73ee37ff6690898af892cb59a52f",
+      "3e5d20a4d1a0726b26c9071d79c7964c588fbcfde085bbe9b3a596a320b17090",
+      "400105c7bf8a67417bf9aa1e903cc36f2fa5cc37aa9a689f5855f113043e15d0",
+      "4050ecb068a0567c0bd2db04f4bdbb786340d92ddb64ab3d579585cb0c914f9a",
+      "4195180490b1e8c4f9ef7943ba52ebd6f34b589b64435824a39b591b5b3600aa",
+      "42a8de031535db8e39e574ef436c8440cfa70e1b1f84ee4ccc671b899b4806f3",
+      "47d0b2ccc279b4039ec91eda339cd8c45cc0060ab3e39391e404da0df9cc6394",
+      "4d88cb07a5cd80417251792fc4b5fdf4787a1f5f54ad2f95447902948bc5da32",
+      "57a5fce745ecbb31d6a05968843e5b8dbca89e2dc23e95c3a343cb7d37ffb3d5",
+      "5fa4eae9209268ce18e4f6eaa9fe6474ba4ced51ebd8ed5369f4fd6cc22eb55f",
+      "67f1a10ec8d6ad3c660b6d029133034d4ef7483026d2377f1212db2a8685b382",
+      "7240e0bda1dd54a3234c11fcf8a9e9f494bca40a10e5463bb6ab38d4c28eaf53",
+      "739f6055a1cef2d6f8dd8005f140940d3eba2a5e1da6e031fe771a1ff26a5bfb",
+      "7b0efd52aee4f06e8fb512b9369b56feadc7bd25247535373d9d276f5b4da387",
+      "859e69500c5000dce09b3a018f14870ca4505690f3cc7bb2b088415b20cb1662",
+      "8adff6b30a706951f1292bc9894fa835498389ad5bc37abd0685bdf09c5d0cb1",
+      "8f3699737dcbe5d67a057a6a0fc73f0d6d1ef43c84a0e5cbbbb08039dafd8a8a",
+      "91cb0a75c05e0b0bc7f0df8a322eede387c08ccef7caac490ba35f7803408f63",
+      "92abf827eb431e0002d49da2cd9d21ed5361c81eb3e1f1472629789a510d44a9",
+      "92bcfacfc76ac6ed187e70417ce4d157736704c15c01697f2efb417cb7efa462",
+      "92f8e7aa7b38c1e5c781e76d9334e7b192c8846e71da92cc5f843dbf44a98b82",
+      "94d409589171f0302c8338c2e365a5a5025eaa73f8f28917669f6fcfec665791",
+      "9eeda42ba6c78d144a03b086f5531c998961b3cebea0489b3e2261f83f8df8b9",
+      "a06c6d46224082f26fa22af1a7377a0718a7b1abffe0f2a14cb959608e9b2273",
+      "a5e04005488390bbbc860024534e8b2954e74106ad278f6a3c75fd7b3d83cdd4",
+      "a7634d1d9ee10a640f0aee1daa7a623c21c61805b349974c27933337b16c4a7a",
+      "aa32f9e0580aab4344a807511e00002e6c9a6c5ff11eadbe09a87e955bb91143",
+      "ad3aa499d768bbf74b8b21cd90268850577411b43f6d4523142dfd9c9534e0e0",
+      "adc4a90e62275677dd0d8e928629536b8dd17f1ba520bb46d76c6fc79be88c89",
+      "ae719889371a4f6d5814056c9864d7232e768ac0d77be8954cfb49b90a76d48b",
+      "ae857eae64caf8a814b649b72b055a48f8e14d4bf2535a8dbea4c4163412463c",
+      "b6091eb4ef4d10406b4a5d1bce721348bb654fd40555c1d76780a86963e23885",
+      "bb37b65d5ae3d563c02c3e6f59fedf446b51cb5f287dbd881c3c1b559dd309d4",
+      "bfde2da312026337e6d56de9874df6f8e8f8d24eb34e605d3382c6415187cc0c",
+      "c281835365417f63fed298a6287124beee4ef01037ad62ae1ae8ba1fdb5242aa",
+      "c3b9503a235a535b8d0877b0040d7c1800341400e25ce0be53c8da7b556e56aa"
+    ],
+    "yolox_total_detections": 1533
+  },
+  "thresholds": {
+    "confidence": 0.25,
+    "max_detections": 100,
+    "nms_iou": 0.45
+  },
+  "verified_at_utc": "2026-07-21T08:47:47+00:00",
+  "web_index_blob_sha": "65bfe798536607b24f811f9d60ef6bf107fa1c23",
+  "writeback": {
+    "atlas_index_sha_after": "3778183686ca7603e3c6d49013ff643182445cec",
+    "atlas_index_sha_before": "3778183686ca7603e3c6d49013ff643182445cec",
+    "atlas_non_regression": true,
+    "changed_files": [
+      "data/detection/history.json",
+      "data/detection/latest.json",
+      "web/public/data/detection/latest.json",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/023c29cbd04babd24b37894fc5cc2023f12b22d925b6769a629dfbf053d762d1.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/0b0c96b8a7083355526bb2dfb22a9d24f4dce4296644b5ae99e8739911987e18.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/16728dc8ddeaacbf0411f042734001257b8c48bbed017785f7052bbd8a87c073.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/17348ef23ba3c1eade6b4c9f4b69802322e8f81660b81fb6232e8803ab0eaf08.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/191e346288bb5ab4ae68053c5bea8fe4a4b8358241d661af1da4bad44a6bf1bb.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/1b7bc4cb16629d7152162265bde051f63c25518aa9cccaef8505f7910ee0d234.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/21a9f7399d49d4000b49b84198872c538892722f42f0ac8af7e048eb472553a0.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/25ede3a6733fe57d9f00bdbd2022861103a7fbcb0d448e36e66ce517a703beda.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/2e8674d82752626486e33ed68fad9109b5e13bcc227a53d782cc681b08faaac7.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/2f91d1997d4cca1e0e2dea12d071c195f6e347b5dd819fec19aed2c0e09e5fdb.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/31c786a4f68bde78df4ad7bbcb16406fc227775ea71da6bb7245b15db0b02fed.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/3758b68ec98b4d1a644c35c58c4be767fec7b89738d842f6723cea3d4d42f5b0.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/376edfe0ca9d4f0d06d14283b84e97f40e7120543988b5eec6844a397aeff155.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/3b0978a1e130bf634d7e51fbed45ceb480da5ba8c7e0a85315bdedd18d6a4d1f.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/3d6bb5ae8544a5c662f067473a29055ba41b73ee37ff6690898af892cb59a52f.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/3e5d20a4d1a0726b26c9071d79c7964c588fbcfde085bbe9b3a596a320b17090.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/400105c7bf8a67417bf9aa1e903cc36f2fa5cc37aa9a689f5855f113043e15d0.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/4050ecb068a0567c0bd2db04f4bdbb786340d92ddb64ab3d579585cb0c914f9a.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/4195180490b1e8c4f9ef7943ba52ebd6f34b589b64435824a39b591b5b3600aa.jpg",
+      "web/public/data/detection/previews/media-detection-all-2026-07-13-v1/42a8de031535db8e39e574ef436c8440cfa70e1b1f84ee4ccc671b899b4806f3.jpg"
+    ],
+    "detector_index_blob_sha": "65bfe798536607b24f811f9d60ef6bf107fa1c23",
+    "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/commit/9bef82a565ac25db97708628acfe8f56e1cc3b29",
+    "message": "detectors: publish YOLOX and NanoDet comparison index",
+    "parent_sha": "7d64ff51428ff0808a9c419d119accd0527ca9d0",
+    "sha": "9bef82a565ac25db97708628acfe8f56e1cc3b29"
+  }
+}
