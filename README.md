@@ -12,6 +12,8 @@
 - 正式統計分開呈現 **API 完成事件** 與 **封存媒體**；新發布若兩者數量不一致會被阻止。
 - [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) 會全量排查所有 `media-exp-*` manifests、JSONL、ZIP members、size、SHA-256 與 CRC。
 - YOLOX-Tiny／ONNX Runtime／COCO 物件偵測已正式上線：獨立 workflow、`media-yolo-*` Release、ZIP-only assets、index、README history 與 [YOLO Lab](web/src/content/docs/yolo-lab.mdx) 均已完成。首個 Release `media-yolo-all-2026-07-13-v1` 全量處理 387 張 canonical images，313 張有偵測，共 1,533 個 boxes；詳見[完整契約](docs/YOLO_OBJECT_DETECTION_SPEC.md)。
+- GitHub Pages 已採 build／deploy／writeback 分離：`site/` 只作為短期 Pages artifact，不提交進 Git；deploy 不再被其他 bot workflow 的 `main` writeback race 阻斷。
+- YOLOX + NanoDet-Plus 的三 workflow 聚合方向已完成 [`specified_not_implemented` 規格](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md)：兩個 inference artifacts 由 exact run IDs 配對，再由獨立 publisher 建立 `media-detection-*` Release 與 Original／YOLOX／NanoDet comparison gallery。
 
 ## 即時統計
 
