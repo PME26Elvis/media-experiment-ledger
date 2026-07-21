@@ -18,7 +18,10 @@
     "deployment_transport": "actions/upload-pages-artifact",
     "build_deploy_writeback_separate": true,
     "deployment_independent_of_writeback": true,
-    "writeback_paths": ["analytics/", "forecasts/"],
+    "writeback_paths": [
+      "analytics/",
+      "forecasts/"
+    ],
     "writeback_rebase_retries": 3,
     "primary_routes": [
       "overview",
@@ -56,7 +59,10 @@
       "image_selection": "strongest cohort per category first, then descending unique sample count with deterministic tie-breaking",
       "video_mode": "all",
       "video_min_unique_samples": 2,
-      "sections": ["Image highlights", "Video highlights"]
+      "sections": [
+        "Image highlights",
+        "Video highlights"
+      ]
     }
   },
   "experiment_integrity": {
@@ -104,9 +110,12 @@
       "release_notes_preview_max": 20
     },
     "multi_detector_yolox_nanodet": {
-      "status": "implemented_pending_production",
+      "status": "implemented",
       "spec": "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
-      "detectors": ["YOLOX-Tiny", "NanoDet-Plus-m-320"],
+      "detectors": [
+        "YOLOX-Tiny",
+        "NanoDet-Plus-m-320"
+      ],
       "inference_workflows": [
         ".github/workflows/detector-yolox-inference.yml",
         ".github/workflows/detector-nanodet-inference.yml"
@@ -133,11 +142,27 @@
       "web_index": "web/public/data/detection/latest.json",
       "detector_lab_route": "detector-lab",
       "release_notes_preview_max": 20,
-      "production_release": null,
-      "production_yolox_run_id": null,
-      "production_nanodet_run_id": null,
-      "production_publisher_run_id": null,
-      "production_writeback_commit": null
+      "production_release": "media-detection-all-2026-07-13-v1",
+      "production_yolox_run_id": "29812888677",
+      "production_nanodet_run_id": "29812888709",
+      "production_publisher_run_id": "29813188073",
+      "production_writeback_commit": "9bef82a565ac25db97708628acfe8f56e1cc3b29",
+      "production_analysis_batch_id": "detection-233b11b0368c4b9b98eb6cc148b25fde84ee5e94",
+      "production_corpus_fingerprint": "f08b71b86e701f571412e513039879c6052ed7f88d12e9c7d841de6cf339b9b2",
+      "production_canonical_images": 387,
+      "production_yolox_images_with_detections": 313,
+      "production_yolox_total_detections": 1533,
+      "production_nanodet_images_with_detections": 368,
+      "production_nanodet_total_detections": 3243,
+      "production_matched_boxes": 902,
+      "production_mean_disagreement_score": 0.5574208811369509,
+      "production_release_asset_count": 13,
+      "production_release_asset_bytes": 812138310,
+      "production_representative_previews": 20,
+      "production_pages_verified": true,
+      "production_atlas_non_regression": true,
+      "production_evidence_json": "docs/reports/NANODET_PRODUCTION_EVIDENCE.json",
+      "production_evidence_markdown": "docs/reports/NANODET_PRODUCTION_EVIDENCE.md"
     }
   },
   "required_validation": [
@@ -150,27 +175,56 @@
     "python tools/validate_site_build.py"
   ],
   "synchronized_surfaces": [
-    "README.md", "README.en.md", "AGENTS.md", "docs/PROJECT_CONTRACT.md",
-    "docs/ANALYTICS_AND_PAGES.md", "docs/WEB_EXPERIENCE_AND_FORECASTS.md",
-    "docs/PROMPT_REPEATABILITY_ATLAS.md", "docs/VIDEO_REPEATABILITY_ATLAS.md",
-    "docs/YOLO_OBJECT_DETECTION_SPEC.md", "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
-    "visual-analysis/config.json", "config/release-quarantine.json",
-    "config/atlas-history-overrides.json", ".gitignore",
-    ".github/workflows/analytics.yml", ".github/workflows/validate.yml",
+    "README.md",
+    "README.en.md",
+    "AGENTS.md",
+    "docs/PROJECT_CONTRACT.md",
+    "docs/ANALYTICS_AND_PAGES.md",
+    "docs/WEB_EXPERIENCE_AND_FORECASTS.md",
+    "docs/PROMPT_REPEATABILITY_ATLAS.md",
+    "docs/VIDEO_REPEATABILITY_ATLAS.md",
+    "docs/YOLO_OBJECT_DETECTION_SPEC.md",
+    "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
+    "visual-analysis/config.json",
+    "config/release-quarantine.json",
+    "config/atlas-history-overrides.json",
+    ".gitignore",
+    ".github/workflows/analytics.yml",
+    ".github/workflows/validate.yml",
     ".github/workflows/yolo-object-detection.yml",
     ".github/workflows/detector-yolox-inference.yml",
     ".github/workflows/detector-nanodet-inference.yml",
     ".github/workflows/detector-comparison-publish.yml",
-    "tools/validate_site_build.py", "requirements-yolo.txt", "requirements-nanodet.txt",
-    "object-detection/model-lock.json", "object-detection/nanodet-model-lock.json",
-    "object-detection/coco-80.json", "tools/yolo_core.py", "tools/yolo_corpus.py",
-    "tools/yolo_packages.py", "tools/yolo_publish.py", "tools/build_yolo_detection.py",
-    "tools/yolo_model_smoke.py", "tools/nanodet_core.py", "tools/prepare_nanodet_model.py",
-    "tools/nanodet_model_smoke.py", "tools/build_detector_artifact.py",
-    "tools/publish_detector_comparison.py", "data/yolo/latest.json", "data/yolo/history.json",
-    "web/public/data/yolo/latest.json", "data/detection/latest.json", "data/detection/history.json",
-    "web/public/data/detection/latest.json", "web/src/components/YoloLab.astro",
-    "web/src/content/docs/yolo-lab.mdx", "web/src/components/DetectorLab.astro",
-    "web/src/content/docs/detector-lab.mdx", "web/navigation.mjs", "tests"
+    "tools/validate_site_build.py",
+    "requirements-yolo.txt",
+    "requirements-nanodet.txt",
+    "object-detection/model-lock.json",
+    "object-detection/nanodet-model-lock.json",
+    "object-detection/coco-80.json",
+    "tools/yolo_core.py",
+    "tools/yolo_corpus.py",
+    "tools/yolo_packages.py",
+    "tools/yolo_publish.py",
+    "tools/build_yolo_detection.py",
+    "tools/yolo_model_smoke.py",
+    "tools/nanodet_core.py",
+    "tools/prepare_nanodet_model.py",
+    "tools/nanodet_model_smoke.py",
+    "tools/build_detector_artifact.py",
+    "tools/publish_detector_comparison.py",
+    "data/yolo/latest.json",
+    "data/yolo/history.json",
+    "web/public/data/yolo/latest.json",
+    "data/detection/latest.json",
+    "data/detection/history.json",
+    "web/public/data/detection/latest.json",
+    "web/src/components/YoloLab.astro",
+    "web/src/content/docs/yolo-lab.mdx",
+    "web/src/components/DetectorLab.astro",
+    "web/src/content/docs/detector-lab.mdx",
+    "web/navigation.mjs",
+    "tests",
+    "docs/reports/NANODET_PRODUCTION_EVIDENCE.json",
+    "docs/reports/NANODET_PRODUCTION_EVIDENCE.md"
   ]
 }

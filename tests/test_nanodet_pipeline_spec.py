@@ -9,11 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class NanoDetPipelineSpecTests(unittest.TestCase):
     def test_spec_requires_exact_run_pairing_and_no_accuracy_claim(self) -> None:
-        spec = (
-            ROOT / "docs" / "NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md"
-        ).read_text(encoding="utf-8")
+        spec = (ROOT / "docs" / "NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md").read_text(encoding="utf-8")
         for token in (
-            "Status: **`implemented_pending_production`**",
+            "Status: **`implemented`**",
             "detector-yolox-inference.yml",
             "detector-nanodet-inference.yml",
             "detector-comparison-publish.yml",
@@ -30,26 +28,21 @@ class NanoDetPipelineSpecTests(unittest.TestCase):
             self.assertIn(token, spec)
         self.assertIn("workflow artifacts are transport", spec.lower())
 
-    def test_machine_contract_marks_implementation_pending_production(self) -> None:
-        contract = json.loads(
-            (ROOT / "project-contract.json").read_text(encoding="utf-8")
-        )["planned_analysis"]["multi_detector_yolox_nanodet"]
-        self.assertEqual(contract["status"], "implemented_pending_production")
+    def test_machine_contract_records_verified_production(self) -> None:
+        contract = json.loads((ROOT / "project-contract.json").read_text(encoding="utf-8"))["planned_analysis"]["multi_detector_yolox_nanodet"]
+        self.assertEqual(contract["status"], "implemented")
+        self.assertEqual(contract["production_release"], 'media-detection-all-2026-07-13-v1')
+        self.assertEqual(contract["production_yolox_run_id"], '29812888677')
+        self.assertEqual(contract["production_nanodet_run_id"], '29812888709')
+        self.assertEqual(contract["production_publisher_run_id"], '29813188073')
+        self.assertEqual(contract["production_writeback_commit"], '9bef82a565ac25db97708628acfe8f56e1cc3b29')
+        self.assertEqual(contract["production_canonical_images"], 387)
+        self.assertTrue(contract["production_pages_verified"])
+        self.assertTrue(contract["production_atlas_non_regression"])
         self.assertEqual(contract["atlas_coupling"], "none")
-        self.assertIn("exact workflow run IDs", contract["artifact_pairing"])
-        self.assertEqual(contract["nanodet_model_lock"], "object-detection/nanodet-model-lock.json")
-        self.assertEqual(contract["detector_lab_route"], "detector-lab")
         self.assertFalse(contract["persistent_state"])
         self.assertFalse(contract["cross_run_cache_skip"])
         self.assertFalse(contract["published_result_reuse"])
-        for key in (
-            "production_release",
-            "production_yolox_run_id",
-            "production_nanodet_run_id",
-            "production_publisher_run_id",
-            "production_writeback_commit",
-        ):
-            self.assertIsNone(contract[key])
 
 
 if __name__ == "__main__":

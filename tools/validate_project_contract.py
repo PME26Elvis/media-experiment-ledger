@@ -302,6 +302,40 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
                 errors.append(f"Implemented detector contract requires {key}")
         if latest.get("status") != "published" or latest.get("release_tag") != multi.get("production_release"):
             errors.append("Implemented detector latest index must match production Release")
+        exact_fields = {
+            "analysis_batch_id": "production_analysis_batch_id",
+            "corpus_fingerprint": "production_corpus_fingerprint",
+        }
+        for index_key, contract_key in exact_fields.items():
+            require_equal(latest.get(index_key), multi.get(contract_key), f"Detector production {index_key}", errors)
+        detectors = latest.get("detectors") if isinstance(latest.get("detectors"), dict) else {}
+        summary = latest.get("summary") if isinstance(latest.get("summary"), dict) else {}
+        checks = {
+            "production_yolox_run_id": str((detectors.get("yolox-tiny") or {}).get("workflow_run_id") or ""),
+            "production_nanodet_run_id": str((detectors.get("nanodet-plus-m-320") or {}).get("workflow_run_id") or ""),
+            "production_canonical_images": summary.get("images_compared"),
+            "production_yolox_total_detections": summary.get("yolox_total_detections"),
+            "production_nanodet_total_detections": summary.get("nanodet_total_detections"),
+            "production_matched_boxes": summary.get("matched_boxes"),
+            "production_mean_disagreement_score": summary.get("mean_disagreement_score"),
+            "production_representative_previews": len(latest.get("previews") or []),
+        }
+        for contract_key, actual in checks.items():
+            require_equal(multi.get(contract_key), actual, f"Detector production {contract_key}", errors)
+        releases = history.get("releases") or []
+        if not releases or releases[0].get("tag") != multi.get("production_release"):
+            errors.append("Detector production history must lead with the production Release")
+        evidence_path = ROOT / str(multi.get("production_evidence_json") or "")
+        if not evidence_path.exists():
+            errors.append("Implemented detector contract requires permanent production evidence")
+        else:
+            evidence = read_json(evidence_path)
+            require_equal(evidence.get("status"), "verified", "Detector evidence status", errors)
+            require_equal((evidence.get("release") or {}).get("tag"), multi.get("production_release"), "Detector evidence Release", errors)
+            require_equal(str((evidence.get("publisher") or {}).get("run_id") or ""), str(multi.get("production_publisher_run_id") or ""), "Detector evidence publisher run", errors)
+            require_equal((evidence.get("writeback") or {}).get("sha"), multi.get("production_writeback_commit"), "Detector evidence writeback", errors)
+            require_equal((evidence.get("pages") or {}).get("status"), "verified", "Detector evidence Pages", errors)
+            require_equal((evidence.get("writeback") or {}).get("atlas_non_regression"), True, "Detector evidence Atlas non-regression", errors)
 
 
 def validate_text_surfaces(contract: dict[str, Any], errors: list[str]) -> None:

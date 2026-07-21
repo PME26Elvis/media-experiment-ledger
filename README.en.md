@@ -13,7 +13,7 @@ A release-backed experiment platform for structured image and video generation r
 - The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
 - YOLOX-Tiny / ONNX Runtime / COCO object detection is live with an independent workflow, `media-yolo-*` Releases, ZIP-only assets, indexes, README history, and [YOLO Lab](web/src/content/docs/yolo-lab.mdx). The first Release, `media-yolo-all-2026-07-13-v1`, processed all 387 canonical images, observed detections in 313, and produced 1,533 boxes. See the [full contract](docs/YOLO_OBJECT_DETECTION_SPEC.md).
 - GitHub Pages now separates build, deploy, and writeback: `site/` is a short-lived Pages artifact rather than tracked Git output, so deployment is no longer blocked by concurrent bot writeback races on `main`.
-- The three-workflow YOLOX + NanoDet-Plus pipeline is `implemented_pending_production`: two read-only inference workflows produce exact-run artifacts, then a publisher validates the full corpus/hash contract before creating a `media-detection-*` Release and Original/YOLOX/NanoDet comparison gallery.
+- The three-workflow YOLOX + NanoDet-Plus pipeline is `implemented`: two read-only inference workflows produce exact-run artifacts, then a publisher validates the full corpus/hash contract before creating a `media-detection-*` Release and Original/YOLOX/NanoDet comparison gallery.
 
 ## Live repository statistics
 
@@ -223,12 +223,11 @@ npm run build --prefix web
 <!-- NANODET:README_EN:START -->
 ## YOLOX + NanoDet multi-detector analysis
 
-The new pipeline is **`implemented_pending_production`**. YOLOX-Tiny and NanoDet-Plus-m-320 each rebuild the complete canonical corpus from scratch and upload short-lived workflow artifacts only. A third publisher pairs exact workflow run IDs and validates the full corpus/hash contract before creating a ZIP-only `media-detection-*` Release.
+The multi-detector pipeline is **`implemented`**. YOLOX-Tiny run `29812888677` and NanoDet-Plus-m-320 run `29812888709` each rebuilt all 387 canonical images from scratch. Publisher run `29813188073` paired the exact run IDs, validated the full corpus/hash contract, and published ZIP-only Release [`media-detection-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1).
 
-- [Detector Lab](web/src/content/docs/detector-lab.mdx) presents Original / YOLOX / NanoDet tri-panels, class overlap, box IoU, and agreement/disagreement.
-- The Release offline gallery covers the complete canonical corpus; the repository and Release Notes retain only up to 20 versioned representative previews.
-- This is not an accuracy benchmark. Without human COCO ground truth, the project does not claim precision, recall, mAP, false positives, or which detector is correct.
-- NanoDet uses the official immutable ONNX; CI executes real size, SHA, input-shape, output-shape, and ONNX Runtime checks.
-- Prompt Repeatability Atlas remains completely independent and shares no workflow, Release, index, preview, or finalizer.
-- Full contract: [NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md).
+- YOLOX observed 1,533 boxes; NanoDet observed 3,243; 902 same-class pairs matched at IoU ≥ 0.50.
+- Mean disagreement is 0.5574. This is not an accuracy benchmark; without human COCO ground truth, the project does not claim precision, recall, mAP, or which detector is correct.
+- [Detector Lab](web/src/content/docs/detector-lab.mdx) provides Original / YOLOX / NanoDet comparisons and 20 versioned representative previews; the Release gallery ZIP contains all 387 tri-panels.
+- Writeback commit `9bef82a565ac25db97708628acfe8f56e1cc3b29`, live Pages, ZIP-only assets, and Atlas non-regression were verified.
+- [Production evidence](docs/reports/NANODET_PRODUCTION_EVIDENCE.md) · [Full contract](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md)
 <!-- NANODET:README_EN:END -->

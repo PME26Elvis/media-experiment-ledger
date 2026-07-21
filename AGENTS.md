@@ -27,7 +27,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
 - YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, README history, 387-image coverage, and Atlas non-regression were verified.
-- YOLOX + NanoDet is `implemented_pending_production`; the workflows, indexes, Detector Lab, and `media-detection-*` publisher exist, but do not call the feature production-verified until the evidence fields in `project-contract.json` are populated.
+- YOLOX + NanoDet is `implemented`; the workflows, indexes, Detector Lab, and `media-detection-*` publisher exist, but do not call the feature production-verified until the evidence fields in `project-contract.json` are populated.
 
 ## Repository source-of-truth rules
 
@@ -122,14 +122,14 @@ python tools/validate_site_build.py
 For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For future NanoDet work, validate official checkpoint integrity, deterministic ONNX export, normalized sidecars, exact-run artifact pairing, and comparison-language guardrails.
 
 <!-- NANODET:AGENTS:START -->
-## Multi-detector implementation rules
+## Multi-detector behavior
 
-- Multi-detector status is `implemented_pending_production` until the production evidence fields in `project-contract.json` are populated.
-- Inference workflows are read-only and artifact-only. Pair only exact workflow run IDs; never combine independently selected "latest" runs.
-- NanoDet-Plus uses the SHA-pinned official immutable pre-exported ONNX and `requirements-nanodet.txt`; do not reintroduce the obsolete Lightning checkpoint exporter without a new audited decision.
-- The publisher must verify batch, corpus fingerprint, quarantine digest, source Releases, canonical image SHA set, COCO labels, thresholds, sidecar coverage, package hashes, and ZIP CRC before creating `media-detection-*`.
-- The offline comparison gallery must cover every canonical image. Detector Lab and Release Notes use at most 20 representative versioned previews.
-- Detector Lab is the primary combined UI. YOLO Lab remains a legacy historical view.
-- Use agreement/disagreement language only. No accuracy claim is allowed without ground truth.
-- Multi-detector work must not change Atlas workflow, Releases, previews, indexes, history, or finalizer.
+- Multi-detector status is `implemented`; production Release is `media-detection-all-2026-07-13-v1`.
+- Verified production runs: YOLOX `29812888677`, NanoDet `29812888709`, publisher `29813188073`, writeback `9bef82a565ac25db97708628acfe8f56e1cc3b29`.
+- Inference workflows remain read-only and artifact-only. Pair only exact workflow run IDs; never combine independently selected latest runs.
+- NanoDet uses the SHA-pinned official immutable ONNX and `requirements-nanodet.txt`.
+- Keep agreement/disagreement language; no accuracy claim without ground truth.
+- Detector Lab is the combined production UI; YOLO Lab is immutable legacy history.
+- Multi-detector work must not change Atlas workflow, Releases, previews, indexes, history, or finalizer. The verified detector writeback preserved Atlas blob `3778183686ca7603e3c6d49013ff643182445cec`.
+- Permanent evidence: `docs/reports/NANODET_PRODUCTION_EVIDENCE.json` and `.md`.
 <!-- NANODET:AGENTS:END -->
