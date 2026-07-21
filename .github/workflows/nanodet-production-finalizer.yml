@@ -1,0 +1,65 @@
+name: One-time NanoDet production finalizer
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/nanodet-production-finalizer.yml'
+      - 'tools/finalize_nanodet_production.py'
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  finalize:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Resolve production evidence and build synchronized patch
+        run: python tools/finalize_nanodet_production.py
+
+      - name: Validate generated production contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python tools/validate_project_contract.py
+          python -m compileall tools tests
+          python -m unittest tests.test_nanodet_pipeline_spec tests.test_detector_comparison -v
+
+      - name: Record exact parent and base tree
+        shell: bash
+        run: |
+          git rev-parse HEAD > nanodet-finalization-parent.txt
+          git rev-parse 'HEAD^{tree}' > nanodet-finalization-tree.txt
+
+      - name: Upload exact finalization patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: nanodet-production-finalization-${{ github.run_id }}
+          path: |
+            project-contract.json
+            tools/validate_project_contract.py
+            tests/test_nanodet_pipeline_spec.py
+            README.md
+            README.en.md
+            AGENTS.md
+            docs/PROJECT_CONTRACT.md
+            docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md
+            docs/reports/NANODET_PRODUCTION_EVIDENCE.json
+            docs/reports/NANODET_PRODUCTION_EVIDENCE.md
+            data/detection/latest.json
+            data/detection/history.json
+            web/public/data/detection/latest.json
+            nanodet-finalization-manifest.json
+            nanodet-finalization-parent.txt
+            nanodet-finalization-tree.txt
+          if-no-files-found: error
+          retention-days: 14
