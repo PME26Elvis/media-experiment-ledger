@@ -23,9 +23,9 @@ class NanoDetPipelineSpecTests(unittest.TestCase):
             "Original | YOLOX-Tiny | NanoDet-Plus",
             "not ground-truth labels or an accuracy benchmark",
             "Atlas impact: **none**",
+            '"Latest successful YOLO" plus "latest successful NanoDet" is forbidden',
         ):
             self.assertIn(token, spec)
-        self.assertIn("Never pair", spec)
         self.assertIn("workflow artifacts are transport", spec.lower())
 
     def test_machine_contract_marks_pipeline_as_planned_only(self) -> None:
