@@ -433,6 +433,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             "labels_sha256": report["labels_sha256"],
             "model_sha256": model_sha,
             "thresholds": report["thresholds"],
+            "summary": summary,
+            "timing": timings,
             "package_files": assets,
         }
         write_json(output_root / "completion-manifest.json", completion)

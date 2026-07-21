@@ -118,6 +118,15 @@ class DetectorComparisonTests(unittest.TestCase):
         self.assertIn('preview_map[digest] = f"images/{digest}.jpg"', source)
         self.assertIn("Only the small,", source)
 
+    def test_publisher_is_batch_idempotent_and_carries_runtime(self) -> None:
+        source = (ROOT / "tools" / "publish_detector_comparison.py").read_text(encoding="utf-8")
+        builder = (ROOT / "tools" / "build_detector_artifact.py").read_text(encoding="utf-8")
+        self.assertIn('return tag, "draft" if draft else "published"', source)
+        self.assertIn('release_state in {"new", "draft"}', source)
+        self.assertIn("does not carry the expected analysis batch", source)
+        self.assertIn('"timing": timings', builder)
+        self.assertIn('"summary": summary', builder)
+
     def test_artifact_validates_zip_hash_and_sidecar_coverage(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
@@ -142,6 +151,8 @@ class DetectorComparisonTests(unittest.TestCase):
                 "labels_sha256": "l" * 64,
                 "model_sha256": "m" * 64,
                 "thresholds": {"confidence": 0.25},
+                "summary": {},
+                "timing": {},
                 "package_files": [
                     {
                         "name": package.name,

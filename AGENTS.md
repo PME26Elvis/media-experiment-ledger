@@ -83,7 +83,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 
 ## Multi-detector behavior
 
-- Inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the planned publisher is `.github/workflows/detector-comparison-publish.yml`.
+- Inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the publisher is `.github/workflows/detector-comparison-publish.yml`.
 - The initial publisher must accept **exact workflow run IDs**. Never pair "latest successful" detector runs.
 - Both artifacts must have identical `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release list, canonical image SHA set, and COCO labels hash.
 - Workflow artifacts are short-lived transport only, never source of truth, inference cache, or persistent processing state.
