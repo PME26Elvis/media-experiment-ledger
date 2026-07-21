@@ -1,0 +1,233 @@
+name: One-time NanoDet production evidence writeback
+
+on:
+  workflow_run:
+    workflows:
+      - One-time NanoDet production bootstrap
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/detector-production-evidence-writeback.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: nanodet-production-evidence-writeback
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    outputs:
+      run_id: ${{ steps.resolve.outputs.run_id }}
+      artifact_name: ${{ steps.resolve.outputs.artifact_name }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Resolve successful bootstrap run and evidence artifact
+        id: resolve
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import os
+          import subprocess
+          import time
+
+          repo = os.environ['GITHUB_REPOSITORY']
+          event_name = os.environ['GITHUB_EVENT_NAME']
+          event_path = os.environ['GITHUB_EVENT_PATH']
+          deadline = time.monotonic() + 5 * 60 * 60
+
+          def gh(path: str):
+              result = subprocess.run(
+                  ['gh', 'api', path], text=True,
+                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+              )
+              if result.returncode:
+                  raise RuntimeError(result.stderr or result.stdout)
+              return json.loads(result.stdout or 'null')
+
+          if event_name == 'workflow_run':
+              event = json.loads(open(event_path, encoding='utf-8').read())
+              run_id = int(event['workflow_run']['id'])
+          else:
+              payload = gh(
+                  f'repos/{repo}/actions/workflows/'
+                  'detector-production-bootstrap.yml/runs?branch=main&per_page=20'
+              )
+              rows = payload.get('workflow_runs', [])
+              if not rows:
+                  raise RuntimeError('No NanoDet production bootstrap run exists')
+              run_id = max(rows, key=lambda row: int(row['id']))['id']
+
+          while time.monotonic() < deadline:
+              run = gh(f'repos/{repo}/actions/runs/{run_id}')
+              print(
+                  f'Bootstrap run {run_id}: {run.get("status")} / '
+                  f'{run.get("conclusion")}', flush=True,
+              )
+              if run.get('status') != 'completed':
+                  time.sleep(20)
+                  continue
+              if run.get('conclusion') != 'success':
+                  raise RuntimeError(
+                      f'Bootstrap run {run_id} concluded {run.get("conclusion")}'
+                  )
+              artifacts = gh(
+                  f'repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100'
+              ).get('artifacts', [])
+              names = [
+                  item['name'] for item in artifacts
+                  if not item.get('expired')
+                  and str(item.get('name', '')).startswith(
+                      'nanodet-production-evidence-'
+                  )
+              ]
+              if len(names) != 1:
+                  raise RuntimeError(
+                      f'Bootstrap run {run_id} expected one evidence artifact; '
+                      f'found {names}'
+                  )
+              with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
+                  output.write(f'run_id={run_id}\n')
+                  output.write(f'artifact_name={names[0]}\n')
+              raise SystemExit(0)
+          raise TimeoutError(f'Timed out waiting for bootstrap run {run_id}')
+          PY
+
+  writeback:
+    needs: resolve
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Download exact production evidence
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ needs.resolve.outputs.artifact_name }}
+          path: ${{ runner.temp }}/evidence
+          run-id: ${{ needs.resolve.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate and render permanent evidence
+        env:
+          EXPECTED_BOOTSTRAP_RUN_ID: ${{ needs.resolve.outputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from __future__ import annotations
+
+          import json
+          import os
+          from pathlib import Path
+
+          source = Path(os.environ['RUNNER_TEMP']) / 'evidence' / 'nanodet-production-evidence.json'
+          evidence = json.loads(source.read_text(encoding='utf-8'))
+          expected = str(os.environ['EXPECTED_BOOTSTRAP_RUN_ID'])
+          required = {
+              'analysis_batch_id', 'bootstrap_workflow_run_id', 'detectors',
+              'publisher', 'release', 'latest_index', 'pages',
+              'atlas_index_sha_before', 'atlas_index_sha_after',
+              'atlas_non_regression', 'completed_at_utc',
+          }
+          missing = sorted(required.difference(evidence))
+          if missing:
+              raise SystemExit(f'Evidence is missing: {missing}')
+          if str(evidence['bootstrap_workflow_run_id']) != expected:
+              raise SystemExit('Evidence bootstrap run ID mismatch')
+          if evidence.get('atlas_non_regression') is not True:
+              raise SystemExit('Atlas non-regression was not verified')
+          if evidence['atlas_index_sha_before'] != evidence['atlas_index_sha_after']:
+              raise SystemExit('Atlas index SHA changed')
+          if evidence.get('latest_index', {}).get('status') != 'published':
+              raise SystemExit('Detector latest index is not published')
+          if evidence.get('pages', {}).get('status') != 'verified':
+              raise SystemExit('Live Detector Lab was not verified')
+          assets = evidence.get('release', {}).get('assets', [])
+          if not assets or any(not str(item.get('name', '')).endswith('.zip') for item in assets):
+              raise SystemExit('Production Release is not ZIP-only')
+
+          destination = Path('docs/reports/NANODET_PRODUCTION_EVIDENCE.json')
+          destination.parent.mkdir(parents=True, exist_ok=True)
+          destination.write_text(
+              json.dumps(evidence, indent=2, sort_keys=True) + '\n',
+              encoding='utf-8',
+          )
+
+          detectors = evidence['detectors']
+          latest = evidence['latest_index']
+          summary = latest.get('summary', {})
+          release = evidence['release']
+          publisher = evidence['publisher']
+          pages = evidence['pages']
+          lines = [
+              '# NanoDet multi-detector production evidence',
+              '',
+              f"- Completed (UTC): `{evidence['completed_at_utc']}`",
+              f"- Analysis batch: `{evidence['analysis_batch_id']}`",
+              f"- Bootstrap workflow run: `{evidence['bootstrap_workflow_run_id']}`",
+              f"- YOLOX workflow run: `{detectors['yolox-tiny']['run_id']}`",
+              f"- NanoDet workflow run: `{detectors['nanodet-plus-m-320']['run_id']}`",
+              f"- Publisher workflow run: `{publisher['run_id']}`",
+              f"- Production Release: [{release['tag']}]({release['html_url']})",
+              f"- Canonical images compared: **{summary.get('images_compared', 0):,}**",
+              f"- YOLOX detections: **{summary.get('yolox_total_detections', 0):,}**",
+              f"- NanoDet detections: **{summary.get('nanodet_total_detections', 0):,}**",
+              f"- Matched boxes: **{summary.get('matched_boxes', 0):,}**",
+              f"- Mean disagreement: **{summary.get('mean_disagreement_score', 0):.3f}**",
+              f"- ZIP assets: **{len(release['assets'])}**",
+              f"- Detector Lab: [{pages['detector_lab_url']}]({pages['detector_lab_url']})",
+              f"- Deployed index: [{pages['index_url']}]({pages['index_url']})",
+              f"- Atlas index SHA unchanged: `{evidence['atlas_index_sha_before']}`",
+              '',
+              'This report records agreement/disagreement observations only. '
+              'The generated corpus has no human-verified COCO ground truth, so '
+              'the result is not an accuracy, precision, recall, or mAP benchmark.',
+              '',
+              'The complete machine-readable evidence is stored in '
+              '`NANODET_PRODUCTION_EVIDENCE.json`.',
+          ]
+          Path('docs/reports/NANODET_PRODUCTION_EVIDENCE.md').write_text(
+              '\n'.join(lines) + '\n', encoding='utf-8'
+          )
+          PY
+
+      - name: Commit permanent production evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          paths=(
+            docs/reports/NANODET_PRODUCTION_EVIDENCE.json
+            docs/reports/NANODET_PRODUCTION_EVIDENCE.md
+          )
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "${paths[@]}"
+          if git diff --cached --quiet; then
+            echo 'Production evidence is already current'
+            exit 0
+          fi
+          git commit -m 'docs: record verified NanoDet production evidence'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git rebase origin/main
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          exit 1
