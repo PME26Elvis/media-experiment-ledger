@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-07-20.6",
+  "contract_version": "2026-07-21.1",
   "default_user_language": "zh-TW",
   "repository": {
     "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
@@ -11,6 +11,36 @@
     "default_merge_method": "merge",
     "delete_branches_by_default": false
   },
+  "pages": {
+    "workflow_path": ".github/workflows/analytics.yml",
+    "build_output": "site/",
+    "build_output_tracked": false,
+    "deployment_transport": "actions/upload-pages-artifact",
+    "build_deploy_writeback_separate": true,
+    "deployment_independent_of_writeback": true,
+    "writeback_paths": [
+      "analytics/",
+      "forecasts/"
+    ],
+    "writeback_rebase_retries": 3,
+    "primary_routes": [
+      "overview",
+      "analytics",
+      "visual-lab",
+      "yolo-lab",
+      "forecast",
+      "architecture",
+      "frontend-stack"
+    ],
+    "deployed_json_artifacts": [
+      "data/analytics.json",
+      "data/forecast.json",
+      "data/visual-analysis.json",
+      "data/yolo/latest.json"
+    ],
+    "max_total_bytes": 1000000000,
+    "max_single_file_bytes": 100000000
+  },
   "atlas": {
     "scope": "all published, non-quarantined media-exp-* runs",
     "hidden_incremental_state": false,
@@ -20,7 +50,7 @@
     "video_seed_is_evidence_not_identity": true,
     "history_overrides_file": "config/atlas-history-overrides.json",
     "history_metric_policy": "audited authoritative override only for a proven corrupt legacy report; otherwise explicit immutable Atlas report value, then non-authoritative missing-field override, otherwise unknown; never current corpus totals",
-    "yolo_independence": "YOLO must not change, gate, share a finalizer with, or publish assets into the Atlas workflow or media-analysis-* Releases",
+    "yolo_independence": "YOLO and future detector comparison workflows must not change, gate, share a finalizer with, or publish assets into the Atlas workflow or media-analysis-* Releases",
     "release_notes": {
       "image_max": 15,
       "image_min_unique_samples": 4,
@@ -75,6 +105,29 @@
       "web_index": "web/public/data/yolo/latest.json",
       "visual_lab_route": "yolo-lab",
       "release_notes_preview_max": 20
+    },
+    "multi_detector_yolox_nanodet": {
+      "status": "specified_not_implemented",
+      "spec": "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
+      "detectors": [
+        "YOLOX-Tiny",
+        "NanoDet-Plus-m-320"
+      ],
+      "inference_workflows": [
+        ".github/workflows/detector-yolox-inference.yml",
+        ".github/workflows/detector-nanodet-inference.yml"
+      ],
+      "publisher_workflow": ".github/workflows/detector-comparison-publish.yml",
+      "release_pattern": "^media-detection-all-\\d{4}-\\d{2}-\\d{2}-v\\d+$",
+      "artifact_pairing": "exact workflow run IDs plus identical analysis_batch_id and canonical corpus fingerprint",
+      "artifact_role": "short-lived transport only; not a source of truth or inference cache",
+      "publisher_initial_mode": "manual exact run-ID inputs",
+      "comparison_language": "agreement and disagreement only; never accuracy without ground truth",
+      "atlas_coupling": "none",
+      "persistent_state": false,
+      "cross_run_cache_skip": false,
+      "published_result_reuse": false,
+      "comparison_gallery": "original, YOLOX-Tiny, and NanoDet-Plus tri-panel plus offline HTML ZIP"
     }
   },
   "required_validation": [
@@ -90,12 +143,18 @@
     "README.en.md",
     "AGENTS.md",
     "docs/PROJECT_CONTRACT.md",
+    "docs/ANALYTICS_AND_PAGES.md",
+    "docs/WEB_EXPERIENCE_AND_FORECASTS.md",
     "docs/PROMPT_REPEATABILITY_ATLAS.md",
     "docs/VIDEO_REPEATABILITY_ATLAS.md",
     "docs/YOLO_OBJECT_DETECTION_SPEC.md",
+    "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
     "visual-analysis/config.json",
     "config/release-quarantine.json",
     "config/atlas-history-overrides.json",
+    ".gitignore",
+    ".github/workflows/analytics.yml",
+    "tools/validate_site_build.py",
     "requirements-yolo.txt",
     "object-detection/model-lock.json",
     "object-detection/coco-80.json",
