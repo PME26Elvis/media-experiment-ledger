@@ -1,0 +1,110 @@
+name: Detector inference — NanoDet-Plus
+
+on:
+  workflow_dispatch:
+    inputs:
+      analysis_batch_id:
+        description: Immutable batch ID shared with YOLOX; blank derives from the requested commit
+        required: false
+        type: string
+      confidence_threshold:
+        description: Detection confidence threshold
+        required: false
+        default: '0.25'
+        type: string
+      nms_iou_threshold:
+        description: Class-aware NMS IoU threshold
+        required: false
+        default: '0.45'
+        type: string
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/detector-nanodet-inference.yml'
+      - '.github/workflows/detector-comparison-publish.yml'
+      - 'tools/build_detector_artifact.py'
+      - 'tools/nanodet_core.py'
+      - 'tools/prepare_nanodet_model.py'
+      - 'tools/publish_detector_comparison.py'
+      - 'object-detection/nanodet-model-lock.json'
+      - 'object-detection/coco-80.json'
+      - 'config/release-quarantine.json'
+      - 'requirements-nanodet-export.txt'
+
+concurrency:
+  group: detector-nanodet-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  infer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Checkout requested code
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: requirements-nanodet-export.txt
+      - name: Install pinned PyTorch CPU
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            torch==1.13.1+cpu torchvision==0.14.1+cpu \
+            --index-url https://download.pytorch.org/whl/cpu
+      - name: Install NanoDet export and runtime dependencies
+        run: python -m pip install -r requirements-nanodet-export.txt
+      - name: Checkout pinned official NanoDet source
+        run: |
+          git clone --depth 1 --branch v1.0.0-alpha-1 \
+            https://github.com/RangiLyu/nanodet.git '${{ runner.temp }}/nanodet-upstream'
+          python -m pip install -e '${{ runner.temp }}/nanodet-upstream' --no-deps
+      - name: Resolve immutable batch ID
+        id: batch
+        shell: bash
+        run: |
+          set -euo pipefail
+          requested='${{ inputs.analysis_batch_id }}'
+          if [[ -n "$requested" ]]; then batch="$requested"; else batch="detection-${GITHUB_SHA}"; fi
+          if [[ ! "$batch" =~ ^[A-Za-z0-9][A-Za-z0-9._-]{7,160}$ ]]; then
+            echo "Invalid analysis batch ID: $batch" >&2; exit 1
+          fi
+          echo "value=$batch" >> "$GITHUB_OUTPUT"
+      - name: Verify checkpoint and export fixed-shape ONNX
+        run: |
+          python tools/prepare_nanodet_model.py \
+            --lock object-detection/nanodet-model-lock.json \
+            --upstream '${{ runner.temp }}/nanodet-upstream' \
+            --output '${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' \
+            --report '${{ runner.temp }}/nanodet-model/export-report.json'
+      - name: Run complete canonical corpus from scratch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python tools/build_detector_artifact.py \
+            --repo '${{ github.repository }}' \
+            --analysis-batch-id '${{ steps.batch.outputs.value }}' \
+            --detector nanodet-plus-m-320 \
+            --output-dir '${{ runner.temp }}/detector-nanodet' \
+            --model-path '${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' \
+            --model-report '${{ runner.temp }}/nanodet-model/export-report.json' \
+            --confidence-threshold '${{ inputs.confidence_threshold || '0.25' }}' \
+            --nms-iou-threshold '${{ inputs.nms_iou_threshold || '0.45' }}'
+      - name: Upload transport artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: detector-nanodet-${{ steps.batch.outputs.value }}
+          path: ${{ runner.temp }}/detector-nanodet/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
+      - name: Summarize
+        run: |
+          echo '## NanoDet detector artifact' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Batch: `${{ steps.batch.outputs.value }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Official checkpoint → fixed-shape ONNX → ONNX Runtime CPU' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Product: short-lived workflow artifact only; no Release or main writeback' >> "$GITHUB_STEP_SUMMARY"
