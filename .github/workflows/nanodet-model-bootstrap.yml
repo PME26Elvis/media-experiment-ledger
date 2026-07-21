@@ -34,14 +34,29 @@ jobs:
           git clone --depth 1 --branch v1.0.0-alpha-1 \
             https://github.com/RangiLyu/nanodet.git '${{ runner.temp }}/nanodet-upstream'
           python -m pip install -e '${{ runner.temp }}/nanodet-upstream' --no-deps
-      - name: Export official checkpoint and record immutable hashes
+      - name: Record official Release asset inventory
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          gh api repos/RangiLyu/nanodet/releases/tags/v1.0.0-alpha-1 > nanodet-release.json
+          jq '[.assets[] | {name,size,browser_download_url,content_type}]' nanodet-release.json > nanodet-release-assets.json
+          cat nanodet-release-assets.json
+      - name: Export official checkpoint and record immutable hashes
+        id: export
+        shell: bash
+        run: |
+          set +e
+          mkdir -p '${{ runner.temp }}/nanodet-model'
           python tools/prepare_nanodet_model.py \
             --lock object-detection/nanodet-model-lock.json \
             --upstream '${{ runner.temp }}/nanodet-upstream' \
             --output '${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' \
             --report '${{ runner.temp }}/nanodet-model/export-report.json' \
-            --allow-unpinned
+            --allow-unpinned > nanodet-export.log 2>&1
+          status=$?
+          cat nanodet-export.log
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit "$status"
       - name: Run real ONNX Runtime shape smoke
         run: |
           MODEL='${{ runner.temp }}/nanodet-model/nanodet-plus-m-320.onnx' python - <<'PY'
@@ -53,15 +68,23 @@ jobs:
           output = session.run(None, {input_meta.name: np.zeros((1,3,320,320), dtype=np.float32)})[0]
           if list(output.shape) != [1, 2125, 112]:
               raise SystemExit(f'Unexpected NanoDet output shape: {output.shape}')
-          print(json.dumps({'input': input_meta.name, 'output_shape': list(output.shape)}, indent=2))
+          result = {'input': input_meta.name, 'output_shape': list(output.shape)}
+          print(json.dumps(result, indent=2))
+          with open('nanodet-onnx-smoke.json','w') as handle: json.dump(result, handle, indent=2)
           PY
       - name: Expose immutable supply-chain values
         run: |
           cat '${{ runner.temp }}/nanodet-model/export-report.json'
           cp '${{ runner.temp }}/nanodet-model/export-report.json' nanodet-bootstrap-report.json
-      - uses: actions/upload-artifact@v4
+      - name: Upload complete bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: nanodet-model-bootstrap-${{ github.run_id }}
-          path: nanodet-bootstrap-report.json
-          if-no-files-found: error
+          path: |
+            nanodet-release-assets.json
+            nanodet-export.log
+            nanodet-bootstrap-report.json
+            nanodet-onnx-smoke.json
+          if-no-files-found: warn
           retention-days: 7
