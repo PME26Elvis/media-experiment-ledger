@@ -22,7 +22,7 @@ All internal routes and browser-loaded artifacts use `web/src/lib/sitePath.ts`. 
 
 After every production build, `tools/validate_site_build.py` confirms that:
 
-- all seven primary route files exist;
+- all seven primary routes have compiled `index.html` files;
 - Overview contains base-safe links to every primary route;
 - Analytics, Forecast, Visual Lab, and YOLO Lab expose the correct base-prefixed JSON URLs;
 - all four deployed JSON artifacts parse as objects;
