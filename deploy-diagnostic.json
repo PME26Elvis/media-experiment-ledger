@@ -2,6 +2,122 @@
   "repository": "PME26Elvis/media-experiment-ledger",
   "failed_runs": [
     {
+      "run_id": 29799674069,
+      "name": "One-time deploy diagnostic",
+      "workflow_id": 317130281,
+      "event": "pull_request",
+      "head_sha": "6c6910bc6db7512e8ebbd28092266f89835000ac",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:52:24Z",
+      "updated_at": "2026-07-21T03:52:39Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799674069",
+      "jobs": [
+        {
+          "id": 88538073463,
+          "name": "diagnose",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799674069/job/88538073463",
+          "failed_steps": [
+            {
+              "name": "Commit diagnostic report",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 4,
+              "started_at": "2026-07-21T03:52:36Z",
+              "completed_at": "2026-07-21T03:52:37Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799645719,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "5beb1f66329f0869071ade060e40f98afc23a6a5",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:51:46Z",
+      "updated_at": "2026-07-21T03:52:32Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799645719",
+      "jobs": [
+        {
+          "id": 88537991814,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799645719/job/88537991814",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:52:30Z",
+              "completed_at": "2026-07-21T03:52:30Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799621471,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "408f66182dcc237e46eaa80334e317e4c2fea456",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:51:15Z",
+      "updated_at": "2026-07-21T03:52:18Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799621471",
+      "jobs": [
+        {
+          "id": 88537923614,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799621471/job/88537923614",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:52:14Z",
+              "completed_at": "2026-07-21T03:52:14Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run_id": 29799607918,
+      "name": "Validate ledger tooling",
+      "workflow_id": 312436950,
+      "event": "pull_request",
+      "head_sha": "c91a2f8b5451348e13c246300539c72ed66e89d3",
+      "head_branch": "agent/fix-deploy-and-spec-nanodet",
+      "created_at": "2026-07-21T03:50:57Z",
+      "updated_at": "2026-07-21T03:52:13Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799607918",
+      "jobs": [
+        {
+          "id": 88537886995,
+          "name": "test",
+          "conclusion": "failure",
+          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799607918/job/88537886995",
+          "failed_steps": [
+            {
+              "name": "Validate synchronized project contract",
+              "status": "completed",
+              "conclusion": "failure",
+              "number": 5,
+              "started_at": "2026-07-21T03:52:08Z",
+              "completed_at": "2026-07-21T03:52:08Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "run_id": 29799607844,
       "name": "One-time deploy diagnostic",
       "workflow_id": 317130281,
@@ -170,122 +286,6 @@
               "number": 5,
               "started_at": "2026-07-21T03:48:59Z",
               "completed_at": "2026-07-21T03:48:59Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29799402918,
-      "name": "One-time deploy diagnostic",
-      "workflow_id": 317130281,
-      "event": "pull_request",
-      "head_sha": "cf5e84e98e5a46a3a234de3522070be686c6e3c1",
-      "head_branch": "agent/fix-deploy-and-spec-nanodet",
-      "created_at": "2026-07-21T03:46:16Z",
-      "updated_at": "2026-07-21T03:46:36Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799402918",
-      "jobs": [
-        {
-          "id": 88537303386,
-          "name": "diagnose",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799402918/job/88537303386",
-          "failed_steps": [
-            {
-              "name": "Commit diagnostic report",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 4,
-              "started_at": "2026-07-21T03:46:33Z",
-              "completed_at": "2026-07-21T03:46:33Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29799270874,
-      "name": "One-time deploy diagnostic",
-      "workflow_id": 317130281,
-      "event": "pull_request",
-      "head_sha": "2aea1e8690be9ee482f6a903b5eb7dcf5a59384d",
-      "head_branch": "agent/fix-deploy-and-spec-nanodet",
-      "created_at": "2026-07-21T03:43:22Z",
-      "updated_at": "2026-07-21T03:43:42Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799270874",
-      "jobs": [
-        {
-          "id": 88536938143,
-          "name": "diagnose",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799270874/job/88536938143",
-          "failed_steps": [
-            {
-              "name": "Commit diagnostic report",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 4,
-              "started_at": "2026-07-21T03:43:39Z",
-              "completed_at": "2026-07-21T03:43:40Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29799099846,
-      "name": "One-time deploy diagnostic",
-      "workflow_id": 317130281,
-      "event": "pull_request",
-      "head_sha": "fcfe5e713c91738fb9393db0707abb8597b70667",
-      "head_branch": "agent/fix-deploy-and-spec-nanodet",
-      "created_at": "2026-07-21T03:39:34Z",
-      "updated_at": "2026-07-21T03:39:53Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799099846",
-      "jobs": [
-        {
-          "id": 88536460600,
-          "name": "diagnose",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799099846/job/88536460600",
-          "failed_steps": [
-            {
-              "name": "Commit diagnostic report",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 4,
-              "started_at": "2026-07-21T03:39:50Z",
-              "completed_at": "2026-07-21T03:39:50Z"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "run_id": 29799070118,
-      "name": "One-time deploy diagnostic",
-      "workflow_id": 317130281,
-      "event": "pull_request",
-      "head_sha": "b1f55d12ed8004c4230b91cbdb8efcbc17d01219",
-      "head_branch": "agent/fix-deploy-and-spec-nanodet",
-      "created_at": "2026-07-21T03:38:53Z",
-      "updated_at": "2026-07-21T03:39:15Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799070118",
-      "jobs": [
-        {
-          "id": 88536375262,
-          "name": "diagnose",
-          "conclusion": "failure",
-          "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29799070118/job/88536375262",
-          "failed_steps": [
-            {
-              "name": "Commit diagnostic report",
-              "status": "completed",
-              "conclusion": "failure",
-              "number": 4,
-              "started_at": "2026-07-21T03:39:12Z",
-              "completed_at": "2026-07-21T03:39:13Z"
             }
           ]
         }
