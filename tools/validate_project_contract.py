@@ -30,6 +30,8 @@ def require_text(path: Path, tokens: list[str], errors: list[str]) -> None:
 def validate() -> list[str]:
     errors: list[str] = []
     contract = read_json(ROOT / "project-contract.json")
+    repository = contract.get("repository") if isinstance(contract.get("repository"), dict) else {}
+    pages = contract.get("pages") if isinstance(contract.get("pages"), dict) else {}
     atlas = contract.get("atlas") if isinstance(contract.get("atlas"), dict) else {}
     notes = atlas.get("release_notes") if isinstance(atlas.get("release_notes"), dict) else {}
     integrity = contract.get("experiment_integrity") if isinstance(contract.get("experiment_integrity"), dict) else {}
@@ -51,7 +53,7 @@ def validate() -> list[str]:
                 f"project-contract.json requires {value!r}"
             )
     if "must not change" not in str(atlas.get("yolo_independence") or ""):
-        errors.append("Atlas contract must explicitly prohibit YOLO from changing Atlas")
+        errors.append("Atlas contract must prohibit detector workflows from changing Atlas")
 
     history_overrides_path = ROOT / str(atlas.get("history_overrides_file") or "")
     history_overrides = read_json(history_overrides_path)
@@ -77,7 +79,7 @@ def validate() -> list[str]:
     if "never current corpus totals" not in str(atlas.get("history_metric_policy") or ""):
         errors.append("Atlas history metric policy must prohibit current-total backfill")
 
-    quarantine_path = ROOT / str(contract.get("repository", {}).get("quarantine_file") or "")
+    quarantine_path = ROOT / str(repository.get("quarantine_file") or "")
     quarantine = read_json(quarantine_path)
     excluded = quarantine.get("excluded_runs")
     if not isinstance(excluded, list) or not excluded:
@@ -104,6 +106,80 @@ def validate() -> list[str]:
         for value in surfaces:
             if not (ROOT / str(value)).exists():
                 errors.append(f"Synchronized surface does not exist: {value}")
+
+    expected_pages = {
+        "workflow_path": ".github/workflows/analytics.yml",
+        "build_output": "site/",
+        "build_output_tracked": False,
+        "deployment_transport": "actions/upload-pages-artifact",
+        "build_deploy_writeback_separate": True,
+        "deployment_independent_of_writeback": True,
+        "writeback_paths": ["analytics/", "forecasts/"],
+        "writeback_rebase_retries": 3,
+        "primary_routes": [
+            "overview",
+            "analytics",
+            "visual-lab",
+            "yolo-lab",
+            "forecast",
+            "architecture",
+            "frontend-stack",
+        ],
+        "deployed_json_artifacts": [
+            "data/analytics.json",
+            "data/forecast.json",
+            "data/visual-analysis.json",
+            "data/yolo/latest.json",
+        ],
+        "max_total_bytes": 1_000_000_000,
+        "max_single_file_bytes": 100_000_000,
+    }
+    for key, value in expected_pages.items():
+        if pages.get(key) != value:
+            errors.append(f"Pages contract {key}={pages.get(key)!r}; expected {value!r}")
+
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
+    if "site/" not in gitignore:
+        errors.append(".gitignore must exclude the ephemeral site/ build output")
+    analytics_workflow = ROOT / str(pages.get("workflow_path") or "")
+    require_text(
+        analytics_workflow,
+        [
+            "  build:",
+            "  deploy:",
+            "  writeback:",
+            "needs: build",
+            "actions/upload-pages-artifact@v3",
+            "actions/deploy-pages@v4",
+            "actions/download-artifact@v5",
+            "analytics-writeback-${{ github.run_id }}",
+            "git rebase origin/main",
+            "paths=(analytics forecasts)",
+        ],
+        errors,
+    )
+    if analytics_workflow.exists():
+        workflow_text = analytics_workflow.read_text(encoding="utf-8")
+        for forbidden in (
+            "git add analytics forecasts site",
+            "git add site",
+            "git status --porcelain -- analytics forecasts site",
+        ):
+            if forbidden in workflow_text:
+                errors.append(f"Pages workflow must not track compiled site output: {forbidden!r}")
+
+    require_text(
+        ROOT / "tools" / "validate_site_build.py",
+        [
+            '"visual-lab"',
+            '"yolo-lab"',
+            'Path("data/visual-analysis.json")',
+            'Path("data/yolo/latest.json")',
+            "MAX_SITE_BYTES = 1_000_000_000",
+            "MAX_FILE_BYTES = 100_000_000",
+        ],
+        errors,
+    )
 
     yolo = planned.get("yolo_object_detection") if isinstance(planned, dict) else {}
     expected_yolo = {
@@ -167,27 +243,80 @@ def validate() -> list[str]:
             if latest.get(key) != value:
                 errors.append(f"YOLO production history {key}={latest.get(key)!r}; expected {value!r}")
 
+    multi = planned.get("multi_detector_yolox_nanodet") if isinstance(planned, dict) else {}
+    expected_multi = {
+        "status": "specified_not_implemented",
+        "spec": "docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
+        "detectors": ["YOLOX-Tiny", "NanoDet-Plus-m-320"],
+        "inference_workflows": [
+            ".github/workflows/detector-yolox-inference.yml",
+            ".github/workflows/detector-nanodet-inference.yml",
+        ],
+        "publisher_workflow": ".github/workflows/detector-comparison-publish.yml",
+        "release_pattern": r"^media-detection-all-\d{4}-\d{2}-\d{2}-v\d+$",
+        "artifact_pairing": "exact workflow run IDs plus identical analysis_batch_id and canonical corpus fingerprint",
+        "artifact_role": "short-lived transport only; not a source of truth or inference cache",
+        "publisher_initial_mode": "manual exact run-ID inputs",
+        "comparison_language": "agreement and disagreement only; never accuracy without ground truth",
+        "atlas_coupling": "none",
+        "persistent_state": False,
+        "cross_run_cache_skip": False,
+        "published_result_reuse": False,
+        "comparison_gallery": "original, YOLOX-Tiny, and NanoDet-Plus tri-panel plus offline HTML ZIP",
+    }
+    for key, value in expected_multi.items():
+        if multi.get(key) != value:
+            errors.append(f"Multi-detector contract {key}={multi.get(key)!r}; expected {value!r}")
+
+    require_text(
+        ROOT / str(multi.get("spec") or ""),
+        [
+            "Status: **`specified_not_implemented`**",
+            "detector-yolox-inference.yml",
+            "detector-nanodet-inference.yml",
+            "detector-comparison-publish.yml",
+            "media-detection-all-",
+            "exact run IDs",
+            "analysis_batch_id",
+            "Original | YOLOX-Tiny | NanoDet-Plus",
+            "not ground-truth labels or an accuracy benchmark",
+            "Atlas impact: **none**",
+        ],
+        errors,
+    )
+
     require_text(ROOT / "README.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
         "每 15 個 prompt", "YOLOX-Tiny", "API 完成事件", "封存媒體",
         "AUTO:YOLO_HISTORY:START", "media-yolo-all-2026-07-13-v1",
+        "NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
     ], errors)
     require_text(ROOT / "README.en.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
         "15 prompt", "YOLOX-Tiny", "API completion events", "archived media",
         "AUTO:YOLO_HISTORY_EN:START", "media-yolo-all-2026-07-13-v1",
+        "NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md",
     ], errors)
     require_text(ROOT / "AGENTS.md", [
         "project-contract.json", "config/release-quarantine.json",
         "config/atlas-history-overrides.json", "authoritative: true",
         "Traditional Chinese", "normal merge", "implemented", "media-yolo-*",
+        "site/", "media-detection-*", "exact workflow run IDs",
     ], errors)
     require_text(ROOT / "docs" / "PROJECT_CONTRACT.md", [
         "Source of truth", "Release quarantine", "Prompt Repeatability Atlas",
         "atlas-history-overrides.json", "implemented", "media-yolo-*",
         "media-yolo-all-2026-07-13-v1", "Contract validation",
+        "Pages build boundary", "specified_not_implemented", "media-detection-*",
+    ], errors)
+    require_text(ROOT / "docs" / "ANALYTICS_AND_PAGES.md", [
+        "build", "deploy", "writeback", "not committed to Git",
+        "cannot block Pages", "analytics/", "forecasts/",
+    ], errors)
+    require_text(ROOT / "docs" / "WEB_EXPERIENCE_AND_FORECASTS.md", [
+        "seven primary routes", "four deployed JSON artifacts", "site/", "actions/upload-pages-artifact",
     ], errors)
     require_text(ROOT / "docs" / "PROMPT_REPEATABILITY_ATLAS.md", ["ZIP-only", "15 prompt", "full-corpus"], errors)
     require_text(ROOT / "docs" / "VIDEO_REPEATABILITY_ATLAS.md", ["seed", "FFprobe", "15 prompt"], errors)
@@ -210,6 +339,7 @@ def validate() -> list[str]:
         for required in (
             "python tools/validate_project_contract.py",
             "python tools/yolo_model_smoke.py",
+            "python tools/validate_site_build.py",
         ):
             if required not in commands:
                 errors.append(f"Contract required_validation is missing {required}")

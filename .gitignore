@@ -5,6 +5,7 @@ results.zip.*
 restored-results*.zip
 logs/
 state/
+site/
 
 # Archive import and Release packaging workspaces
 .archive-imports/

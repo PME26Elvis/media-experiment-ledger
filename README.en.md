@@ -12,6 +12,8 @@ A release-backed experiment platform for structured image and video generation r
 - Formal reporting separates **API completion events** from **archived media**; new publication is blocked when those counts differ.
 - The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
 - YOLOX-Tiny / ONNX Runtime / COCO object detection is live with an independent workflow, `media-yolo-*` Releases, ZIP-only assets, indexes, README history, and [YOLO Lab](web/src/content/docs/yolo-lab.mdx). The first Release, `media-yolo-all-2026-07-13-v1`, processed all 387 canonical images, observed detections in 313, and produced 1,533 boxes. See the [full contract](docs/YOLO_OBJECT_DETECTION_SPEC.md).
+- GitHub Pages now separates build, deploy, and writeback: `site/` is a short-lived Pages artifact rather than tracked Git output, so deployment is no longer blocked by concurrent bot writeback races on `main`.
+- The three-workflow YOLOX + NanoDet-Plus direction now has a [`specified_not_implemented` specification](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md): two inference artifacts are paired by exact run IDs, then an independent publisher creates a `media-detection-*` Release and Original/YOLOX/NanoDet comparison gallery.
 
 ## Live repository statistics
 
