@@ -35,6 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ready: ${{ steps.resolve.outputs.ready }}
+      analysis_batch_id: ${{ steps.resolve.outputs.analysis_batch_id }}
       yolox_run_id: ${{ steps.resolve.outputs.yolox_run_id }}
       nanodet_run_id: ${{ steps.resolve.outputs.nanodet_run_id }}
       yolox_artifact: ${{ steps.resolve.outputs.yolox_artifact }}
@@ -58,20 +59,23 @@ jobs:
           import json, os, subprocess
           repo = os.environ['GITHUB_REPOSITORY']
           event = os.environ['EVENT_NAME']
+          output = os.environ['GITHUB_OUTPUT']
           def api(path):
               result = subprocess.run(['gh','api',path], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
               if result.returncode:
                   raise SystemExit(result.stderr or result.stdout)
               return json.loads(result.stdout)
+          def not_ready(message):
+              print(message)
+              with open(output,'a') as out: out.write('ready=false\n')
+              raise SystemExit(0)
           if event == 'workflow_run':
               if os.environ.get('TRIGGER_REPOSITORY') != repo:
                   raise SystemExit('Refusing artifacts from another repository')
               if os.environ.get('TRIGGER_BRANCH') != 'main':
                   raise SystemExit('Refusing workflow_run artifacts not targeting main')
               if os.environ.get('TRIGGER_CONCLUSION') != 'success':
-                  print('Trigger did not succeed; no publication')
-                  with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('ready=false\n')
-                  raise SystemExit(0)
+                  not_ready('Trigger did not succeed; no publication')
               sha = os.environ['TRIGGER_SHA']
               def latest(workflow):
                   payload = api(f'repos/{repo}/actions/workflows/{workflow}/runs?head_sha={sha}&status=success&per_page=20')
@@ -80,9 +84,7 @@ jobs:
               yolox_run = latest('detector-yolox-inference.yml')
               nanodet_run = latest('detector-nanodet-inference.yml')
               if not yolox_run or not nanodet_run:
-                  print('Counterpart detector artifact is not ready yet; later completion will retry')
-                  with open(os.environ['GITHUB_OUTPUT'],'a') as out: out.write('ready=false\n')
-                  raise SystemExit(0)
+                  not_ready('Counterpart detector artifact is not ready yet; later completion will retry')
           else:
               yolox_run = int(os.environ['INPUT_YOLOX_RUN'])
               nanodet_run = int(os.environ['INPUT_NANODET_RUN'])
@@ -104,8 +106,18 @@ jobs:
               return names[0]
           yolox_name = validate_run(yolox_run, 'detector-yolox-inference.yml', 'detector-yolox-')
           nanodet_name = validate_run(nanodet_run, 'detector-nanodet-inference.yml', 'detector-nanodet-')
-          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+          yolox_batch = yolox_name.removeprefix('detector-yolox-')
+          nanodet_batch = nanodet_name.removeprefix('detector-nanodet-')
+          if yolox_batch != nanodet_batch:
+              raise SystemExit(f'Artifact batch IDs differ: {yolox_batch!r} != {nanodet_batch!r}')
+          if event == 'workflow_run':
+              releases = api(f'repos/{repo}/releases?per_page=100')
+              duplicate = [row for row in releases if str(row.get('tag_name','')).startswith('media-detection-all-') and yolox_batch in str(row.get('body') or '')]
+              if duplicate:
+                  not_ready(f'Batch {yolox_batch} is already published as {duplicate[0]["tag_name"]}')
+          with open(output,'a') as out:
               out.write('ready=true\n')
+              out.write(f'analysis_batch_id={yolox_batch}\n')
               out.write(f'yolox_run_id={yolox_run}\n')
               out.write(f'nanodet_run_id={nanodet_run}\n')
               out.write(f'yolox_artifact={yolox_name}\n')
@@ -147,7 +159,7 @@ jobs:
           path: ${{ runner.temp }}/inputs/nanodet
           run-id: ${{ needs.resolve.outputs.nanodet_run_id }}
           github-token: ${{ github.token }}
-      - name: Validate pair, build comparison and publish
+      - name: Validate pair, build comparison and publish media-detection Release
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
