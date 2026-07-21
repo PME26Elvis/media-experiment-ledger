@@ -34,20 +34,26 @@ jobs:
         run: python tools/finalize_nanodet_production.py
 
       - name: Validate generated production contract
+        id: validate
+        continue-on-error: true
         shell: bash
         run: |
-          set -euo pipefail
-          python tools/validate_project_contract.py
-          python -m compileall tools tests
-          python -m unittest tests.test_nanodet_pipeline_spec tests.test_detector_comparison -v
+          set -o pipefail
+          {
+            python tools/validate_project_contract.py
+            python -m compileall tools tests
+            python -m unittest tests.test_nanodet_pipeline_spec tests.test_detector_comparison -v
+          } 2>&1 | tee nanodet-finalization-validation.log
 
       - name: Record exact parent and base tree
+        if: always()
         shell: bash
         run: |
           git rev-parse HEAD > nanodet-finalization-parent.txt
           git rev-parse 'HEAD^{tree}' > nanodet-finalization-tree.txt
 
       - name: Upload exact finalization patch
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nanodet-production-finalization-${{ github.run_id }}
@@ -66,7 +72,12 @@ jobs:
             data/detection/history.json
             web/public/data/detection/latest.json
             nanodet-finalization-manifest.json
+            nanodet-finalization-validation.log
             nanodet-finalization-parent.txt
             nanodet-finalization-tree.txt
           if-no-files-found: error
           retention-days: 14
+
+      - name: Enforce generated validation result
+        if: steps.validate.outcome != 'success'
+        run: exit 1
