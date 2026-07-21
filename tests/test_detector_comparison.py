@@ -7,6 +7,8 @@ import unittest
 import zipfile
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+
 from tools.publish_detector_comparison import (
     DISCLAIMER,
     compare_entry,
@@ -108,6 +110,13 @@ class DetectorComparisonTests(unittest.TestCase):
         mismatched = {**right, "corpus_fingerprint": "d" * 64}
         with self.assertRaisesRegex(ValueError, "corpus_fingerprint"):
             require_pair(base, mismatched)
+
+    def test_publisher_requires_full_corpus_offline_gallery(self) -> None:
+        source = (ROOT / "tools" / "publish_detector_comparison.py").read_text(encoding="utf-8")
+        self.assertIn("Offline gallery coverage mismatch", source)
+        self.assertIn('"offline_gallery_image_count": len(comparisons)', source)
+        self.assertIn('preview_map[digest] = f"images/{digest}.jpg"', source)
+        self.assertIn("Only the small,", source)
 
     def test_artifact_validates_zip_hash_and_sidecar_coverage(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
