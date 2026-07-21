@@ -1,6 +1,6 @@
 # Forecast Lab
 
-Generated: `2026-07-21T08:35:57+00:00`
+Generated: `2026-07-21T08:41:54+00:00`
 
 Data fingerprint: `9bdb26aaa3e431b0a5492bce8cea633acf9edd8098b32ea6181fca36e0423bae`
 
@@ -18,7 +18,7 @@ Estimated date: **2026-07-22**
 | Videos | 1.8 | 0.0–5.6 |
 | Errors | 2.5 | 0.9–4.1 |
 | Success rate | 67.1% | 37.0%–80.6% |
-| Mean latency | 79.9 | 66.6–124.9 |
+| Mean latency | 79.9 | 66.7–124.9 |
 
 ## Next calendar month — 2026-08
 
