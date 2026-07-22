@@ -38,13 +38,14 @@ jobs:
         run: python -m unittest discover -s engine/tests -p "test_*.py"
         env: { PYTHONPATH: engine }
       - name: Build and smoke self-contained engine
+        id: engine
         run: python scripts/build_engine.py
       - name: Build Electron application
         run: npm run build
       - name: Package unpacked application
         run: npx electron-builder --dir --publish never
       - name: Upload engine build evidence
-        if: always()
+        if: ${{ success() && steps.engine.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: engine-build-evidence-${{ matrix.os }}
