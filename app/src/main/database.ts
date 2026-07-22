@@ -15,6 +15,8 @@ const defaults: StudioSettings = {
   generatedOutputPath: '',
   closeBehavior: 'ask',
   reducedMotion: false,
+  updateChannel: 'beta',
+  checkUpdatesOnLaunch: true,
 }
 
 export interface ModelInstallation {
