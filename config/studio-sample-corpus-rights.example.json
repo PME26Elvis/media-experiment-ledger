@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "status": "review-required",
+  "approved_by": "",
+  "approved_at": "",
+  "license": "",
+  "source_release_tags": [],
+  "model_output_redistribution_reviewed": false,
+  "privacy_reviewed": false,
+  "prompt_policy": "ids-only",
+  "removed_fields": [
+    "provider_account",
+    "api_key",
+    "remote_task_id",
+    "raw_headers",
+    "user_identity"
+  ],
+  "notes": "Copy this file to an approved attestation only after reviewing provider output redistribution terms, privacy, prompts, source Releases and the intended corpus license. The workflow rejects review-required or incomplete attestations."
+}
