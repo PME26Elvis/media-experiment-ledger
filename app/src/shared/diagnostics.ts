@@ -1,20 +1,43 @@
-const WINDOWS_PATH = /(?:[A-Za-z]:\\|\\\\)[^\s"'<>|]+/gu
-const POSIX_PATH = /(?<![A-Za-z0-9])\/(?:Users|home|var|tmp|private|mnt|media|opt|srv|run|Volumes)\/[^\s"'<>]+/gu
-const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/giu
-const BEARER = /\bBearer\s+[A-Za-z0-9._~+\/-]+=*/giu
-const SECRET_ASSIGNMENT = /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[^\s,;]+/giu
-const DANGEROUS_SECRET_ASSIGNMENT = /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[A-Za-z0-9._~+\/-]{8,}/giu
-const LONG_TOKEN = /\b(?:sk|ghp|github_pat|AIza|nvapi|sess|key)[-_A-Za-z0-9]{12,}\b/gu
-const URL = /https?:\/\/[^\s"'<>]+/gu
+function windowsPathPattern(): RegExp {
+  return /(?:[A-Za-z]:\\+|\\\\)[^\s"'<>|]+/gu
+}
+
+function posixPathPattern(): RegExp {
+  return /(?<![A-Za-z0-9])\/(?:Users|home|var|tmp|private|mnt|media|opt|srv|run|Volumes)\/[^\s"'<>]+/gu
+}
+
+function emailPattern(): RegExp {
+  return /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/giu
+}
+
+function bearerPattern(): RegExp {
+  return /\bBearer\s+[A-Za-z0-9._~+\/-]+=*/giu
+}
+
+function secretAssignmentPattern(): RegExp {
+  return /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[^\s,;]+/giu
+}
+
+function dangerousSecretAssignmentPattern(): RegExp {
+  return /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[A-Za-z0-9._~+\/-]{8,}/iu
+}
+
+function longTokenPattern(): RegExp {
+  return /\b(?:sk|ghp|github_pat|AIza|nvapi|sess|key)[-_A-Za-z0-9]{12,}\b/gu
+}
+
+function httpUrlPattern(): RegExp {
+  return /https?:\/\/[^\s"'<>]+/gu
+}
 
 function redactUrl(value: string): string {
   try {
-    const url = new URL(value)
-    url.username = ''
-    url.password = ''
-    url.search = url.search ? '?[REDACTED]' : ''
-    url.hash = ''
-    return url.toString()
+    const parsed = new globalThis.URL(value)
+    parsed.username = ''
+    parsed.password = ''
+    parsed.search = parsed.search ? '?redacted=1' : ''
+    parsed.hash = ''
+    return parsed.toString()
   } catch {
     return '[REDACTED_URL]'
   }
@@ -22,13 +45,13 @@ function redactUrl(value: string): string {
 
 export function redactText(value: string): string {
   return value
-    .replace(BEARER, 'Bearer [REDACTED]')
-    .replace(SECRET_ASSIGNMENT, match => `${match.split(/[:=]/u, 1)[0]}=[REDACTED]`)
-    .replace(LONG_TOKEN, '[REDACTED_TOKEN]')
-    .replace(EMAIL, '[REDACTED_EMAIL]')
-    .replace(WINDOWS_PATH, '[REDACTED_PATH]')
-    .replace(POSIX_PATH, '[REDACTED_PATH]')
-    .replace(URL, redactUrl)
+    .replace(httpUrlPattern(), redactUrl)
+    .replace(bearerPattern(), 'Bearer [REDACTED]')
+    .replace(secretAssignmentPattern(), match => `${match.split(/[:=]/u, 1)[0]}=[REDACTED]`)
+    .replace(longTokenPattern(), '[REDACTED_TOKEN]')
+    .replace(emailPattern(), '[REDACTED_EMAIL]')
+    .replace(windowsPathPattern(), '[REDACTED_PATH]')
+    .replace(posixPathPattern(), '[REDACTED_PATH]')
     .slice(0, 8000)
 }
 
@@ -62,12 +85,10 @@ export function containsSecretLikeValue(value: unknown): boolean {
     .replaceAll('[REDACTED_EMAIL]', '')
     .replaceAll('[REDACTED_PATH]', '')
     .replaceAll('[REDACTED_URL]', '')
-  return Boolean(
-    serialized.match(BEARER)
-    || serialized.match(DANGEROUS_SECRET_ASSIGNMENT)
-    || serialized.match(LONG_TOKEN)
-    || serialized.match(EMAIL)
-    || serialized.match(WINDOWS_PATH)
-    || serialized.match(POSIX_PATH),
-  )
+  return bearerPattern().test(serialized)
+    || dangerousSecretAssignmentPattern().test(serialized)
+    || longTokenPattern().test(serialized)
+    || emailPattern().test(serialized)
+    || windowsPathPattern().test(serialized)
+    || posixPathPattern().test(serialized)
 }
