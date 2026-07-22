@@ -54,6 +54,9 @@
     "files": ["dist/**/*", "package.json"],
     "extraResources": [
       { "from": "engine", "to": "engine", "filter": ["**/*", "!tests/**", "!__pycache__/**"] },
+      { "from": "../tools/yolo_core.py", "to": "engine/vendor/yolo_core.py" },
+      { "from": "../tools/nanodet_core.py", "to": "engine/vendor/nanodet_core.py" },
+      { "from": "../object-detection/coco-80.json", "to": "engine/vendor/coco-80.json" },
       { "from": "../app-product-contract.json", "to": "app-product-contract.json" }
     ],
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
