@@ -1,4 +1,62 @@
 import { describe, expect, it } from 'vitest'
-import { validateSampleCorpusManifest } from '../src/main/sample-corpus-manager'
-const valid={schemaVersion:1,id:'quick-start',tier:'quick-start',version:1,title:'Quick Start',description:'demo',releaseTag:'studio-sample-corpus-quick-start-v1',generatedAt:'2026-07-22T00:00:00.000Z',rightsStatus:'approved',license:'CC-BY-4.0',sourceReleaseTags:['media-exp-2026-07-13'],sanitization:{prompts:'sanitized-full',removedFields:['api_key','local_path']},assets:[{id:'images-001',mediaType:'image',part:1,fileName:'images-part001.zip',url:'https://github.com/PME26Elvis/media-experiment-ledger/releases/download/tag/images-part001.zip',sha256:'a'.repeat(64),sizeBytes:123,required:true}]}
-describe('sample corpus manifest',()=>{it('accepts an approved immutable GitHub asset manifest',()=>{expect(validateSampleCorpusManifest(valid).id).toBe('quick-start')});it('rejects traversal names and untrusted hosts',()=>{expect(()=>validateSampleCorpusManifest({...valid,assets:[{...valid.assets[0],fileName:'../escape.zip'}]})).toThrow();expect(()=>validateSampleCorpusManifest({...valid,assets:[{...valid.assets[0],url:'https://example.com/file.zip'}]})).toThrow(/allowlisted/u)})})
+import { validateSampleCorpusManifest } from '../src/shared/sample-corpus-schema'
+
+const valid = {
+  schemaVersion: 1,
+  id: 'quick-start',
+  tier: 'quick-start',
+  version: 1,
+  title: 'Quick Start',
+  description: 'demo',
+  releaseTag: 'studio-sample-corpus-quick-start-v1',
+  generatedAt: '2026-07-22T00:00:00.000Z',
+  rightsStatus: 'approved',
+  license: 'CC-BY-4.0',
+  sourceReleaseTags: ['media-exp-2026-07-13'],
+  sanitization: {
+    prompts: 'sanitized-full',
+    removedFields: ['api_key', 'local_path'],
+  },
+  assets: [{
+    id: 'images-001',
+    mediaType: 'image',
+    part: 1,
+    fileName: 'images-part001.zip',
+    url: 'https://github.com/PME26Elvis/media-experiment-ledger/releases/download/tag/images-part001.zip',
+    sha256: 'a'.repeat(64),
+    sizeBytes: 123,
+    required: true,
+  }],
+} as const
+
+describe('sample corpus manifest', () => {
+  it('accepts an approved immutable GitHub asset manifest', () => {
+    expect(validateSampleCorpusManifest(valid).id).toBe('quick-start')
+  })
+
+  it('rejects traversal names and untrusted hosts', () => {
+    expect(() => validateSampleCorpusManifest({
+      ...valid,
+      assets: [{ ...valid.assets[0], fileName: '../escape.zip' }],
+    })).toThrow()
+    expect(() => validateSampleCorpusManifest({
+      ...valid,
+      assets: [{ ...valid.assets[0], url: 'https://example.com/file.zip' }],
+    })).toThrow(/allowlisted/u)
+  })
+
+  it('rejects insecure URLs, invalid hashes and duplicate IDs', () => {
+    expect(() => validateSampleCorpusManifest({
+      ...valid,
+      assets: [{ ...valid.assets[0], url: 'http://github.com/file.zip' }],
+    })).toThrow()
+    expect(() => validateSampleCorpusManifest({
+      ...valid,
+      assets: [{ ...valid.assets[0], sha256: 'invalid' }],
+    })).toThrow()
+    expect(() => validateSampleCorpusManifest({
+      ...valid,
+      assets: [valid.assets[0], { ...valid.assets[0] }],
+    })).toThrow(/Duplicate/u)
+  })
+})
