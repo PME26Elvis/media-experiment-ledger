@@ -10,7 +10,9 @@ import {
 } from 'electron'
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { StudioDatabase } from './database'
+import { registerDiagnosticsIpc } from './diagnostics-ipc'
 import { engineReady } from './engine'
 import { JobManager } from './job-manager'
 import { registerIpc } from './ipc'
@@ -19,6 +21,7 @@ import { applyPendingRecovery, createColdStartupBackup, RecoveryManager } from '
 import { ReportManager } from './report-manager'
 import { SampleCorpusManager } from './sample-corpus-manager'
 import { SecretStore } from './secret-store'
+import { SupportManager } from './support-manager'
 import { UpdateManager } from './update-manager'
 
 let mainWindow: BrowserWindow | null = null
@@ -43,7 +46,7 @@ function createWindow(): BrowserWindow {
     height: 940,
     minWidth: 390,
     minHeight: 640,
-    show: process.env.MEL_SMOKE_TEST !== '1' ? false : true,
+    show: process.env.MEL_SMOKE_TEST === '1',
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0b1020' : '#f5f7fb',
     webPreferences: {
       preload: preloadPath(),
@@ -108,7 +111,15 @@ function createTray(): void {
     tray.setToolTip('Media Experiment Ledger Studio')
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Open Studio', click: () => mainWindow?.show() },
-      { label: 'Job Center', click: () => { mainWindow?.show(); void mainWindow?.loadURL('file://' + rendererPath() + '#/jobs') } },
+      {
+        label: 'Job Center',
+        click: () => {
+          mainWindow?.show()
+          const url = pathToFileURL(rendererPath())
+          url.hash = '/jobs'
+          void mainWindow?.loadURL(url.href)
+        },
+      },
       { type: 'separator' },
       {
         label: 'Quit',
@@ -147,7 +158,7 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
     let preloadBridge = false
     try {
       preloadBridge = Boolean(await window.webContents.executeJavaScript(
-        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery)",
+        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics && window.melDiagnostics.preview)",
         true,
       ))
     } catch {
@@ -213,6 +224,7 @@ else {
       recovery,
       updater,
     )
+    registerDiagnosticsIpc(new SupportManager(userDataPath, database))
     const window = createWindow()
     if (process.env.MEL_SMOKE_TEST === '1') {
       startPackagedSmoke(window, database)
