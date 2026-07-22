@@ -5,7 +5,7 @@
   "description": "Local-first Atlas, object detection and media automation studio",
   "main": "dist/main/main/main.js",
   "license": "Apache-2.0",
-  "engines": { "node": ">=22.12.0" },
+  "engines": { "node": ">=22.12.0 <23" },
   "scripts": {
     "clean": "node scripts/clean.mjs",
     "dev": "concurrently -k \"vite --host 127.0.0.1\" \"tsc -p tsconfig.main.json --watch --preserveWatchOutput\" \"wait-on tcp:5173 dist/main/main/main.js && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
@@ -26,12 +26,12 @@
     "pinia": "4.0.2",
     "vue": "3.5.40",
     "vue-i18n": "11.4.6",
-    "vue-router": "5.2.0",
+    "vue-router": "4.6.3",
     "vuetify": "3.12.10",
     "zod": "4.1.12"
   },
   "devDependencies": {
-    "@types/node": "24.10.1",
+    "@types/node": "22.18.12",
     "@vitejs/plugin-vue": "6.0.8",
     "@vitest/coverage-v8": "4.1.10",
     "@vue/test-utils": "2.4.6",
@@ -41,7 +41,7 @@
     "electron-builder": "26.15.3",
     "happy-dom": "20.11.0",
     "typescript": "5.9.3",
-    "vite": "8.1.5",
+    "vite": "7.3.1",
     "vitest": "4.1.10",
     "vue-tsc": "3.1.1",
     "wait-on": "8.0.4"

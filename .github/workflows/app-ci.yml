@@ -21,10 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '24' }
+        with: { node-version: '22.21.1' }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
-      - run: npm install
+      - name: Install JavaScript dependencies
+        run: npm install --loglevel verbose
       - run: npm run typecheck
       - run: npm test
       - run: python -m pip install -r engine/requirements.txt
@@ -39,4 +40,5 @@ jobs:
           path: |
             app/coverage
             app/dist
+            ~/.npm/_logs
           retention-days: 7
