@@ -7,6 +7,14 @@ const defaults: StudioSettings = {
   locale: 'zh-TW', appearance: 'system', imageInputPath: '', videoInputPath: '', atlasOutputPath: '', detectionOutputPath: '', generatedOutputPath: '', closeBehavior: 'ask', reducedMotion: false,
 }
 
+export interface ModelInstallation {
+  modelId: string
+  localPath: string
+  sha256: string
+  sizeBytes: number
+  importedAt: string
+}
+
 export class StudioDatabase {
   private readonly db: DatabaseSync
 
@@ -27,8 +35,13 @@ export class StudioDatabase {
         total_items INTEGER NOT NULL, config_json TEXT NOT NULL, output_json TEXT,
         error TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS model_installations (
+        model_id TEXT PRIMARY KEY, local_path TEXT NOT NULL, sha256 TEXT NOT NULL,
+        size_bytes INTEGER NOT NULL, imported_at TEXT NOT NULL
+      );
       CREATE INDEX IF NOT EXISTS jobs_updated_idx ON jobs(updated_at DESC);
-      INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version','1');
+      INSERT OR IGNORE INTO schema_meta(key,value) VALUES('schema_version','2');
+      UPDATE schema_meta SET value='2' WHERE key='schema_version';
     `)
   }
 
@@ -42,14 +55,9 @@ export class StudioDatabase {
   setSettings(patch: Partial<StudioSettings>): StudioSettings {
     const now = new Date().toISOString()
     const statement = this.db.prepare('INSERT INTO settings(key,value_json,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json, updated_at=excluded.updated_at')
-    this.db.exec('BEGIN IMMEDIATE')
-    try {
+    this.transaction(() => {
       for (const [key, value] of Object.entries(patch)) statement.run(key, JSON.stringify(value), now)
-      this.db.exec('COMMIT')
-    } catch (error) {
-      this.db.exec('ROLLBACK')
-      throw error
-    }
+    })
     return this.getSettings()
   }
 
@@ -73,4 +81,27 @@ export class StudioDatabase {
   }
 
   getJob(id: string): JobRecord | undefined { return this.listJobs().find((job) => job.id === id) }
+
+  listModelInstallations(): ModelInstallation[] {
+    const rows = this.db.prepare('SELECT model_id, local_path, sha256, size_bytes, imported_at FROM model_installations').all() as Array<Record<string, unknown>>
+    return rows.map((row) => ({ modelId: String(row.model_id), localPath: String(row.local_path), sha256: String(row.sha256), sizeBytes: Number(row.size_bytes), importedAt: String(row.imported_at) }))
+  }
+
+  getModelInstallation(modelId: string): ModelInstallation | undefined {
+    return this.listModelInstallations().find((item) => item.modelId === modelId)
+  }
+
+  upsertModelInstallation(item: ModelInstallation): void {
+    this.db.prepare(`INSERT INTO model_installations(model_id,local_path,sha256,size_bytes,imported_at) VALUES(?,?,?,?,?)
+      ON CONFLICT(model_id) DO UPDATE SET local_path=excluded.local_path,sha256=excluded.sha256,size_bytes=excluded.size_bytes,imported_at=excluded.imported_at`).run(item.modelId, item.localPath, item.sha256, item.sizeBytes, item.importedAt)
+  }
+
+  removeModelInstallation(modelId: string): void {
+    this.db.prepare('DELETE FROM model_installations WHERE model_id=?').run(modelId)
+  }
+
+  private transaction(operation: () => void): void {
+    this.db.exec('BEGIN IMMEDIATE')
+    try { operation(); this.db.exec('COMMIT') } catch (error) { this.db.exec('ROLLBACK'); throw error }
+  }
 }

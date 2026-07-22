@@ -4,9 +4,11 @@ import { IPC, type MelDesktopApi } from '../shared/contracts'
 const api: MelDesktopApi = {
   systemInfo: () => ipcRenderer.invoke(IPC.systemInfo),
   chooseDirectory: (defaultPath) => ipcRenderer.invoke(IPC.chooseDirectory, defaultPath),
+  chooseFile: (options) => ipcRenderer.invoke(IPC.chooseFile, options),
   revealPath: (path) => ipcRenderer.invoke(IPC.revealPath, path),
   settings: { get: () => ipcRenderer.invoke(IPC.settingsGet), set: (patch) => ipcRenderer.invoke(IPC.settingsSet, patch) },
   jobs: { list: () => ipcRenderer.invoke(IPC.jobsList), create: (request) => ipcRenderer.invoke(IPC.jobsCreate, request), control: (id, action) => ipcRenderer.invoke(IPC.jobsControl, id, action) },
+  models: { list: () => ipcRenderer.invoke(IPC.modelsList), import: (modelId, sourcePath) => ipcRenderer.invoke(IPC.modelsImport, modelId, sourcePath), remove: (modelId) => ipcRenderer.invoke(IPC.modelsRemove, modelId) },
   updater: { check: () => ipcRenderer.invoke(IPC.updaterCheck), install: () => ipcRenderer.invoke(IPC.updaterInstall) },
 }
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))

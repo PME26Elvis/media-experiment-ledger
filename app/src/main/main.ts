@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { StudioDatabase } from './database'
 import { JobManager } from './job-manager'
 import { registerIpc } from './ipc'
+import { ModelManager } from './model-manager'
 
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -29,8 +30,9 @@ function createTray(): void {
 
 app.whenReady().then(() => {
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(false))
-  const db = new StudioDatabase(join(app.getPath('userData'), 'studio.sqlite'))
-  registerIpc(db, new JobManager(db))
+  const userDataPath = app.getPath('userData')
+  const db = new StudioDatabase(join(userDataPath, 'studio.sqlite'))
+  registerIpc(db, new JobManager(db), new ModelManager(db, userDataPath))
   createWindow(); createTray()
   app.on('activate', () => mainWindow ? mainWindow.show() : createWindow())
 })
