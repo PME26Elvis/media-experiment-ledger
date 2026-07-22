@@ -67,7 +67,7 @@ A newer accepted decision overrides earlier provisional or deferral language. Im
 | [`08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md`](08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md) | Online/offline updates, backup, migration and Recovery Center |
 | [`09_TESTING_RELEASE_AND_ACCEPTANCE.md`](09_TESTING_RELEASE_AND_ACCEPTANCE.md) | Original test/release baseline, extended by round-three TDD/SDD policy |
 | [`10_ROADMAP_AND_DELIVERY_PLAN.md`](10_ROADMAP_AND_DELIVERY_PLAN.md) | Dependency ordering and delivery gates; all mature capabilities now belong to v1 |
-| [`DECISIONS.md`](DECISIONS.md) | Baseline decision history |
+| [`DECISIONS.md`](DECISIONS.md) | Accepted decision history through APP-D-050 |
 | [`REFERENCES.md`](REFERENCES.md) | Initial upstream references and audit checklist |
 
 ## Accepted v1 architecture summary
@@ -155,12 +155,12 @@ A feature is incomplete when only its happy path works.
 
 ## Specification-ready determination
 
-The previous readiness gates are now satisfied at the product-decision level:
+The product-decision readiness gates are satisfied:
 
 - all accepted modules have a v1 requirement matrix;
 - security-critical architecture decisions are accepted;
 - packaging/updater and self-contained engine architecture are fixed;
-- all six packages have required test evidence;
+- all six packages have required test evidence definitions;
 - update/signing policy is fixed;
 - credential fallback and portable vault are fixed;
 - GPU providers are fixed;
@@ -179,3 +179,7 @@ Therefore the product status is `implementation_ready`. This does not mean the a
 - Use normal merge commits.
 - Preserve branches unless the user asks for deletion.
 - Draft PR #29 remains an unmerged specification review surface until the user changes that instruction.
+
+## Authorization boundary
+
+No production implementation, packaging claim or Release claim is implied by these documents. The next valid action is to wait until the user explicitly asks to begin or complete implementation.
