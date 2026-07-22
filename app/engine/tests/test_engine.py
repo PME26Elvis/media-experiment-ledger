@@ -3,6 +3,9 @@ import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from PIL import Image
+
+from mel_engine.atlas import extract_video_evidence, run_atlas
 from mel_engine.automation import ApiError, CircuitBreaker, classify_error, load_prompts, parse_retry_after
 from mel_engine.common import iter_media
 from mel_engine.detection import select_providers
@@ -88,6 +91,38 @@ class EngineTests(unittest.TestCase):
         for success in (True, False, False, False):
             rolling.record(success)
         self.assertIn('rolling error rate', rolling.reason() or '')
+
+    def test_gif_video_evidence_contains_three_frame_strip_poster_and_preview(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'animated.gif'
+            frames = [Image.new('RGB', (80, 48), color) for color in ('red', 'green', 'blue', 'white')]
+            frames[0].save(source, save_all=True, append_images=frames[1:], duration=100, loop=0)
+            evidence = extract_video_evidence(source, root / 'output')
+            self.assertEqual(evidence['percentages'], [0.1, 0.5, 0.9])
+            self.assertEqual(evidence['frame_count'], 4)
+            self.assertTrue(Path(evidence['strip']['path']).is_file())
+            self.assertTrue(Path(evidence['poster']['path']).is_file())
+            self.assertTrue(Path(evidence['gif_preview']['path']).is_file())
+            self.assertEqual(len(evidence['strip']['sha256']), 64)
+
+    def test_atlas_manifest_separates_image_and_video_evidence_and_is_resumable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            inputs = root / 'inputs'
+            output = root / 'output'
+            inputs.mkdir()
+            Image.new('RGB', (64, 64), 'purple').save(inputs / 'image.png')
+            frames = [Image.new('RGB', (64, 48), color) for color in ('black', 'gray', 'white')]
+            frames[0].save(inputs / 'clip.gif', save_all=True, append_images=frames[1:], duration=120, loop=0)
+            first = run_atlas({'input_path': str(inputs), 'output_path': str(output), 'template': 'Research Light'})
+            second = run_atlas({'input_path': str(inputs), 'output_path': str(output), 'template': 'Research Light'})
+            self.assertEqual(first['fingerprint'], second['fingerprint'])
+            self.assertEqual(first['image_source_count'], 1)
+            self.assertEqual(first['video_source_count'], 1)
+            self.assertEqual(len(first['image_pages']), 1)
+            self.assertEqual(len(first['video_pages']), 1)
+            self.assertEqual(first['pages'][0]['sha256'], second['pages'][0]['sha256'])
 
 
 if __name__ == '__main__':
