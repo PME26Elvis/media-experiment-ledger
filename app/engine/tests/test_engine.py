@@ -22,13 +22,22 @@ class EngineTests(unittest.TestCase):
             (root / 'ignore.txt').write_text('x')
             self.assertEqual([path.name for path in iter_media([directory])], ['a.jpg', 'b.png'])
 
-    def test_scan_writes_hashes(self):
+    def test_scan_writes_hashes_for_decodable_media(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            (root / 'sample.jpg').write_bytes(b'content')
-            result = run_scan({'image_path': directory})
-            self.assertEqual(result['count'], 1)
+            source = root / 'source'
+            output = root / 'project'
+            source.mkdir()
+            Image.new('RGB', (96, 64), 'blue').save(source / 'sample.jpg')
+            result = run_scan({
+                'image_path': str(source),
+                'output_path': str(output),
+                'import_mode': 'reference',
+            })
+            self.assertEqual(result['indexed_count'], 1)
+            self.assertEqual(result['error_count'], 0)
             self.assertEqual(len(result['assets'][0]['sha256']), 64)
+            self.assertEqual(len(result['assets'][0]['proxies']), 4)
 
     def test_execution_provider_falls_back_to_cpu(self):
         providers, fallback = select_providers('cuda', ['CPUExecutionProvider'])
