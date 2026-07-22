@@ -24,6 +24,9 @@ jobs:
         with: { node-version: '22.21.1' }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
+      - name: Install Linux display runtime
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
       - name: Validate package manifest JSON
         run: node -e "JSON.parse(require('node:fs').readFileSync('package.json','utf8'))"
       - name: Install JavaScript dependencies
@@ -44,12 +47,18 @@ jobs:
         run: npm run build
       - name: Package unpacked application
         run: npx electron-builder --dir --publish never
-      - name: Upload engine build evidence
-        if: ${{ success() && steps.engine.outcome == 'success' }}
+      - name: Launch packaged application smoke
+        id: packaged_smoke
+        run: python scripts/smoke_packaged_app.py
+      - name: Upload build and launch evidence
+        if: ${{ success() && steps.engine.outcome == 'success' && steps.packaged_smoke.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: engine-build-evidence-${{ matrix.os }}
-          path: app/engine-bin/mel-engine/engine-build-manifest.json
+          name: app-build-evidence-${{ matrix.os }}
+          path: |
+            app/engine-bin/mel-engine/engine-build-manifest.json
+            app/packaged-smoke-evidence.json
+            app/package-lock.json
           if-no-files-found: error
           retention-days: 14
       - uses: actions/upload-artifact@v4
@@ -63,5 +72,7 @@ jobs:
             app/dist
             app/.engine-build
             app/engine-bin/mel-engine/engine-build-manifest.json
+            app/packaged-smoke-evidence.json
+            app/package-lock.json
             ~/.npm/_logs
           retention-days: 7
