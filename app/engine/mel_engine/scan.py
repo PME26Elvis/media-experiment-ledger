@@ -6,11 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import imageio.v2 as imageio
 from PIL import Image, ImageOps
 
-from .common import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS, emit, iter_media, read_json, sha256, write_json
+from .common import IMAGE_EXTENSIONS, emit, iter_media, read_json, sha256, write_json
 
 PROXY_EDGES = (160, 320, 640, 1280)
 DEFAULT_COPY_THRESHOLD_BYTES = 5 * 1024 * 1024 * 1024
@@ -60,21 +61,33 @@ def video_poster(path: Path) -> tuple[Image.Image, dict[str, Any]]:
         reader.close()
 
 
+def proxy_record(destination: Path, edge: int, width: int, height: int) -> dict[str, Any]:
+    return {
+        'edge': edge,
+        'path': str(destination),
+        'width': width,
+        'height': height,
+        'size_bytes': destination.stat().st_size,
+        'sha256': sha256(destination),
+    }
+
+
 def save_proxy(source: Image.Image, destination: Path, edge: int) -> dict[str, Any]:
     image = source.convert('RGB')
     image.thumbnail((edge, edge), Image.Resampling.LANCZOS)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    temporary = destination.with_suffix(destination.suffix + '.tmp')
-    image.save(temporary, format='JPEG', quality=86, optimize=True, progressive=True)
-    temporary.replace(destination)
-    return {
-        'edge': edge,
-        'path': str(destination),
-        'width': image.width,
-        'height': image.height,
-        'size_bytes': destination.stat().st_size,
-        'sha256': sha256(destination),
-    }
+    if destination.is_file():
+        return proxy_record(destination, edge, image.width, image.height)
+    temporary = destination.with_name(f'{destination.name}.{uuid4().hex}.tmp')
+    try:
+        image.save(temporary, format='JPEG', quality=86, optimize=True, progressive=True)
+        if destination.exists():
+            temporary.unlink(missing_ok=True)
+        else:
+            temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
+    return proxy_record(destination, edge, image.width, image.height)
 
 
 def materialize(source: Path, root: Path, digest: str) -> Path:
@@ -84,16 +97,21 @@ def materialize(source: Path, root: Path, digest: str) -> Path:
         if destination.stat().st_size != source.stat().st_size or sha256(destination) != digest:
             raise ValueError(f'content-addressed managed-copy collision: {destination}')
         return destination
-    temporary = destination.with_suffix(destination.suffix + '.partial')
-    temporary.unlink(missing_ok=True)
+    temporary = destination.with_name(f'{destination.name}.{uuid4().hex}.partial')
     try:
-        os.link(source, temporary)
-    except OSError:
-        shutil.copy2(source, temporary)
-    if sha256(temporary) != digest:
+        try:
+            os.link(source, temporary)
+        except OSError:
+            shutil.copy2(source, temporary)
+        if sha256(temporary) != digest:
+            raise ValueError(f'managed copy hash mismatch: {source}')
+        if destination.exists():
+            if destination.stat().st_size != source.stat().st_size or sha256(destination) != digest:
+                raise ValueError(f'content-addressed managed-copy collision: {destination}')
+        else:
+            temporary.replace(destination)
+    finally:
         temporary.unlink(missing_ok=True)
-        raise ValueError(f'managed copy hash mismatch: {source}')
-    temporary.replace(destination)
     return destination
 
 
@@ -151,7 +169,8 @@ def run_scan(request: dict[str, Any]) -> dict[str, Any]:
     requested_mode = str(request.get('import_mode') or 'adaptive')
     if requested_mode not in {'adaptive', 'copy', 'reference'}:
         raise ValueError('import_mode must be adaptive, copy or reference')
-    copy_threshold = max(0, int(request.get('copy_threshold_bytes') or DEFAULT_COPY_THRESHOLD_BYTES))
+    threshold_value = request.get('copy_threshold_bytes')
+    copy_threshold = max(0, int(DEFAULT_COPY_THRESHOLD_BYTES if threshold_value is None else threshold_value))
     effective_mode = requested_mode
     if requested_mode == 'adaptive':
         effective_mode = 'copy' if total_bytes <= copy_threshold and total_bytes * 1.25 <= free_bytes else 'reference'
