@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type MelDesktopApi } from '../shared/contracts'
+import { DIAGNOSTICS_IPC, type DiagnosticsApi } from '../shared/diagnostics-contracts'
 
 const api: MelDesktopApi = {
   systemInfo: () => ipcRenderer.invoke(IPC.systemInfo),
@@ -62,4 +63,15 @@ const api: MelDesktopApi = {
   },
 }
 
+const diagnostics: DiagnosticsApi = {
+  preview: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.preview),
+  createBundle: outputDirectory => ipcRenderer.invoke(DIAGNOSTICS_IPC.createBundle, outputDirectory),
+  consent: {
+    get: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentGet),
+    set: (enabled, endpoint) => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentSet, enabled, endpoint),
+  },
+  send: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.send),
+}
+
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))
+contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
