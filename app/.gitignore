@@ -1,0 +1,13 @@
+node_modules/
+dist/
+release/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+engine/.venv/
+engine/**/__pycache__/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
