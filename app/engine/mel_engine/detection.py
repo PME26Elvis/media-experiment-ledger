@@ -11,19 +11,19 @@ from .common import IMAGE_EXTENSIONS, emit, iter_media, json_fingerprint, read_j
 
 
 def _load_vendor_modules():
-    engine_root = Path(__file__).resolve().parents[1]
-    packaged_vendor = engine_root / 'vendor'
-    if packaged_vendor.is_dir():
-        vendor = packaged_vendor
-        labels_path = vendor / 'coco-80.json'
+    if getattr(sys, 'frozen', False):
+        bundle_root = Path(getattr(sys, '_MEIPASS', Path(sys.executable).parent))
+        labels_path = bundle_root / 'mel_engine' / 'data' / 'coco-80.json'
     else:
         repository_root = Path(__file__).resolve().parents[3]
         vendor = repository_root / 'tools'
         labels_path = repository_root / 'object-detection' / 'coco-80.json'
-    if str(vendor) not in sys.path:
-        sys.path.insert(0, str(vendor))
+        if str(vendor) not in sys.path:
+            sys.path.insert(0, str(vendor))
     import yolo_core  # type: ignore
     import nanodet_core  # type: ignore
+    if not labels_path.is_file():
+        raise FileNotFoundError(f'Detector labels are missing: {labels_path}')
     return yolo_core, nanodet_core, labels_path
 
 

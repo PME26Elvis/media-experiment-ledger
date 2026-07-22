@@ -16,8 +16,9 @@
     "test": "vitest run --coverage",
     "test:watch": "vitest",
     "engine:test": "python -m unittest discover -s engine/tests -p 'test_*.py'",
-    "package": "npm run build && electron-builder --dir",
-    "dist": "npm run build && electron-builder"
+    "engine:build": "python scripts/build_engine.py",
+    "package": "npm run build && npm run engine:build && electron-builder --dir --publish never",
+    "dist": "npm run build && npm run engine:build && electron-builder"
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
@@ -53,19 +54,49 @@
     "productName": "Media Experiment Ledger Studio",
     "asar": true,
     "directories": { "output": "release" },
-    "files": ["dist/**/*", "package.json"],
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "LICENSE",
+      "NOTICE",
+      "README.md"
+    ],
     "extraResources": [
-      { "from": "engine", "to": "engine", "filter": ["**/*", "!tests/**", "!__pycache__/**"] },
-      { "from": "../tools/yolo_core.py", "to": "engine/vendor/yolo_core.py" },
-      { "from": "../tools/nanodet_core.py", "to": "engine/vendor/nanodet_core.py" },
-      { "from": "../object-detection/coco-80.json", "to": "engine/vendor/coco-80.json" },
+      { "from": "engine-bin", "to": "engine-bin", "filter": ["**/*"] },
       { "from": "../app-product-contract.json", "to": "app-product-contract.json" }
     ],
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    "win": { "target": [{"target":"nsis","arch":["x64"]},{"target":"portable","arch":["x64"]}] },
-    "nsis": { "oneClick": false, "allowToChangeInstallationDirectory": true, "perMachine": false },
-    "mac": { "target": [{"target":"dmg","arch":["arm64","x64"]},{"target":"zip","arch":["arm64","x64"]}], "category": "public.app-category.graphics-design" },
-    "linux": { "target": [{"target":"AppImage","arch":["x64"]},{"target":"deb","arch":["x64"]}], "category": "Graphics" },
-    "publish": [{ "provider": "github", "owner": "PME26Elvis", "repo": "media-experiment-ledger" }]
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false
+    },
+    "mac": {
+      "target": [
+        { "target": "dmg", "arch": ["arm64", "x64"] },
+        { "target": "zip", "arch": ["arm64", "x64"] }
+      ],
+      "category": "public.app-category.graphics-design"
+    },
+    "linux": {
+      "target": [
+        { "target": "AppImage", "arch": ["x64"] },
+        { "target": "deb", "arch": ["x64"] }
+      ],
+      "category": "Graphics"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "PME26Elvis",
+        "repo": "media-experiment-ledger"
+      }
+    ]
   }
 }
