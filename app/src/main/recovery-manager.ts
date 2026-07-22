@@ -50,8 +50,7 @@ const STATE_PATHS = [
 
 function sha256(path: string): string {
   const digest = createHash('sha256')
-  const content = readFileSync(path)
-  digest.update(content)
+  digest.update(readFileSync(path))
   return digest.digest('hex')
 }
 
@@ -88,13 +87,99 @@ function manifestFrom(path: string): RecoveryManifest {
 }
 
 function verifyManifest(root: string, manifest: RecoveryManifest): boolean {
+  const resolvedRoot = resolve(root)
   for (const file of manifest.files) {
-    if (file.path.includes('..') || file.path.startsWith('/') || file.path.startsWith('\\')) return false
+    const parts = file.path.replaceAll('\\', '/').split('/')
+    if (parts.some(part => part === '..') || file.path.startsWith('/') || file.path.startsWith('\\')) return false
     const path = resolve(root, file.path)
-    if (!path.startsWith(`${resolve(root)}${sep}`) || !existsSync(path) || !statSync(path).isFile()) return false
+    if (!path.startsWith(`${resolvedRoot}${sep}`) || !existsSync(path) || !statSync(path).isFile()) return false
     if (statSync(path).size !== file.sizeBytes || sha256(path) !== file.sha256) return false
   }
   return true
+}
+
+function copyState(userDataPath: string, destinationRoot: string): void {
+  for (const relativePath of STATE_PATHS) {
+    const source = join(userDataPath, relativePath)
+    if (!existsSync(source)) continue
+    const destination = join(destinationRoot, relativePath)
+    mkdirSync(dirname(destination), { recursive: true })
+    cpSync(source, destination, { recursive: true, force: true })
+  }
+}
+
+function createBackupFiles(
+  userDataPath: string,
+  backupsRoot: string,
+  appVersion: string,
+  reason: string,
+): { root: string; manifest: RecoveryManifest } {
+  const createdAt = new Date().toISOString()
+  const id = `${createdAt.replace(/[:.]/gu, '-')}-${randomUUID().slice(0, 8)}`
+  const root = join(backupsRoot, id)
+  mkdirSync(root, { recursive: true })
+  copyState(userDataPath, root)
+  const files = walk(root)
+    .filter(path => basename(path) !== 'manifest.json')
+    .map(path => ({
+      path: relative(root, path).split(sep).join('/'),
+      sizeBytes: statSync(path).size,
+      sha256: sha256(path),
+    }))
+  const manifest: RecoveryManifest = {
+    schemaVersion: 1,
+    id,
+    reason: reason.slice(0, 300),
+    appVersion,
+    createdAt,
+    files,
+  }
+  atomicJson(join(root, 'manifest.json'), manifest)
+  return { root, manifest }
+}
+
+function summary(root: string, manifest: RecoveryManifest): RecoveryBackupSummary {
+  return {
+    id: manifest.id,
+    reason: manifest.reason,
+    appVersion: manifest.appVersion,
+    createdAt: manifest.createdAt,
+    fileCount: manifest.files.length,
+    totalBytes: manifest.files.reduce((sum, file) => sum + file.sizeBytes, 0),
+    manifestPath: join(root, 'manifest.json'),
+    verified: verifyManifest(root, manifest),
+  }
+}
+
+export function createColdStartupBackup(userDataPath: string, appVersion: string): RecoveryBackupSummary | undefined {
+  const maintenancePath = join(userDataPath, 'maintenance.json')
+  let previousVersion: string | undefined
+  try {
+    previousVersion = String((JSON.parse(readFileSync(maintenancePath, 'utf8')) as { lastStartedVersion?: string }).lastStartedVersion ?? '') || undefined
+  } catch {
+    previousVersion = undefined
+  }
+  const hasState = STATE_PATHS.some(path => path !== 'maintenance.json' && existsSync(join(userDataPath, path)))
+  let backup: RecoveryBackupSummary | undefined
+  if (hasState && previousVersion !== appVersion) {
+    const backupsRoot = join(userDataPath, 'recovery-backups')
+    mkdirSync(backupsRoot, { recursive: true })
+    const created = createBackupFiles(
+      userDataPath,
+      backupsRoot,
+      previousVersion ?? 'unknown',
+      `Cold startup backup before launching ${appVersion}`,
+    )
+    backup = summary(created.root, created.manifest)
+  }
+  atomicJson(maintenancePath, {
+    schemaVersion: 1,
+    lastStartedVersion: appVersion,
+    previousVersion,
+    startupBackupId: backup?.id,
+    updatedAt: new Date().toISOString(),
+  })
+  return backup
 }
 
 export function applyPendingRecovery(userDataPath: string): { applied: boolean; backupId?: string } {
@@ -153,36 +238,8 @@ export class RecoveryManager {
 
   create(reason: string): RecoveryBackupSummary {
     this.database.checkpoint()
-    const createdAt = new Date().toISOString()
-    const id = `${createdAt.replace(/[:.]/gu, '-')}-${randomUUID().slice(0, 8)}`
-    const root = join(this.backupsRoot, id)
-    mkdirSync(root, { recursive: true })
-
-    for (const relativePath of STATE_PATHS) {
-      const source = join(this.userDataPath, relativePath)
-      if (!existsSync(source)) continue
-      const destination = join(root, relativePath)
-      mkdirSync(dirname(destination), { recursive: true })
-      cpSync(source, destination, { recursive: true, force: true })
-    }
-
-    const files = walk(root)
-      .filter(path => basename(path) !== 'manifest.json')
-      .map(path => ({
-        path: relative(root, path).split(sep).join('/'),
-        sizeBytes: statSync(path).size,
-        sha256: sha256(path),
-      }))
-    const manifest: RecoveryManifest = {
-      schemaVersion: 1,
-      id,
-      reason: reason.slice(0, 300),
-      appVersion: this.appVersion,
-      createdAt,
-      files,
-    }
-    atomicJson(join(root, 'manifest.json'), manifest)
-    return this.summary(root, manifest)
+    const created = createBackupFiles(this.userDataPath, this.backupsRoot, this.appVersion, reason)
+    return summary(created.root, created.manifest)
   }
 
   list(): RecoveryBackupSummary[] {
@@ -192,7 +249,7 @@ export class RecoveryManager {
       .flatMap(root => {
         try {
           const manifest = manifestFrom(join(root, 'manifest.json'))
-          return [this.summary(root, manifest)]
+          return [summary(root, manifest)]
         } catch {
           return []
         }
@@ -219,18 +276,5 @@ export class RecoveryManager {
     if (!existsSync(root)) return false
     rmSync(root, { recursive: true, force: true })
     return true
-  }
-
-  private summary(root: string, manifest: RecoveryManifest): RecoveryBackupSummary {
-    return {
-      id: manifest.id,
-      reason: manifest.reason,
-      appVersion: manifest.appVersion,
-      createdAt: manifest.createdAt,
-      fileCount: manifest.files.length,
-      totalBytes: manifest.files.reduce((sum, file) => sum + file.sizeBytes, 0),
-      manifestPath: join(root, 'manifest.json'),
-      verified: verifyManifest(root, manifest),
-    }
   }
 }
