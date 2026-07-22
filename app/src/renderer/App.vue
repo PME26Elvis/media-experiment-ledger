@@ -1,5 +1,41 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';import { useI18n } from 'vue-i18n';import { useRoute } from 'vue-router'
-const drawer=ref(true);const rail=ref(false);const{t}=useI18n();const route=useRoute();const items=computed(()=>[['workspace','mdi-view-dashboard-outline'],['import','mdi-folder-multiple-image'],['samples','mdi-archive-eye-outline'],['automation','mdi-robot-outline'],['atlas','mdi-image-multiple-outline'],['detection','mdi-vector-square'],['jobs','mdi-progress-clock'],['models','mdi-cube-outline'],['reports','mdi-file-chart-outline'],['updates','mdi-update'],['settings','mdi-cog-outline']].map(([name,icon])=>({name,icon,title:t(`nav.${name}`),to:`/${name}`})))
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
+
+const drawer = ref(true)
+const rail = ref(false)
+const { t } = useI18n()
+const route = useRoute()
+const items = computed(() => [
+  ['workspace', 'mdi-view-dashboard-outline'],
+  ['import', 'mdi-folder-multiple-image'],
+  ['samples', 'mdi-archive-eye-outline'],
+  ['automation', 'mdi-robot-outline'],
+  ['atlas', 'mdi-image-multiple-outline'],
+  ['detection', 'mdi-vector-square'],
+  ['jobs', 'mdi-progress-clock'],
+  ['models', 'mdi-cube-outline'],
+  ['reports', 'mdi-file-chart-outline'],
+  ['updates', 'mdi-update'],
+  ['diagnostics', 'mdi-shield-account-outline'],
+  ['settings', 'mdi-cog-outline'],
+].map(([name, icon]) => ({ name, icon, title: t(`nav.${name}`), to: `/${name}` })))
 </script>
-<template><v-app><v-navigation-drawer v-model="drawer" :rail="rail" permanent class="glass" width="292"><div class="pa-4 d-flex align-center ga-3"><v-avatar color="primary" rounded="lg"><v-icon icon="mdi-flask-outline"/></v-avatar><div v-if="!rail"><div class="font-weight-bold">MEL Studio</div><div class="text-caption text-medium-emphasis">Atlas · Detection · Automation</div></div></div><v-divider class="mx-4 mb-2"/><v-list nav density="comfortable"><v-list-item v-for="item in items" :key="item.name" :to="item.to" :active="route.name===item.name" :prepend-icon="item.icon" :title="item.title" rounded="lg" color="primary"/></v-list><template #append><div class="pa-3"><v-btn block variant="text" :prepend-icon="rail?'mdi-chevron-right':'mdi-chevron-left'" @click="rail=!rail">{{ rail?'':'Compact' }}</v-btn></div></template></v-navigation-drawer><v-main><router-view v-slot="{Component}"><v-fade-transition mode="out-in"><component :is="Component"/></v-fade-transition></router-view></v-main></v-app></template>
+
+<template>
+  <v-app>
+    <v-navigation-drawer v-model="drawer" :rail="rail" permanent class="glass" width="292">
+      <div class="pa-4 d-flex align-center ga-3">
+        <v-avatar color="primary" rounded="lg"><v-icon icon="mdi-flask-outline" /></v-avatar>
+        <div v-if="!rail"><div class="font-weight-bold">MEL Studio</div><div class="text-caption text-medium-emphasis">Atlas · Detection · Automation</div></div>
+      </div>
+      <v-divider class="mx-4 mb-2" />
+      <v-list nav density="comfortable">
+        <v-list-item v-for="item in items" :key="item.name" :to="item.to" :active="route.name === item.name" :prepend-icon="item.icon" :title="item.title" rounded="lg" color="primary" />
+      </v-list>
+      <template #append><div class="pa-3"><v-btn block variant="text" :prepend-icon="rail ? 'mdi-chevron-right' : 'mdi-chevron-left'" @click="rail = !rail">{{ rail ? '' : 'Compact' }}</v-btn></div></template>
+    </v-navigation-drawer>
+    <v-main><router-view v-slot="{ Component }"><v-fade-transition mode="out-in"><component :is="Component" /></v-fade-transition></router-view></v-main>
+  </v-app>
+</template>
