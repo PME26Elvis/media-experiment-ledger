@@ -1,226 +1,285 @@
-# AGENTS.md — Desktop Application Product Line
+# AGENTS.md — Media Experiment Ledger Studio
 
 ## Scope
 
-This file applies to the future `app/` desktop implementation subtree on the `app-main` product-line branch. It supplements the repository root `AGENTS.md`. A more specific nested `AGENTS.md` may add constraints but must not weaken security, data-integrity or user-approved product contracts.
+This file applies to the `app/` desktop implementation subtree on `app-main`. It supplements the repository root `AGENTS.md`. More specific nested instructions may add constraints but MUST NOT weaken accepted v1 scope, security, data integrity, licensing, migration or test gates.
 
 ## Read order
 
-Before changing desktop code or schemas, read:
+Before changing app code, schemas, workflows or packages, read:
 
 1. `/app-product-contract.json`;
 2. `/docs/app/README.md`;
-3. the affected module specification under `/docs/app/`;
-4. `/docs/app/DECISIONS.md`;
-5. `/docs/app/OPEN_QUESTIONS.md`;
-6. the repository root `AGENTS.md` and `project-contract.json` when reusing main-product algorithms/data.
+3. `/docs/app/SPECIFICATION_ROUND_03.md`;
+4. `/docs/app/V1_SCOPE_ACCEPTANCE_MATRIX.md`;
+5. `/docs/app/V1_TDD_SDD_ENGINEERING_POLICY.md`;
+6. the affected numbered module specification;
+7. `/docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md`;
+8. `/docs/app/OPEN_QUESTIONS.md`;
+9. the root `AGENTS.md` and `project-contract.json` when reusing existing algorithms/data.
 
-Do not implement an unresolved product-shaping choice as if it were accepted. Use the documented provisional default only when the relevant milestone allows it, and preserve replaceability.
+The product is `implementation_ready` but `not_started` until the user explicitly authorizes implementation.
+
+## Controlling v1 rule
+
+A mature capability MUST NOT be moved out of v1 merely because it adds code, platform work, tests, CI time or integration complexity.
+
+If a required item appears difficult:
+
+1. decompose it;
+2. specify interfaces/state/failure modes;
+3. write executable tests;
+4. implement it in stages behind stable contracts;
+5. use optional signed packs or platform adapters where appropriate;
+6. keep the v1 acceptance requirement intact.
+
+Only evidence-backed legal, security or actual platform impossibility may change acquisition/implementation mode. Scope reduction requires an explicit user decision and synchronized contract update.
 
 ## Communication and Git workflow
 
 - Default user-facing language is Traditional Chinese.
-- When broad permission has been granted, make mainstream, reasonable implementation decisions directly instead of repeatedly asking minor questions.
-- Keep progress updates concise and honest.
-- Never claim an installer, update, Release, model, PDF or migration succeeded until the actual artifact/flow has been verified.
-- Work on feature branches from `app-main`.
-- Open pull requests and use normal merge commits unless the user requests otherwise.
-- Do not delete branches unless asked.
-- Keep implementation, tests, schemas, migrations, help/docs, workflow changes and visible UI entry points synchronized.
+- Make mainstream implementation decisions directly under broad permission.
+- Do not repeatedly ask minor questions already covered by the contract.
+- Keep progress updates concise and factual.
+- Never claim installer, update, GPU provider, Release, model, PDF, sync, migration or recovery success without testing the actual flow.
+- Feature branches start from `app-main`.
+- Use normal merge commits.
+- Preserve branches unless asked to delete them.
+- Keep implementation, tests, schemas, migrations, docs, localization, workflows and visible UI entries synchronized.
 
-## Product-line boundaries
+## SDD and TDD
 
-- `main` remains the existing web/analysis/Release product line.
-- The app is not a browser wrapper and must not silently inherit Web-specific assumptions.
-- App Releases use distinct desktop tags/assets.
-- Existing immutable experiment/analysis/detector Releases remain immutable.
-- Reuse algorithms through explicit modules, fixtures and versioned engine/data contracts.
-- API generation is optional; local/sample analysis must work without credentials.
-- Atlas Studio and Detection Studio are independent job/output domains.
+Every feature uses this chain:
 
-## Frontend requirements
+```text
+Decision -> Requirement ID -> Failing test -> Implementation -> CI evidence -> Release manifest
+```
 
-- Vue 3 and Vuetify 3 current stable syntax at implementation time.
-- TypeScript strict mode.
-- Ordinary Vue components use Composition API and `<script setup lang="ts">`.
-- Do not introduce Options API for convenience.
-- Primary responsive layouts use `v-container`, `v-row` and `v-col`.
-- Every primary page must work in wide and narrow windows.
-- Meaningful interactive surfaces use `v-hover`; hover is never the only interaction path.
-- Use Vuetify/approved Vue transitions for route, panel, disclosure and state changes.
-- Respect reduced-motion preferences.
-- Controls use semantic colors and icons (`color`, `prepend-icon`, `append-icon`) rather than random decoration.
-- Every route requires loading, empty, partial, error, recoverable and completed states as applicable.
-- Traditional Chinese and English strings use i18n; do not hard-code user-visible strings.
+Before implementation:
 
-## Renderer security
+- identify requirement IDs from `V1_SCOPE_ACCEPTANCE_MATRIX.md`;
+- define success/loading/empty/offline/error/interrupted/recovery states;
+- define persistent schemas and migrations;
+- define security/privacy boundaries;
+- define performance budgets;
+- define platform differences;
+- define acceptance tests.
 
-- `nodeIntegration` remains false.
-- `contextIsolation` remains true.
-- Use renderer sandbox where compatible.
-- Renderer must not import/use filesystem, `child_process`, shell, environment variables, updater or secret APIs directly.
-- Preload exposes explicit typed/versioned methods only; never expose generic arbitrary IPC invocation.
-- Validate IPC payloads at runtime on both sides of the trust boundary.
-- Deny navigation, popup, permission and external URL behavior by default; allowlist deliberate actions.
-- Do not render unsanitized imported/API HTML or Markdown.
-- Do not put decrypted secrets into Pinia, localStorage, logs, command-line arguments or project configs.
+For deterministic domain and boundary behavior, use red/green/refactor. A feature PR must list decision IDs, requirement IDs, test IDs, schemas/migrations and platform artifacts affected.
 
-## Main process and engine
+Do not use test quantity as a substitute for risk coverage. Do not waive recovery, migration, updater, signing or real hardware tests merely because unit tests are green.
 
-- Main process owns windows, dialogs, path grants, project locks, secrets, OS integration, update handoff and engine supervision.
-- Main event loop must not perform CPU-heavy scans, media decode, inference or PDF rendering.
-- Long work runs in bounded worker/engine domains behind the versioned protocol.
-- Spawn processes without shell interpolation; arguments are arrays and executable paths are trusted/resolved.
-- Binary media travels by validated path token/file, not huge IPC/base64 payload.
-- Engine crashes must be isolated and produce durable recoverable/failed job state.
+## Required stack
+
+### Desktop and renderer
+
+- Electron.
+- Vite.
+- Vue 3.
+- Vuetify 3 current stable syntax at implementation time.
+- TypeScript strict.
+- Composition API and `<script setup lang="ts">` for ordinary components.
+- Pinia for UI/session state.
+- `@tanstack/vue-query` for bounded asynchronous query state.
+- SQLite as authoritative project data.
+
+### Packaging and updates
+
+- `electron-builder`.
+- `electron-updater`.
+- Windows NSIS x64 and portable x64.
+- macOS arm64/x64 DMG + update ZIP.
+- Linux x64 AppImage + `.deb`.
+- Stable release requires Windows signing and Apple signing/notarization.
+- Unsigned builds are prerelease-only.
+
+### Engine
+
+- Self-contained version-pinned Python runtime for each platform/architecture.
+- No user-installed Python.
+- Versioned framed JSON-RPC-style protocol over child-process pipes.
+- Large/binary data through capability-scoped staging files.
+- No public listening port.
+- Runtime/engine hashes and SBOM entries required.
+
+## Frontend rules
+
+- Primary layouts use `v-container`, `v-row` and `v-col`.
+- Every primary page works in wide, narrow and minimum supported windows.
+- Meaningful interactive surfaces use `v-hover`; hover is never the sole path.
+- Use Vuetify/Vue transitions for route, panel, disclosure and state changes.
+- Respect reduced motion.
+- Use semantic `color`, `prepend-icon` and `append-icon` values.
+- Required themes: light, dark and system.
+- Required locales: `zh-TW`, `en`, `zh-CN`, `ja`, `ko`.
+- Do not hard-code user-visible text.
+- Every route implements relevant loading, empty, partial, offline, error, interrupted, recovery and complete states.
+- Virtualized collections and query caches remain bounded.
+- Never load an entire large corpus into Pinia or one reactive array.
+
+## Renderer and IPC security
+
+- `nodeIntegration` false.
+- `contextIsolation` true.
+- sandbox renderer where compatible.
+- no renderer filesystem, `child_process`, shell, updater, secret or environment access.
+- preload exposes only typed/versioned allowlisted methods.
+- runtime validation on both sides of IPC.
+- deny navigation, popup, permission and external URL behavior by default.
+- imported/API HTML and Markdown are sanitized.
+- decrypted secrets never enter Pinia, TanStack persisted cache, localStorage, logs, command-line arguments or project configs.
+- custom model postprocessing may use capability-restricted, resource-limited WASM only; arbitrary native/Python plugins are prohibited.
+
+## Credentials
+
+- Prefer real OS secure storage through Electron `safeStorage`.
+- Reject automatic persistent storage when Linux backend is `basic_text`.
+- Support session-only secrets.
+- Support explicit warned `.env` expert profiles.
+- Support portable encrypted vault using a reviewed libsodium-compatible design: Argon2id + XChaCha20-Poly1305, versioned envelope, unique salt/nonce, authenticated metadata and atomic writes.
+- Never invent cryptographic primitives.
+- Logs/support bundles/telemetry pass automated secret redaction tests.
+
+## Main process and engine supervision
+
+- Main process owns windows, dialogs, path grants, project locks, secrets, tray, schedulers, updates and engine supervision.
+- Main event loop does not perform scanning, media decode, inference or PDF rendering.
+- Spawn processes without shell interpolation.
+- Use trusted resolved executable paths and argument arrays.
+- Engine heartbeat, cancellation, checkpoint, crash and incompatible-version states are durable.
+- Engine result completion includes output verification, not only process exit code.
 
 ## Durable jobs
 
-The following are always durable jobs when nontrivial:
+Nontrivial import, hashing, proxies, downloads, API automation, Atlas, detection, PDF, publishing, sync, update, migration and export/import work are durable jobs.
 
-- import/index/hash;
-- thumbnail/video proxy generation;
-- sample/model/update downloads;
-- API automation;
-- Atlas analysis/rendering;
-- detector inference/comparison;
-- project export/import;
-- PDF export;
-- migration/backup/restore.
+Every durable job has:
 
-Requirements:
-
-- stable job ID;
-- versioned config/input snapshot;
+- stable ID;
+- versioned input/config snapshot;
 - queued/running/pausing/paused/cancelling/cancelled/failed/recoverable/completed states;
 - stage/item progress;
-- transactional checkpoints;
 - bounded logs;
+- transactional checkpoints;
 - pause/resume/cancel;
-- crash recovery;
-- final verification after apparent 100% progress.
+- restart recovery;
+- final integrity verification.
 
-## Data integrity
+## Data and performance
 
-- Source media is immutable and must never be rewritten in place.
-- Derived thumbnails, annotations, analysis and documents live in managed output/cache paths.
-- Use atomic writes for manifests/configs/sidecars.
-- Use transactions for database state.
-- Hash/model/config/input identities determine checkpoint reuse.
-- Imported archives reject absolute paths, traversal, compression bombs and manifest mismatches.
-- Project/config schema changes require migrations, fixtures, backup/recovery and documentation.
-- A newer unknown schema must not be guessed-written by an older implementation.
-
-## Paths and secrets
-
-- All privileged paths pass canonicalization and project-scoped authorization/path grants.
-- Drag-and-drop paths are untrusted until main-process resolution.
-- Every configurable path has browse, reveal, validation and reasonable default behavior.
-- Credential values use OS-backed encrypted storage when available.
-- `.env` is an explicit interoperability/file-backed option, not a silent plaintext default.
-- Ordinary config/project exports exclude secrets.
-- Support bundles and logs pass automated redaction tests.
-
-## Performance
-
-- Design and benchmark for at least 10,000 images and 1,000 videos.
-- Do not hold entire corpora/detection tables in renderer state.
-- Use indexed/keyset-paginated database queries and virtualized lists/grids.
-- Generate a proxy/thumbnail pyramid and request the smallest representation that satisfies actual display pixels/DPR/zoom.
-- Cancel offscreen/stale media requests.
-- Originals load only for explicit detail/high zoom/export.
-- Bound memory/disk caches, decoder/model sessions and worker queues.
-- Use backpressure and separate worker pools for I/O, image, video, API, inference and PDF work.
-- Measure renderer long tasks, memory, DB latency and throughput; do not assume optimization without benchmark evidence.
+- Source media is immutable.
+- Use atomic files and database transactions.
+- Archives reject absolute paths, traversal, symlink escape, compression bombs and manifest mismatch.
+- Hash/model/config/input identities govern checkpoint reuse.
+- Import behavior is adaptive: managed copy for small/sample imports, external reference for large folders, with user override.
+- Portable export can materialize references.
+- Design for 10,000 images, 1,000 videos, hundreds of thousands of boxes and 500-page reports.
+- Use display-pixel-aware proxy pyramids.
+- Use indexed keyset pagination and virtualized UI.
+- Bound RAM/disk caches, decoder sessions, provider sessions and queues.
+- Apply worker backpressure and cancellation.
+- Test SSD and HDD cases on low/mid/high reference tiers.
 
 ## Atlas rules
 
-- Follow `/docs/app/05_ATLAS_STUDIO_SPEC.md`; do not assume the current web implementation is a complete app specification.
 - Image and video cohorts remain separate.
-- Preserve exact source aliases while removing byte duplicates from unique sample counts.
-- Analysis snapshots are immutable and fingerprinted.
-- Document drafts are editable structured data that reference snapshots.
-- Document editing must not alter source media or analysis evidence.
-- PDF v1 uses explicit static representations for GIF/video; never claim animation.
+- Analysis snapshots are immutable/fingerprinted.
+- Document drafts reference snapshots and do not mutate evidence.
+- Hybrid structured/freeform editor is required.
+- Seven built-in templates are required.
+- Declarative external template import/export is required; templates cannot execute code.
+- PDF is static.
+- Default video representation is 10%/50%/90% frames.
+- Poster, selected timestamp, configurable strip and full keyframe sheet are also required.
 - PDF export includes preflight and reproducibility manifest.
 
 ## Detection rules
 
-- Follow `/docs/app/06_DETECTION_STUDIO_SPEC.md`.
-- Baseline models are YOLOX-Tiny and NanoDet-Plus-m-320 with real ONNX Runtime smoke/golden tests.
-- Candidate larger variants remain gated until artifact, adapter, license, runtime and resource review passes.
-- Never infer that a source-code license alone settles every pretrained-weight redistribution question.
-- Model files are hash-verified and are data, not executable plugins.
+Required models:
+
+- YOLOX-Tiny/S/L;
+- NanoDet-Plus-m-320/m-416/m-1.5x-416.
+
+Required providers:
+
+- CPU fallback;
+- DirectML Windows;
+- CUDA Windows/Linux;
+- CoreML macOS.
+
+Rules:
+
+- A GPU is usable only after provider smoke succeeds.
+- Compare provider outputs to CPU golden results within model-specific tolerances.
+- Record provider/runtime identity in manifests.
 - Persist item-level checkpoints.
-- Normalize boxes to original image coordinates and validate finite/bounded values.
-- Without human ground truth, use agreement/disagreement language only—not accuracy, precision, recall, false-positive rate or mAP.
-- Detection must not mutate Atlas jobs/results/history.
+- Model files are hash-verified data, not executable plugins.
+- Weight redistribution requires exact artifact approval.
+- Support known adapters, declarative custom adapters and sandboxed WASM postprocessors.
+- Without labels, use agreement/disagreement language—not accuracy, precision, recall, false-positive rate or mAP.
+- Detection never mutates Atlas jobs/results/history.
 
-## Update and migration rules
+## v1 integrations
 
-- User data remains outside replaceable app binaries.
-- Online/offline packages are platform/architecture/version/signature/checksum validated.
-- Do not manually overwrite a running executable when platform installer/updater handoff is required.
-- Linux update behavior is package-specific; never promise unsupported built-in auto-update.
-- Running jobs pause at safe checkpoints before update.
-- Migrations are versioned, backed up and transactional/resumable.
-- Update success is declared only after new app launch, migration and workspace verification.
-- Migration failure enters Recovery Center and preserves restore evidence.
-- Downgrade is not silently supported.
+Implement and test:
 
-## Tests required by change type
+- Agnes image/video automation;
+- Generated Media collection with optional named-corpus enrollment;
+- Windows Task Scheduler, macOS LaunchAgent, Linux `systemd --user` and tray fallback;
+- draft-first GitHub Release publisher with immutable-history guards;
+- cloud-folder sync through content-addressed blobs, snapshots, journals and conflict resolution;
+- local support bundles;
+- default-off consent-based remote telemetry transport;
+- Quick Start and sanitized Full Research corpora.
 
-### Renderer/UI
+Never synchronize a live writable SQLite database through a cloud folder.
 
-- type/lint/component;
-- wide/narrow RWD;
-- light/dark;
-- hover/focus/touch;
-- reduced motion;
-- Traditional Chinese/English;
-- accessibility and visual regression.
+## Update and migration
 
-### IPC/security
+- User data remains outside replaceable binaries.
+- Validate platform, architecture, version, signature and checksum.
+- Pause jobs at safe checkpoints before update.
+- Back up before migration.
+- Migrations are versioned, transactional/idempotent and recoverable.
+- Migrate settings, projects, credentials, reports, templates, model registries, provider packs, scheduler definitions and sync journals.
+- Update success requires new-app launch, migration and workspace verification.
+- Failure enters Recovery Center with restore evidence.
+- Downgrade is never silent.
 
-- allowlist/schema;
-- invalid/oversized payload;
-- path traversal/grants;
-- renderer privilege assertions;
-- secret redaction.
+## Required tests
 
-### Media/engine
+Follow `/docs/app/V1_TDD_SDD_ENGINEERING_POLICY.md`.
 
-- real lightweight image decode;
-- real FFmpeg/FFprobe generated-video tests;
-- pause/resume/crash recovery;
-- output hash/integrity.
+At minimum:
 
-### Detection
+- Vitest domain/process tests;
+- Vue Test Utils component tests;
+- 100% public IPC contract representation;
+- pytest/property-based engine tests;
+- real image, FFmpeg and ONNX tests;
+- Playwright Electron E2E;
+- visual/accessibility/all-locale matrix;
+- migration and deliberate fault injection;
+- real DirectML/CUDA/CoreML hardware runs;
+- clean-machine install/update tests for all six packages;
+- large-corpus benchmarks;
+- security, license, SBOM, notices, signature and secret gates.
 
-- exact model size/SHA/labels;
-- real ONNX session/output shape;
-- preprocessing/postprocessing/golden outputs;
-- checkpoint and comparison guardrails.
-
-### Packaging/update
-
-- actual packaged launch;
-- resources/engine/native dependency discovery;
-- install/update/offline package;
-- migration/backup/recovery;
-- signing/notarization evidence where required;
-- GitHub-side Release asset verification.
+Coverage gates are defined in the contract and TDD/SDD policy. Release-blocking security/migration/update/checkpoint tests cannot be quarantined.
 
 ## Definition of done
 
-A desktop feature is not done until:
+A feature is done only when:
 
-- specification and decision state agree;
+- contract/spec/decision state agree;
+- requirement and test IDs are traceable;
 - implementation and typed schemas exist;
-- migration impact is handled;
-- tests appropriate to risk pass;
-- UI states/RWD/accessibility/polish are complete;
-- large-corpus impact is measured;
-- security/privacy review is complete;
-- actual package/artifact behavior is verified when relevant;
-- documentation and machine contract are synchronized.
+- migration/update/recovery implications are handled;
+- relevant fault paths are executed;
+- UI/RWD/i18n/accessibility/polish are complete;
+- performance is measured;
+- security/privacy/rights review passes;
+- actual packages/providers/artifacts are verified where relevant;
+- documentation and release evidence are synchronized.
+
+A happy-path-only feature is incomplete.
