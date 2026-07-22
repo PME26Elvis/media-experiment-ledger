@@ -113,6 +113,8 @@ When an answer is accepted, update the machine contract, normative specification
 
 ## P0 — Third specification round
 
+These P0 questions must be resolved before implementation is declared ready. Answering them is the recommended next action rather than beginning production code immediately.
+
 ### APP-Q-003 — Packaging and updater stack
 
 - Priority: P0 before implementation scaffold.
@@ -294,5 +296,6 @@ APP-Q-014: CPU-first / require DirectML or another provider
 APP-Q-015: accept three-frame PDF default / choose another
 APP-Q-016: accept adaptive import / choose copy or reference
 APP-Q-017: accept explicit generated collection / auto-enroll
+APP-Q-018: allow implementation team to select query layer / specify one
 APP-Q-030: publish sanitized full prompts / IDs and settings only
 ```
