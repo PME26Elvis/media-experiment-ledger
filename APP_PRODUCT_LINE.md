@@ -3,106 +3,156 @@
 > Product line branch: `app-main`  
 > Public identity: **Media Experiment Ledger Studio**  
 > Product descriptor: **Atlas · Detection · Media Automation**  
-> Current phase: **specification in progress**  
+> Current phase: **implementation ready**  
 > Implementation status: **not started**  
+> Specification baseline: **2026-07-22.3**  
 > Primary specification index: [`docs/app/README.md`](docs/app/README.md)
 
 ## Purpose
 
-`app-main` is a new desktop-application product line for Media Experiment Ledger. It is not a wrapper around the current GitHub Pages site and it is not a wholesale replacement of the existing repository architecture. The app must independently reconsider every existing capability, decide whether it belongs in a local desktop workflow, and add the desktop-only functions required for data acquisition, project management, large-corpus analysis, document production, recovery, and long-term updates.
+`app-main` is a new desktop-application product line for Media Experiment Ledger. It is not a wrapper around the GitHub Pages site and does not replace the existing `main` web/analysis/Release product line.
 
-The product is intended to become a substantial cross-platform application rather than a small demonstration client. The first deliverable is therefore a versioned, testable and iteratively refinable specification system. Implementation must not begin by guessing around unresolved product decisions.
+The app is a substantial local-first cross-platform studio for:
 
-## Product definition
+- importing, indexing, deduplicating and managing large image/video corpora;
+- optionally generating media through supported APIs, beginning with Agnes image and video;
+- configuring durable high-volume automation with pacing, retries, budgets, checkpoints and recovery;
+- running Prompt Repeatability Atlas independently from object detection;
+- running multiple detector models through CPU, DirectML, CUDA and CoreML providers;
+- reviewing thousands of assets through virtualized, display-pixel-aware previews;
+- producing editable, highly polished Atlas documents and static PDFs;
+- managing models, runtime packs, templates, credentials and project migrations;
+- publishing explicit GitHub Releases;
+- scheduling background work through platform user schedulers;
+- synchronizing projects through user-selected cloud folders without live SQLite synchronization;
+- updating the app while preserving projects, settings, credentials, jobs and recovery history.
 
-The desktop application will provide a local-first workspace for:
+## Complete-v1 principle
 
-- importing or generating image and video corpora;
-- optionally calling supported media-generation APIs, beginning with Agnes image and video endpoints;
-- configuring high-volume API execution with explicit rate, retry, stop, budget and recovery policies;
-- running Prompt Repeatability Atlas processing independently from object detection;
-- selecting and running multiple object-detection models with resumable jobs;
-- reviewing thousands of media items without loading full-resolution assets into the renderer;
-- editing Atlas presentation text and layouts through a structured-first hybrid document editor;
-- exporting polished, static-image Atlas documents to PDF;
-- packaging, importing and exporting projects, configurations and reports;
-- downloading both a small Quick Start corpus and a sanitized Full Research corpus from dedicated immutable data Releases;
-- updating the application while preserving projects, settings, credentials and migration history;
-- continuing long-running jobs in the system tray when the user explicitly chooses that behavior.
+The third specification round establishes the controlling rule:
 
-## Accepted round-two product decisions
+> When a capability is based on mature engineering techniques and its primary difficulty is implementation volume, platform integration or testing effort, it MUST be completed in v1 rather than deferred merely to create a smaller MVP.
 
-The second specification round fixes these product-level invariants:
+Ordinary engineering complexity is not a deferral reason. Legal rights, unsafe arbitrary-code execution, unsupported scientific claims and genuine platform impossibility remain valid boundaries.
 
-1. The public name is **Media Experiment Ledger Studio**, rather than using the generic short brand `MEL Studio` by itself.
-2. The required first-stable package matrix includes:
-   - Windows x64 NSIS installer;
-   - Windows x64 portable build;
-   - macOS arm64 DMG/update ZIP;
-   - macOS x64 DMG/update ZIP;
-   - Linux x64 AppImage;
-   - Linux x64 `.deb`.
-3. Sample data has two mandatory tiers: **Quick Start** and **Full Research**.
-4. Sample corpora normally live in dedicated immutable data Releases; app Releases reference the approved corpus manifest/tag rather than re-uploading unchanged multi-gigabyte data.
-5. Encrypted credential profiles are the default. Persistent file-backed `.env` profiles are an explicit expert option with plaintext warnings; there is no silent plaintext fallback.
-6. Active API or analysis jobs may continue in the system tray. Closing the main window while work is active must offer keep-running, pause-and-quit, and cancel-and-quit choices.
-7. Atlas Document Studio uses a structured default plus controlled freeform page mode and includes Traditional Chinese Academic and 16:9 Presentation Report templates in addition to the original five templates.
-8. Detection v1 uses representative tiers rather than every model variant: YOLOX-Tiny/S/L and NanoDet-Plus-m-320/m-416/m-1.5x-416.
-9. The app source and public binaries are open source under Apache-2.0. Model weights, generated sample data, fonts, icons and other third-party artifacts remain separately reviewed and may not be redistributed merely because the app itself is open source.
+Normative details:
 
-The normative detail is recorded in [`docs/app/SPECIFICATION_ROUND_02.md`](docs/app/SPECIFICATION_ROUND_02.md), [`docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md`](docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md), and [`app-product-contract.json`](app-product-contract.json). Resolved and remaining questions are synchronized in [`docs/app/OPEN_QUESTIONS.md`](docs/app/OPEN_QUESTIONS.md).
+- [`docs/app/SPECIFICATION_ROUND_03.md`](docs/app/SPECIFICATION_ROUND_03.md)
+- [`docs/app/V1_SCOPE_ACCEPTANCE_MATRIX.md`](docs/app/V1_SCOPE_ACCEPTANCE_MATRIX.md)
+- [`docs/app/V1_TDD_SDD_ENGINEERING_POLICY.md`](docs/app/V1_TDD_SDD_ENGINEERING_POLICY.md)
+- [`app-product-contract.json`](app-product-contract.json)
+
+## Required v1 packages
+
+- Windows x64 NSIS installer;
+- Windows x64 portable package;
+- macOS arm64 DMG and update ZIP;
+- macOS Intel x64 DMG and update ZIP;
+- Linux x64 AppImage;
+- Linux x64 `.deb`.
+
+Packaging uses Vite, `electron-builder` and `electron-updater`. Stable `1.0.0` requires Windows code signing and Apple signing/notarization. Unsigned artifacts are clearly labeled prereleases and cannot enter the stable automatic-update channel.
 
 ## Non-negotiable frontend baseline
 
-- Electron desktop application for Windows, macOS and Linux.
+- Electron.
 - Vue 3 Single-File Components.
-- Vuetify 3 using current stable syntax at implementation time.
-- Composition API everywhere, with `<script setup lang="ts">` for every Vue component unless a documented compiler limitation requires an exception.
+- Vuetify 3 current stable syntax at implementation time.
+- Composition API everywhere with `<script setup lang="ts">`.
 - TypeScript strict mode.
-- Responsive layout built with `v-container`, `v-row` and `v-col` rather than desktop-only fixed positioning.
-- Meaningful Vuetify colors and icons on interactive controls, including `color="primary"`, `prepend-icon` and `append-icon` where semantically appropriate.
-- `v-hover` interaction states and Vuetify or Vue transitions on cards, panels, drawers, dialogs, route changes and progressive disclosure.
-- Motion must feel polished without slowing bulk operations, violating reduced-motion preferences or producing distracting continuous animation.
+- Pinia for UI/session state.
+- TanStack Vue Query for bounded asynchronous query state.
+- SQLite as source of truth.
+- Responsive layouts built with `v-container`, `v-row` and `v-col`.
+- Meaningful `color`, `prepend-icon` and `append-icon` usage.
+- `v-hover` and Vuetify/Vue transitions on meaningful interactive surfaces.
+- Light, dark and system appearance.
+- Reduced-motion support.
+- Complete `zh-TW`, `en`, `zh-CN`, `ja` and `ko` localization.
+- Loading, empty, partial, error, offline, interrupted, recovery and completed states where applicable.
 
-## Specification governance
+## Runtime and security baseline
 
-The specification is intentionally split into focused documents. Each normative statement uses one of these levels:
+- Sandboxed renderer with `nodeIntegration: false` and `contextIsolation: true`.
+- Narrow typed/versioned preload IPC only.
+- No renderer filesystem, secret or process-spawn privileges.
+- Self-contained version-pinned Python engine; users do not install Python.
+- Versioned pipe-based protocol and capability-scoped staging files; no public listening port.
+- OS secure credential storage when genuinely secure.
+- Linux `basic_text` persistence rejected.
+- Session secret mode, expert `.env` mode and portable Argon2id/XChaCha20-Poly1305 encrypted vault.
+- Source media remains immutable.
+- Jobs, checkpoints, migrations, updates and exports are durable and transactional where applicable.
 
-- **MUST**: required for the relevant milestone to be accepted.
-- **SHOULD**: expected unless an explicit architecture decision records a better alternative.
-- **MAY**: optional or deferred capability.
-- **MUST NOT**: prohibited because it conflicts with security, data integrity, performance or product intent.
+## Accepted v1 functional scope
 
-Each product decision is also assigned a state:
+### Data and automation
 
-- `accepted`: approved and implementation may rely on it.
-- `provisional`: this specification selects a default so work can continue, but the decision remains easy to change.
-- `open`: implementation must not irreversibly depend on it.
-- `rejected`: explicitly excluded unless reopened through the decision log.
+- Quick Start and sanitized Full Research corpora in dedicated immutable Releases.
+- Sanitized complete prompt text and normalized provenance when rights review passes.
+- Adaptive managed-copy/external-reference imports.
+- Agnes image/video automation.
+- Generated Media collection and optional named-corpus auto enrollment.
+- Task Scheduler, LaunchAgent, `systemd --user` and tray fallback scheduling.
 
-The machine-readable source for stable product invariants is [`app-product-contract.json`](app-product-contract.json). Human-readable detail lives under [`docs/app/`](docs/app/). When a decision changes, the contract, affected specifications, decision log, open-question register, milestones and acceptance criteria must be updated together.
+### Atlas
+
+- Complete image/video cohort analysis and evidence.
+- Hybrid structured/freeform document editor.
+- Rich text, autosave, revisions and undo/redo.
+- Seven built-in templates.
+- Declarative external template import/export.
+- Static PDF with default 10%/50%/90% video strip and poster/timestamp/strip/keyframe alternatives.
+
+### Detection
+
+- YOLOX-Tiny/S/L.
+- NanoDet-Plus-m-320/m-416/m-1.5x-416.
+- CPU fallback plus DirectML, CUDA and CoreML in v1.
+- Signed acceleration packs where useful.
+- Hash/provenance/license-aware model registry.
+- User-supplied ONNX through known adapters, declarative manifests and sandboxed WASM postprocessing.
+- Item-level checkpoints, pause/resume/cancel/recovery and partial results.
+
+### Integrations
+
+- Draft-first GitHub Release publisher.
+- Provider-agnostic cloud-folder project sync using immutable blobs, snapshots, journals and conflict resolution.
+- Comprehensive local diagnostics.
+- Default-off consent-based remote telemetry transport.
+
+## Engineering method
+
+All implementation is specification-driven and test-driven.
+
+```text
+Decision -> Requirement ID -> Failing test -> Implementation -> CI evidence -> Release manifest
+```
+
+Required evidence includes unit, component, IPC, Python engine, real FFmpeg/ONNX, Playwright Electron E2E, migration, fault-injection, visual, accessibility, all-locale, real GPU, package install/update, performance, license and SBOM tests.
+
+A feature is not complete merely because its happy-path UI works.
+
+## Open-source and rights
+
+- App-specific source is Apache-2.0.
+- Accepted source and binaries are public.
+- Third-party notices, SBOM, checksums and dependency/license scans are mandatory.
+- Model weights, sample data, fonts, templates and provider assets keep separate rights manifests.
+- Unknown redistribution rights default to `do_not_distribute`.
+- When rights prevent bundling, use verified download-on-demand or user-supplied acquisition rather than silently deleting the feature.
 
 ## Branch policy
 
-- `main` remains the existing web, analysis and Release product line.
-- `app-main` is the long-lived integration branch for the desktop product line.
-- Feature work branches from `app-main`, uses normal merge commits and remains preserved unless the user asks for deletion.
-- The app may consume algorithms, schemas and test fixtures from `main`, but it must not silently inherit Web-specific assumptions.
-- App Releases and sample-data packages use their own tag and asset namespace and must not mutate immutable experiment Releases.
+- `main` remains the existing web/analysis/Release product line.
+- `app-main` is the long-lived desktop integration branch.
+- Feature branches start from `app-main`.
+- Use normal merge commits.
+- Preserve branches unless the user asks for deletion.
+- Draft PR #29 remains unmerged until the user changes that instruction.
 
-## Implementation gate
+## Implementation authorization
 
-Before production implementation begins, the specification must at minimum define:
+The product specification is ready. The application has not been implemented.
 
-1. product boundaries and user journeys;
-2. desktop process architecture and IPC security;
-3. project, asset, job and configuration schemas;
-4. credential storage and API execution behavior;
-5. Atlas Studio behavior and PDF export constraints;
-6. Detection Studio model registry, licensing states and resumability;
-7. large-corpus performance budgets;
-8. packaging, Release, update, migration and rollback behavior;
-9. platform-specific acceptance tests;
-10. unresolved questions that require user decisions.
-
-The current documents establish the first two review rounds. They are expected to be expanded before implementation is declared ready.
+No production implementation begins until the user explicitly asks to start or complete it.
