@@ -14,6 +14,7 @@ export default defineConfig({
       include: [
         'src/main/portable-vault.ts',
         'src/main/report-renderer.ts',
+        'src/shared/diagnostics.ts',
         'src/shared/model-registry.ts',
         'src/shared/report-templates.ts',
         'src/shared/sample-corpus-schema.ts',
