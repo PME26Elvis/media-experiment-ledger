@@ -1,27 +1,35 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-07-22.1",
+  "contract_version": "2026-07-22.2",
   "product_line": {
-    "name": "Media Experiment Ledger Desktop",
+    "name": "Media Experiment Ledger Studio",
+    "tagline": "Atlas · Detection · Media Automation",
+    "slug": "media-experiment-ledger-studio",
+    "application_id": "io.github.pme26elvis.media-experiment-ledger-studio",
     "branch": "app-main",
     "status": "specification_in_progress",
     "implementation_status": "not_started",
     "default_user_language": "zh-TW",
     "secondary_user_language": "en",
     "local_first": true,
-    "cross_platform": [
-      "windows-x64",
+    "cross_platform_required": [
+      "windows-x64-installer",
+      "windows-x64-portable",
       "macos-arm64",
-      "macos-x64-provisional",
-      "linux-x64"
+      "macos-x64",
+      "linux-x64-appimage",
+      "linux-x64-deb"
     ],
+    "macos_universal_artifact": "optional_when_size_and_signing_validation_are_acceptable",
     "default_merge_method": "merge",
     "delete_branches_by_default": false
   },
   "specification": {
     "index": "docs/app/README.md",
     "decision_log": "docs/app/DECISIONS.md",
+    "round_two_decisions": "docs/app/SPECIFICATION_ROUND_02.md",
     "open_questions": "docs/app/OPEN_QUESTIONS.md",
+    "licensing_policy": "docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md",
     "status_values": [
       "accepted",
       "provisional",
@@ -84,9 +92,13 @@
     ],
     "secrets_stored_in_plaintext_project_files": false,
     "env_file_is_secret_source": true,
+    "env_default_role": "import_export_and_optional_expert_file_backed_profile",
+    "env_persistent_file_backed_mode": true,
+    "env_persistent_file_backed_mode_requires_warning": true,
     "env_file_export_includes_secret_values_by_default": false,
     "credentials_backend": "Electron safeStorage with OS credential provider",
     "credentials_portable_export_default": false,
+    "no_silent_plaintext_secret_fallback": true,
     "atomic_writes_required": true,
     "schema_versioning_required": true,
     "migration_journal_required": true
@@ -160,6 +172,18 @@
       "route": "/updates"
     }
   },
+  "application_lifecycle": {
+    "system_tray_background_execution": true,
+    "close_with_active_job_requires_choice": true,
+    "active_job_close_choices": [
+      "keep_running_in_tray",
+      "pause_and_quit",
+      "cancel_and_quit"
+    ],
+    "launch_at_login_default": false,
+    "native_notifications": true,
+    "sleep_prevention_scope": "active_critical_submission_download_or_export_stage_only"
+  },
   "api_automation": {
     "provider_plugin_architecture": true,
     "agnes_image_initial_support": true,
@@ -186,6 +210,7 @@
     "incremental_preview_allowed": true,
     "source_media_immutable": true,
     "editable_copy_for_document_layout": true,
+    "document_editor_mode": "hybrid_structured_default_with_controlled_freeform_page_mode",
     "rich_text_features": [
       "font_family",
       "font_size",
@@ -200,6 +225,15 @@
       "caption_style"
     ],
     "document_templates_required": true,
+    "required_templates": [
+      "Research Light",
+      "Editorial Dark",
+      "Gallery Minimal",
+      "Technical Audit",
+      "Executive Review",
+      "Traditional Chinese Academic",
+      "16:9 Presentation Report"
+    ],
     "undo_redo_required": true,
     "autosave_required": true,
     "pdf_export": {
@@ -218,21 +252,22 @@
       "YOLOX",
       "NanoDet-Plus"
     ],
-    "initial_required_models": [
+    "v1_required_models": [
       "YOLOX-Tiny",
-      "NanoDet-Plus-m-320"
-    ],
-    "candidate_models_pending_artifact_license_review": [
-      "YOLOX-Nano",
       "YOLOX-S",
-      "YOLOX-M",
       "YOLOX-L",
-      "YOLOX-X",
+      "NanoDet-Plus-m-320",
       "NanoDet-Plus-m-416",
-      "NanoDet-Plus-m-1.5x-320",
       "NanoDet-Plus-m-1.5x-416"
     ],
-    "model_artifact_distribution": "open",
+    "post_v1_catalog_candidates": [
+      "YOLOX-Nano",
+      "YOLOX-M",
+      "YOLOX-X",
+      "NanoDet-Plus-m-1.5x-320"
+    ],
+    "model_artifact_distribution": "hybrid_by_verified_artifact_license",
+    "model_weights_bundled_without_explicit_review": false,
     "model_registry_required": true,
     "model_hash_verification_required": true,
     "license_manifest_required": true,
@@ -265,33 +300,46 @@
     "long_task_telemetry_required": true,
     "thumbnail_generation_resumable": true
   },
-  "releases": {
-    "app_tag_pattern": "desktop-v<semver>",
-    "mock_data_tag_strategy": "same app Release by default; dedicated data Release allowed when size or cadence requires it",
-    "mock_data_asset_prefix": "mel-sample-corpus",
-    "mock_data_asset_examples": [
-      "mel-sample-corpus-images-v1-part001.zip",
-      "mel-sample-corpus-images-v1-part002.zip",
-      "mel-sample-corpus-videos-v1-part001.zip"
+  "sample_corpus": {
+    "two_tiers_required": true,
+    "tiers": [
+      "quick-start",
+      "full-research"
     ],
-    "mock_data_part_max_bytes": 1900000000,
-    "mock_data_manifest_required": true,
-    "mock_data_checksums_required": true,
-    "raw_personal_data_review_required": true,
+    "quick_start_goal": "small onboarding corpus that demonstrates image, video, Atlas and multi-model detection",
+    "full_research_goal": "sanitized full canonical corpus suitable for scale and repeatability evaluation",
+    "release_strategy": "dedicated immutable corpus releases referenced by each app release manifest",
+    "unchanged_corpus_reuploaded_with_every_app_release": false,
+    "asset_prefix": "mel-sample-corpus",
+    "asset_examples": [
+      "mel-sample-corpus-quick-start-images-v1-part001.zip",
+      "mel-sample-corpus-quick-start-videos-v1-part001.zip",
+      "mel-sample-corpus-full-research-images-v1-part001.zip",
+      "mel-sample-corpus-full-research-videos-v1-part001.zip"
+    ],
+    "part_max_bytes": 1900000000,
+    "manifest_required": true,
+    "checksums_required": true,
+    "privacy_and_rights_review_required": true,
+    "publication_blocked_until_license_manifest_complete": true
+  },
+  "releases": {
+    "app_tag_pattern": "studio-v<semver>",
+    "mock_data_tag_pattern": "studio-sample-corpus-<tier>-v<integer>",
     "app_assets": [
-      "windows-installer",
-      "windows-portable-provisional",
-      "macos-arm64",
-      "macos-x64-provisional",
-      "linux-appimage",
-      "linux-deb-provisional"
+      "windows-x64-nsis-installer",
+      "windows-x64-portable",
+      "macos-arm64-dmg-and-update-zip",
+      "macos-x64-dmg-and-update-zip",
+      "linux-x64-appimage",
+      "linux-x64-deb"
     ],
     "manual_workflow_dispatch": true,
     "optional_release_notes_input": true,
     "optional_feature_list_input": true,
     "feature_list_markdown_bullets": true,
     "draft_prerelease_final_controls": true,
-    "checksums_and_manifest_required": true
+    "checksums_manifest_sbom_required": true
   },
   "updates": {
     "automatic_online_updates": true,
@@ -304,8 +352,32 @@
     "transactional_migrations_required": true,
     "rollback_or_recovery_path_required": true,
     "downgrade_not_implicitly_supported": true,
-    "linux_builtin_auto_update": "not_assumed",
-    "manual_download_fallback_required": true
+    "manual_download_fallback_required": true,
+    "required_update_targets": [
+      "windows-nsis",
+      "macos-arm64",
+      "macos-x64",
+      "linux-appimage",
+      "linux-deb"
+    ],
+    "windows_portable_update_mode": "guided_download_replace_and_relaunch_with_shared_data_directory_preservation"
+  },
+  "licensing": {
+    "application_source_license": "Apache-2.0",
+    "source_public": true,
+    "release_binaries_public": true,
+    "contributions_under_project_license": true,
+    "third_party_notices_required": true,
+    "sbom_required": true,
+    "dependency_license_scan_required": true,
+    "copyleft_or_source_available_dependency_requires_explicit_review": true,
+    "premium_theme_or_template_assets_prohibited_without_redistribution_rights": true,
+    "third_party_logos_and_trademarks_not_used_as_app_branding": true,
+    "model_weights_follow_separate_artifact_license_manifest": true,
+    "sample_data_follow_separate_data_license_manifest": true,
+    "sample_data_target_license": "CC-BY-4.0 when the publisher has verified sufficient rights; otherwise withhold or use a more restrictive explicit data notice",
+    "unknown_rights_default": "do_not_distribute",
+    "takedown_response_process_required": true
   },
   "quality": {
     "unit_tests": true,
@@ -319,7 +391,8 @@
     "reduced_motion_tests": true,
     "offline_mode_tests": true,
     "crash_recovery_tests": true,
-    "release_asset_install_tests": true
+    "release_asset_install_tests": true,
+    "license_and_notice_validation": true
   },
   "explicit_non_goals_v1": [
     "cloud account service operated by this repository",
@@ -329,6 +402,7 @@
     "animated GIF preservation inside PDF",
     "mobile-native application",
     "silent execution of untrusted project scripts",
-    "claiming detector accuracy on unlabeled generated media"
+    "claiming detector accuracy on unlabeled generated media",
+    "bundling third-party model weights or sample data without verified redistribution rights"
   ]
 }
