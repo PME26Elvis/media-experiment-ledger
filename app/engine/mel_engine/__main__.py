@@ -9,6 +9,7 @@ from .automation import run_automation
 from .common import emit
 from .detection import run_detection
 from .download import run_sample_download
+from .generated_collection import finalize_generated_collection
 from .scan import run_scan
 
 
@@ -21,7 +22,7 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
     if operation == 'detection':
         return run_detection(request)
     if operation == 'automation':
-        return run_automation(request)
+        return finalize_generated_collection(request, run_automation(request))
     if operation == 'sample-download':
         return run_sample_download(request)
     if operation == 'pdf-export':
