@@ -1,299 +1,149 @@
-# Desktop Product Primary References
+# Primary References and Review Checklist
 
-This file records the primary upstream documentation and repository materials that informed the initial specification. It is not a substitute for a dependency/license audit at implementation or Release time.
+This file records the primary upstream references that implementation must re-check at the time each dependency or artifact is pinned. It is not a substitute for lockfiles, SBOMs, license texts or artifact-level review.
 
-Versions and external capabilities can change. Before implementation begins and before every stable Release, re-check current official documentation, package support, security guidance and artifact licenses.
+## Electron
 
-## 1. Electron
+- Electron documentation: `https://www.electronjs.org/docs/latest/`
+- Security checklist: `https://www.electronjs.org/docs/latest/tutorial/security`
+- Context isolation: `https://www.electronjs.org/docs/latest/tutorial/context-isolation`
+- Process sandboxing: `https://www.electronjs.org/docs/latest/tutorial/sandbox`
+- `safeStorage`: `https://www.electronjs.org/docs/latest/api/safe-storage`
+- `autoUpdater`: `https://www.electronjs.org/docs/latest/api/auto-updater`
+- License: `https://github.com/electron/electron/blob/main/LICENSE`
 
-### Core documentation
+Implementation must pin an Electron version and verify all breaking changes/security guidance at scaffold time rather than relying on this specification date.
 
-- Electron documentation: https://www.electronjs.org/docs/latest/
-- Process model: https://www.electronjs.org/docs/latest/tutorial/process-model
-- Context isolation: https://www.electronjs.org/docs/latest/tutorial/context-isolation
-- Security checklist: https://www.electronjs.org/docs/latest/tutorial/security
-- BrowserWindow/webPreferences: https://www.electronjs.org/docs/latest/api/browser-window
-- contextBridge: https://www.electronjs.org/docs/latest/api/context-bridge
-- IPC tutorial: https://www.electronjs.org/docs/latest/tutorial/ipc
+## Vue 3
 
-Specification implications:
+- Vue documentation: `https://vuejs.org/`
+- Composition API FAQ: `https://vuejs.org/guide/extras/composition-api-faq.html`
+- `<script setup>`: `https://vuejs.org/api/sfc-script-setup.html`
+- Vue core license: `https://github.com/vuejs/core/blob/main/LICENSE`
 
-- renderer privilege must be minimized;
-- `contextIsolation` and narrow preload APIs are mandatory;
-- arbitrary navigation/windows/permissions are denied by default;
-- a generic IPC pass-through is not acceptable.
+Required project use is Composition API with `<script setup lang="ts">` in ordinary components.
 
-### Secret storage
+## Vuetify 3
 
-- `safeStorage`: https://www.electronjs.org/docs/latest/api/safe-storage
+- Documentation: `https://vuetifyjs.com/`
+- Grid system: `https://vuetifyjs.com/en/components/grids/`
+- Hover: `https://vuetifyjs.com/en/components/hover/`
+- Transitions: `https://vuetifyjs.com/en/styles/transitions/`
+- Framework repository/license: `https://github.com/vuetifyjs/vuetify`
 
-Review notes:
+Important boundary: the open-source Vuetify framework and separately sold Vuetify Store themes/templates are not the same licensing surface. Public repository code must use the framework and self-authored/open-licensed assets unless exact premium-asset redistribution rights are documented.
 
-- uses operating-system-provided cryptography/storage behavior;
-- Windows, macOS and Linux backend behavior differs;
-- Linux may not provide a secure keyring in every environment;
-- current APIs and re-encryption guidance must be rechecked at implementation time;
-- no plaintext fallback is allowed without explicit user choice.
+## Packaging and updates
 
-### Updates and distribution
+### electron-builder / electron-updater candidate
 
-- `autoUpdater`: https://www.electronjs.org/docs/latest/api/auto-updater
-- Updating applications tutorial: https://www.electronjs.org/docs/latest/tutorial/updates
-- Application distribution: https://www.electronjs.org/docs/latest/tutorial/application-distribution
-- Code signing: https://www.electronjs.org/docs/latest/tutorial/code-signing
-- macOS notarization: https://www.electronjs.org/docs/latest/tutorial/code-signing#signing-and-notarizing-macos-builds
+- Configuration: `https://www.electron.build/docs/configuration/`
+- Windows targets: `https://www.electron.build/docs/win/`
+- macOS targets: `https://www.electron.build/mac/`
+- AppImage: `https://www.electron.build/docs/appimage/`
+- Auto update: `https://www.electron.build/docs/features/auto-update/`
+- `electron-updater`: `https://www.electron.build/docs/api/electron-updater/`
 
-Review notes:
+This toolchain is the current recommendation for the accepted package matrix because it supports NSIS, Windows portable, DMG/update ZIP, AppImage and `.deb`, with update metadata for installed targets. It remains an open architecture decision until APP-Q-003 is accepted.
 
-- Electron's built-in autoUpdater is oriented to macOS and Windows; Linux update behavior must be package-specific;
-- macOS automatic update/signing identity requirements must be verified with the selected packager;
-- installer/update success is distinct from project/settings migration success;
-- package signing/notarization strategy remains a Phase 0 decision.
+### Electron Forge alternative
 
-### Packaging
+- Documentation: `https://www.electronforge.io/`
+- Auto update: `https://www.electronforge.io/advanced/auto-update`
+- Repository/license: `https://github.com/electron/forge`
 
-- Electron Forge documentation: https://www.electronforge.io/
-- Forge Vite plugin: https://www.electronforge.io/config/plugins/vite
-- Forge makers: https://www.electronforge.io/config/makers
+Forge remains a valid Electron build toolkit, but the implementation must compare its current maker/update coverage against all six required artifacts before selecting it.
 
-Review notes:
+## SQLite and persistence
 
-- Forge + Vite is provisional rather than permanently fixed;
-- compare current maintained maker/updater support after the v1 package matrix is approved;
-- native Node modules require Electron ABI rebuilds and platform CI.
+The implementation must select a maintained SQLite binding only after checking Electron/native ABI packaging, transaction/WAL support, license, prebuilt binaries for every required architecture, migration behavior, SBOM provenance and crash recovery. No binding is fixed yet.
 
-## 2. Vue 3
+## Agnes integration
 
-- Vue Composition API FAQ: https://vuejs.org/guide/extras/composition-api-faq.html
-- `<script setup>` documentation: https://vuejs.org/api/sfc-script-setup.html
-- TypeScript with Composition API: https://vuejs.org/guide/typescript/composition-api.html
-- Single-File Components: https://vuejs.org/guide/scaling-up/sfc.html
-- Vue Router: https://router.vuejs.org/
-- Pinia: https://pinia.vuejs.org/
-
-Specification implications:
-
-- Composition API and `<script setup lang="ts">` are the renderer convention;
-- component props/emits/models are typed;
-- state tooling does not replace SQLite as the large-data source of truth;
-- exact stable versions are pinned when implementation starts.
-
-## 3. Vuetify 3
-
-- Vuetify documentation: https://vuetifyjs.com/en/
-- Grid system: https://vuetifyjs.com/en/components/grids/
-- Hover component: https://vuetifyjs.com/en/components/hover/
-- Transitions: https://vuetifyjs.com/en/styles/transitions/
-- Display and breakpoints: https://vuetifyjs.com/en/features/display-and-platform/
-- Theme: https://vuetifyjs.com/en/features/theme/
-- Accessibility: https://vuetifyjs.com/en/getting-started/accessibility/
-
-Specification implications:
-
-- `v-container`, `v-row` and `v-col` define primary responsive layouts;
-- `v-hover` is required on meaningful interactive surfaces but cannot be the only interaction path;
-- built-in/custom transitions must honor reduced-motion preferences;
-- semantic colors and icons are part of component acceptance criteria;
-- current stable Vuetify 3 syntax must be revalidated at implementation time.
-
-## 4. SQLite and project storage
-
-- SQLite documentation: https://www.sqlite.org/docs.html
-- Write-Ahead Logging: https://www.sqlite.org/wal.html
-- Backup API: https://www.sqlite.org/backup.html
-- Foreign keys: https://www.sqlite.org/foreignkeys.html
-- Transaction documentation: https://www.sqlite.org/lang_transaction.html
-
-Specification implications:
-
-- per-project indexed state uses SQLite with foreign keys and transactions;
-- WAL suitability depends on filesystem behavior;
-- cloud/network filesystems require explicit support policy;
-- migration and backup logic must be tested under interruption.
-
-Potential Node binding (provisional, not selected):
-
-- better-sqlite3: https://github.com/WiseLibs/better-sqlite3
-
-## 5. Media processing
-
-### FFmpeg
-
-- FFmpeg documentation: https://ffmpeg.org/documentation.html
-- FFprobe documentation: https://ffmpeg.org/ffprobe.html
-- FFmpeg legal/licensing information: https://ffmpeg.org/legal.html
-
-Review notes:
-
-- app packaging must review the exact FFmpeg build configuration and license obligations;
-- critical video tests use real FFmpeg/FFprobe with generated fixtures;
-- video format/container support is derived from the packaged build, not only file extension.
-
-### Image proxy candidate
-
-- Sharp: https://sharp.pixelplumbing.com/
-- Sharp repository/license: https://github.com/lovell/sharp
-
-Review notes:
-
-- Sharp/libvips is provisional;
-- verify Electron/native packaging, formats and licenses before selection;
-- display-pixel-aware proxy architecture is independent of the chosen implementation library.
-
-## 6. ONNX Runtime
-
-- ONNX Runtime documentation: https://onnxruntime.ai/docs/
-- JavaScript/Node API: https://onnxruntime.ai/docs/get-started/with-javascript/
-- Execution providers: https://onnxruntime.ai/docs/execution-providers/
-- ONNX Runtime repository/license: https://github.com/microsoft/onnxruntime
-
-Specification implications:
-
-- CPU is the universal baseline;
-- CUDA, DirectML, CoreML and other providers are gated by packaged-platform tests;
-- model adapters pin input/output/pre/postprocessing semantics;
-- real runtime smoke is required, not only model-file parsing.
-
-## 7. YOLOX
-
-- Official repository: https://github.com/Megvii-BaseDetection/YOLOX
-- Official model zoo in repository README: https://github.com/Megvii-BaseDetection/YOLOX#benchmark
-- Source-code license: https://github.com/Megvii-BaseDetection/YOLOX/blob/main/LICENSE
-- Releases: https://github.com/Megvii-BaseDetection/YOLOX/releases
-
-Initial catalog references:
-
-- YOLOX-Nano;
-- YOLOX-Tiny;
-- YOLOX-S;
-- YOLOX-M;
-- YOLOX-L;
-- YOLOX-X.
-
-Important review boundary:
-
-- The official source repository is Apache-2.0, but each pretrained/downloaded/exported model artifact must still receive an explicit distribution and provenance review before it is bundled in the desktop installer.
-- The existing repository currently pins and verifies a YOLOX-Tiny ONNX artifact through its own model lock; the desktop app must either reuse that exact identity or introduce a separately versioned, verified model registry entry.
-
-## 8. NanoDet
-
-- Official repository: https://github.com/RangiLyu/nanodet
-- Model zoo: https://github.com/RangiLyu/nanodet#model-zoo
-- Releases: https://github.com/RangiLyu/nanodet/releases
-- Source-code license: https://github.com/RangiLyu/nanodet/blob/main/LICENSE
-
-Initial catalog references:
-
-- NanoDet-Plus-m-320;
-- NanoDet-Plus-m-416;
-- NanoDet-Plus-m-1.5x-320;
-- NanoDet-Plus-m-1.5x-416.
-
-Important review boundary:
-
-- The official source repository is Apache-2.0.
-- The current repository uses the official immutable pre-exported NanoDet-Plus-m-320 ONNX asset from the `v1.0.0-alpha-1` Release and pins size/SHA-256.
-- Larger variants must independently verify exact artifact, format, output adapter, runtime, resource use and redistribution status.
-
-## 9. Existing Media Experiment Ledger source material
-
-These files are the current product/algorithm evidence that the app specifications deliberately restate or import through compatibility layers:
-
-### Repository-wide contract and preferences
-
-- `AGENTS.md`
-- `project-contract.json`
-- `docs/PROJECT_CONTRACT.md`
-
-### Agnes automation
+Repository baseline files:
 
 - `agnes_media_harvester.py`
 - `agnes_media_config.yaml`
-- `prompts/image_prompts.jsonl`
-- `prompts/video_prompts.jsonl`
 
-Key compatibility behavior to retain/expand:
+Provider endpoints, models, error responses, terms and rate limits are external and may change. Before implementation, re-verify official API documentation/terms, keep provider adapters versioned, redact keys/signed URLs, and distinguish API success from durable local download/decode success.
 
-- separate image and video phases;
-- target-success counts;
-- submission intervals;
-- video polling interval/timeout;
-- seed range and negative prompt;
-- stop flags for quota/payment, rate limit and server busy;
-- consecutive-error limits;
-- atomic state writes;
-- response/output JSONL and downloads.
+## YOLOX
 
-### Prompt Repeatability Atlas
+- Official repository: `https://github.com/Megvii-BaseDetection/YOLOX`
+- Repository code license: Apache-2.0 as stated by upstream.
+- Current repository model lock: `object-detection/model-lock.json`
 
-- `docs/PROMPT_REPEATABILITY_ATLAS.md`
-- `docs/VIDEO_REPEATABILITY_ATLAS.md`
-- `visual-analysis/config.json`
-- `tools/prompt_atlas_core.py`
-- `tools/prompt_atlas_data.py`
-- `tools/prompt_atlas_video.py`
-- `tools/prompt_atlas_build.py`
-- `tools/prompt_atlas_packages.py`
-- `tools/prompt_atlas_publish.py`
-- `tests/test_prompt_atlas.py`
-- `tests/test_prompt_atlas_video.py`
+Artifact review requirement:
 
-Key app compatibility areas:
+- do not infer pretrained-weight redistribution permission solely from the source repository license;
+- record exact artifact URL, tag, size, SHA-256, conversion provenance and artifact-specific terms/clarification;
+- default to download-on-demand or user-supplied until bundling is explicitly approved;
+- re-check upstream issue/discussion history for weight-license clarification before stable release.
 
-- image/video cohorts remain separate;
-- deterministic identity/selection;
-- exact byte deduplication;
-- actual decode verification;
-- primary/extended/full evidence;
-- video seed evidence policy;
-- contain/letterbox rendering;
-- all verified samples represented;
-- no hidden source-media mutation.
+## NanoDet-Plus
 
-### Detection
+- Official repository: `https://github.com/RangiLyu/nanodet`
+- Repository code license: Apache-2.0 as stated by upstream.
+- Official Releases/model checkpoints: `https://github.com/RangiLyu/nanodet/releases`
+- Current repository model lock: `object-detection/nanodet-model-lock.json`
 
-- `docs/YOLO_OBJECT_DETECTION_SPEC.md`
-- `docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`
-- `object-detection/model-lock.json`
-- `object-detection/nanodet-model-lock.json`
-- `object-detection/coco-80.json`
-- `tools/yolo_core.py`
-- `tools/nanodet_core.py`
-- `tools/build_detector_artifact.py`
-- `tools/publish_detector_comparison.py`
-- `tests/`
+Artifact review requirement is the same as YOLOX. An official Release asset and Apache-2.0 source repository are useful provenance, but installer redistribution still requires an explicit artifact record.
 
-Key app compatibility areas:
+## ONNX Runtime
 
-- real ONNX Runtime smoke;
-- pinned model and labels identity;
-- original-coordinate recovery;
-- class-aware NMS;
-- exact workflow/run pairing in repository publication context;
-- agreement/disagreement language;
-- Atlas non-regression.
+- Official documentation: `https://onnxruntime.ai/docs/`
+- Repository: `https://github.com/microsoft/onnxruntime`
+- Execution providers: `https://onnxruntime.ai/docs/execution-providers/`
 
-## 10. Release and artifact review checklist
+Before selecting CPU/DirectML/CUDA/CoreML packages, verify platform/architecture availability, native library size, dependencies, license/notices, driver/runtime constraints, fallback behavior and packaged Python versus Node binding compatibility.
 
-Before any desktop stable Release, review and record:
+## FFmpeg
 
-- Electron, Node, Chromium and dependency versions;
-- security advisories;
-- package/signing/notarization state;
-- native dependency ABI/platform builds;
-- FFmpeg build and notices;
-- fonts and embedding/redistribution licenses;
-- Vuetify/icon assets and notices;
-- model source, artifact URL, size, SHA-256 and weight license status;
-- sample corpus privacy/licensing audit;
-- checksums and SBOM;
-- update manifest/package identity;
-- migration support floor;
-- actual uploaded GitHub asset size/count/hash evidence.
+Atlas video validation/proxy generation depends on FFmpeg/FFprobe behavior. Distribution must review exact build source/configuration, codec libraries, LGPL/GPL implications, linking/packaging, notice/source obligations and whether the binary is bundled or system-discovered. Do not assume any arbitrary FFmpeg build is safe to redistribute.
 
-## 11. Reference freshness policy
+## Fonts
 
-- This document records the baseline as of 2026-07-22.
-- External versions and platform behavior must be checked again at implementation start.
-- Security and update documentation must be checked again for every stable Release.
-- A changed external fact that alters an accepted contract requires a new decision-log entry rather than a silent implementation deviation.
+Candidate CJK fonts require exact checks for redistribution, modification/subsetting, desktop bundling, PDF embedding and attribution. Templates must provide deterministic fallback chains and PDF preflight warnings.
+
+## Apache-2.0 app license
+
+- Canonical text: `https://www.apache.org/licenses/LICENSE-2.0`
+- App copy: `app/LICENSE`
+- App notice: `app/NOTICE`
+- Project policy: `docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md`
+
+Apache-2.0 covers only app-authored work that this repository has authority to license. It does not automatically cover models, datasets, generated media, user files, trademarks or separately licensed assets.
+
+## Sample corpus data license
+
+Target public data license is CC BY 4.0 only when sufficient rights have been verified:
+
+- `https://creativecommons.org/licenses/by/4.0/`
+
+Every corpus part still needs an explicit manifest. If provider/user rights do not support CC BY 4.0, withhold the asset or use a reviewed explicit alternative. Unknown rights default to no redistribution.
+
+## Required artifact-level review checklist
+
+For every bundled/downloadable model, binary, font, icon pack or corpus:
+
+1. stable identifier;
+2. source URL/repository/release;
+3. exact version/tag/commit;
+4. filename;
+5. byte size;
+6. SHA-256;
+7. author/publisher;
+8. source-code license when applicable;
+9. artifact/data/weight license or terms;
+10. redistribution mode (`bundled`, `download`, `user-supplied`, `blocked`);
+11. required notices/attribution;
+12. patent/trademark concerns where relevant;
+13. conversion/build provenance;
+14. security scan result;
+15. review date/reviewer;
+16. re-review trigger;
+17. takedown/correction contact/process.
+
+## Review freshness
+
+Dependencies, official guidance, API terms and packaging support may change. Every stable release must regenerate its SBOM/notices and re-check current primary documentation. These references describe the specification baseline, not permanent guarantees.
