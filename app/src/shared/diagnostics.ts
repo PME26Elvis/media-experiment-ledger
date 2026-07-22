@@ -3,6 +3,7 @@ const POSIX_PATH = /(?<![A-Za-z0-9])\/(?:Users|home|var|tmp|private|mnt|media|op
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/giu
 const BEARER = /\bBearer\s+[A-Za-z0-9._~+\/-]+=*/giu
 const SECRET_ASSIGNMENT = /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[^\s,;]+/giu
+const DANGEROUS_SECRET_ASSIGNMENT = /\b(?:api[_-]?key|token|secret|password|authorization|cookie)\s*[:=]\s*[A-Za-z0-9._~+\/-]{8,}/giu
 const LONG_TOKEN = /\b(?:sk|ghp|github_pat|AIza|nvapi|sess|key)[-_A-Za-z0-9]{12,}\b/gu
 const URL = /https?:\/\/[^\s"'<>]+/gu
 
@@ -56,9 +57,14 @@ export function redactValue(value: unknown, key = '', depth = 0): unknown {
 
 export function containsSecretLikeValue(value: unknown): boolean {
   const serialized = JSON.stringify(value)
+    .replaceAll('[REDACTED]', '')
+    .replaceAll('[REDACTED_TOKEN]', '')
+    .replaceAll('[REDACTED_EMAIL]', '')
+    .replaceAll('[REDACTED_PATH]', '')
+    .replaceAll('[REDACTED_URL]', '')
   return Boolean(
     serialized.match(BEARER)
-    || serialized.match(SECRET_ASSIGNMENT)
+    || serialized.match(DANGEROUS_SECRET_ASSIGNMENT)
     || serialized.match(LONG_TOKEN)
     || serialized.match(EMAIL)
     || serialized.match(WINDOWS_PATH)
