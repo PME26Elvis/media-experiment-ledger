@@ -48,15 +48,16 @@ def main() -> int:
             copy(path, output / f'{args.platform_id}-{path.name}')
             copied += 1
 
-    engine_manifest = (
-        app_root / 'engine-bin' / 'mel-engine' / 'engine-build-manifest.json'
-    )
+    for evidence_name in ('packaged-smoke-evidence.json',):
+        evidence = app_root / evidence_name
+        if evidence.is_file():
+            copy(evidence, output / f'{args.platform_id}-{evidence.name}')
+            copied += 1
+
+    engine_manifest = app_root / 'engine-bin' / 'mel-engine' / 'engine-build-manifest.json'
     if not engine_manifest.is_file():
         raise RuntimeError('Self-contained engine build manifest is missing.')
-    copy(
-        engine_manifest,
-        output / f'{args.platform_id}-engine-build-manifest.json',
-    )
+    copy(engine_manifest, output / f'{args.platform_id}-engine-build-manifest.json')
     copied += 1
 
     if copied == 0:
