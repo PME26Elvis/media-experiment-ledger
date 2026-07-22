@@ -1,50 +1,8 @@
-export const IPC = {
-  systemInfo: 'mel:system-info',
-  chooseDirectory: 'mel:choose-directory',
-  chooseFile: 'mel:choose-file',
-  revealPath: 'mel:reveal-path',
-  settingsGet: 'mel:settings-get',
-  settingsSet: 'mel:settings-set',
-  jobsList: 'mel:jobs-list',
-  jobsCreate: 'mel:jobs-create',
-  jobsControl: 'mel:jobs-control',
-  modelsList: 'mel:models-list',
-  modelsImport: 'mel:models-import',
-  modelsRemove: 'mel:models-remove',
-  secretsList: 'mel:secrets-list',
-  secretsSave: 'mel:secrets-save',
-  secretsRemove: 'mel:secrets-remove',
-  secretsUnlock: 'mel:secrets-unlock',
-  secretsLock: 'mel:secrets-lock',
-  updaterCheck: 'mel:updater-check',
-  updaterInstall: 'mel:updater-install',
-} as const
-
-export type JobKind = 'scan' | 'atlas' | 'detection' | 'automation' | 'pdf-export' | 'sample-download'
-export type JobStatus = 'queued' | 'running' | 'pausing' | 'paused' | 'cancelling' | 'cancelled' | 'failed' | 'recoverable' | 'completed'
-
-export interface JobRecord { id:string; kind:JobKind; title:string; status:JobStatus; stage:string; progress:number; completedItems:number; totalItems:number; config:Record<string,unknown>; output?:Record<string,unknown>; error?:string; createdAt:string; updatedAt:string }
-export interface CreateJobRequest { kind:JobKind; title:string; config:Record<string,unknown> }
-
-export type ModelLicenseState = 'verified' | 'needs-review' | 'user-supplied-only' | 'blocked'
-export type ModelDistributionMode = 'bundled' | 'download' | 'user-supplied' | 'blocked'
-export interface ModelRecord { id:string; family:'YOLOX'|'NanoDet-Plus'; variant:string; inputWidth:number; inputHeight:number; adapter:string; labels:string; computeTier:'light'|'medium'|'heavy'; distributionMode:ModelDistributionMode; licenseState:ModelLicenseState; sourceUrl?:string; installed:boolean; localPath?:string; sha256?:string; sizeBytes?:number; importedAt?:string }
-
-export type SecretBackend = 'os' | 'session' | 'env' | 'portable-vault'
-export interface SecretProfileSummary { id:string; name:string; provider:string; environmentVariable:string; backend:SecretBackend; envFilePath?:string; createdAt:string; updatedAt:string; unlocked:boolean; persistent:boolean; secure:boolean; warning?:string }
-export interface SaveSecretProfileRequest { id?:string; name:string; provider:string; environmentVariable:string; backend:SecretBackend; secret?:string; password?:string; envFilePath?:string }
-
-export interface SystemInfo { platform:NodeJS.Platform; arch:string; version:string; appDataPath:string; documentsPath:string; downloadsPath:string; engineReady:boolean }
-export interface StudioSettings { locale:'zh-TW'|'en'|'zh-CN'|'ja'|'ko'; appearance:'system'|'light'|'dark'; imageInputPath:string; videoInputPath:string; atlasOutputPath:string; detectionOutputPath:string; generatedOutputPath:string; closeBehavior:'ask'|'tray'|'quit'; reducedMotion:boolean }
-
-export interface MelDesktopApi {
-  systemInfo():Promise<SystemInfo>
-  chooseDirectory(defaultPath?:string):Promise<string|null>
-  chooseFile(options?:{title?:string;extensions?:string[]}):Promise<string|null>
-  revealPath(path:string):Promise<boolean>
-  settings:{ get():Promise<StudioSettings>; set(patch:Partial<StudioSettings>):Promise<StudioSettings> }
-  jobs:{ list():Promise<JobRecord[]>; create(request:CreateJobRequest):Promise<JobRecord>; control(id:string,action:'pause'|'resume'|'cancel'):Promise<JobRecord> }
-  models:{ list():Promise<ModelRecord[]>; import(modelId:string,sourcePath:string):Promise<ModelRecord>; remove(modelId:string):Promise<boolean> }
-  secrets:{ list():Promise<SecretProfileSummary[]>; save(request:SaveSecretProfileRequest):Promise<SecretProfileSummary>; remove(id:string):Promise<boolean>; unlock(id:string,password:string):Promise<SecretProfileSummary>; lock(id:string):Promise<SecretProfileSummary> }
-  updater:{ check():Promise<{status:string;version?:string;error?:string}>; install():Promise<boolean> }
-}
+export const IPC={systemInfo:'mel:system-info',chooseDirectory:'mel:choose-directory',chooseFile:'mel:choose-file',revealPath:'mel:reveal-path',settingsGet:'mel:settings-get',settingsSet:'mel:settings-set',jobsList:'mel:jobs-list',jobsCreate:'mel:jobs-create',jobsControl:'mel:jobs-control',modelsList:'mel:models-list',modelsImport:'mel:models-import',modelsRemove:'mel:models-remove',secretsList:'mel:secrets-list',secretsSave:'mel:secrets-save',secretsRemove:'mel:secrets-remove',secretsUnlock:'mel:secrets-unlock',secretsLock:'mel:secrets-lock',corporaList:'mel:corpora-list',corporaRefresh:'mel:corpora-refresh',corporaImport:'mel:corpora-import',corporaInstall:'mel:corpora-install',corporaRemove:'mel:corpora-remove',updaterCheck:'mel:updater-check',updaterInstall:'mel:updater-install'} as const
+export type JobKind='scan'|'atlas'|'detection'|'automation'|'pdf-export'|'sample-download';export type JobStatus='queued'|'running'|'pausing'|'paused'|'cancelling'|'cancelled'|'failed'|'recoverable'|'completed'
+export interface JobRecord{id:string;kind:JobKind;title:string;status:JobStatus;stage:string;progress:number;completedItems:number;totalItems:number;config:Record<string,unknown>;output?:Record<string,unknown>;error?:string;createdAt:string;updatedAt:string}export interface CreateJobRequest{kind:JobKind;title:string;config:Record<string,unknown>}
+export type ModelLicenseState='verified'|'needs-review'|'user-supplied-only'|'blocked';export type ModelDistributionMode='bundled'|'download'|'user-supplied'|'blocked';export interface ModelRecord{id:string;family:'YOLOX'|'NanoDet-Plus';variant:string;inputWidth:number;inputHeight:number;adapter:string;labels:string;computeTier:'light'|'medium'|'heavy';distributionMode:ModelDistributionMode;licenseState:ModelLicenseState;sourceUrl?:string;installed:boolean;localPath?:string;sha256?:string;sizeBytes?:number;importedAt?:string}
+export type SecretBackend='os'|'session'|'env'|'portable-vault';export interface SecretProfileSummary{id:string;name:string;provider:string;environmentVariable:string;backend:SecretBackend;envFilePath?:string;createdAt:string;updatedAt:string;unlocked:boolean;persistent:boolean;secure:boolean;warning?:string}export interface SaveSecretProfileRequest{id?:string;name:string;provider:string;environmentVariable:string;backend:SecretBackend;secret?:string;password?:string;envFilePath?:string}
+export type SampleCorpusTier='quick-start'|'full-research';export interface SampleCorpusAsset{id:string;mediaType:'image'|'video'|'metadata'|'mixed';part:number;fileName:string;url:string;sha256:string;sizeBytes:number;required:boolean}export interface SampleCorpusManifest{schemaVersion:1;id:string;tier:SampleCorpusTier;version:number;title:string;description:string;releaseTag:string;generatedAt:string;rightsStatus:'approved'|'review-required'|'blocked';license:string;sourceReleaseTags:string[];sanitization:{prompts:'sanitized-full'|'ids-only';removedFields:string[]};assets:SampleCorpusAsset[]}export interface SampleCorpusStatus{manifest:SampleCorpusManifest;installedAssets:number;totalAssets:number;installedBytes:number;totalBytes:number;state:'available'|'partial'|'installed'|'blocked';installRoot:string;activeJobIds:string[]}
+export interface SystemInfo{platform:NodeJS.Platform;arch:string;version:string;appDataPath:string;documentsPath:string;downloadsPath:string;engineReady:boolean}export interface StudioSettings{locale:'zh-TW'|'en'|'zh-CN'|'ja'|'ko';appearance:'system'|'light'|'dark';imageInputPath:string;videoInputPath:string;atlasOutputPath:string;detectionOutputPath:string;generatedOutputPath:string;closeBehavior:'ask'|'tray'|'quit';reducedMotion:boolean}
+export interface MelDesktopApi{systemInfo():Promise<SystemInfo>;chooseDirectory(defaultPath?:string):Promise<string|null>;chooseFile(options?:{title?:string;extensions?:string[]}):Promise<string|null>;revealPath(path:string):Promise<boolean>;settings:{get():Promise<StudioSettings>;set(patch:Partial<StudioSettings>):Promise<StudioSettings>};jobs:{list():Promise<JobRecord[]>;create(request:CreateJobRequest):Promise<JobRecord>;control(id:string,action:'pause'|'resume'|'cancel'):Promise<JobRecord>};models:{list():Promise<ModelRecord[]>;import(modelId:string,sourcePath:string):Promise<ModelRecord>;remove(modelId:string):Promise<boolean>};secrets:{list():Promise<SecretProfileSummary[]>;save(request:SaveSecretProfileRequest):Promise<SecretProfileSummary>;remove(id:string):Promise<boolean>;unlock(id:string,password:string):Promise<SecretProfileSummary>;lock(id:string):Promise<SecretProfileSummary>};corpora:{list():Promise<SampleCorpusStatus[]>;refresh():Promise<SampleCorpusStatus[]>;import(manifestPath:string):Promise<SampleCorpusStatus>;install(corpusId:string):Promise<JobRecord[]>;remove(corpusId:string):Promise<boolean>};updater:{check():Promise<{status:string;version?:string;error?:string}>;install():Promise<boolean>}}
