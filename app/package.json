@@ -63,9 +63,9 @@
     ],
     "extraResources": [
       { "from": "engine-bin", "to": "engine-bin", "filter": ["**/*"] },
+      { "from": "resources/update-public-key.pem", "to": "update-public-key.pem" },
       { "from": "../app-product-contract.json", "to": "app-product-contract.json" }
     ],
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
     "win": {
       "target": [
         { "target": "nsis", "arch": ["x64"] },
@@ -73,11 +73,16 @@
       ]
     },
     "nsis": {
+      "artifactName": "${productName}-${version}-windows-${arch}-setup.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false
     },
+    "portable": {
+      "artifactName": "${productName}-${version}-windows-${arch}-portable.${ext}"
+    },
     "mac": {
+      "artifactName": "${productName}-${version}-macos-${arch}.${ext}",
       "target": [
         { "target": "dmg", "arch": ["arm64", "x64"] },
         { "target": "zip", "arch": ["arm64", "x64"] }
@@ -85,6 +90,7 @@
       "category": "public.app-category.graphics-design"
     },
     "linux": {
+      "artifactName": "${productName}-${version}-linux-${arch}.${ext}",
       "target": [
         { "target": "AppImage", "arch": ["x64"] },
         { "target": "deb", "arch": ["x64"] }
