@@ -63,6 +63,10 @@ CPU remains the universal fallback. DirectML, CUDA and CoreML packages and compa
 
 Pinia owns UI/session state. TanStack Vue Query owns bounded asynchronous query state over typed IPC. SQLite remains authoritative.
 
+## Verification note
+
+These sources show that the selected techniques are established and available. They do not prove the future application implementation. Actual success requires the real package, provider, update, migration, vault, performance and hardware evidence defined in the TDD/SDD policy and v1 acceptance matrix.
+
 ## Reference discipline
 
 - Prefer official documentation and upstream repositories.
