@@ -7,8 +7,9 @@ from PIL import Image
 
 from mel_engine.atlas import extract_video_evidence, run_atlas
 from mel_engine.automation import ApiError, CircuitBreaker, classify_error, load_prompts, parse_retry_after
-from mel_engine.common import iter_media
+from mel_engine.common import iter_media, sha256
 from mel_engine.detection import select_providers
+from mel_engine.generated_collection import finalize_generated_collection, validate_media
 from mel_engine.scan import run_scan
 
 
@@ -123,6 +124,58 @@ class EngineTests(unittest.TestCase):
             self.assertEqual(len(first['image_pages']), 1)
             self.assertEqual(len(first['video_pages']), 1)
             self.assertEqual(first['pages'][0]['sha256'], second['pages'][0]['sha256'])
+
+    def test_generated_collection_only_enrolls_verified_successful_media(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            media = root / 'media' / 'images'
+            media.mkdir(parents=True)
+            valid = media / 'valid.png'
+            invalid = media / 'invalid.png'
+            Image.new('RGB', (48, 32), 'orange').save(valid)
+            invalid.write_bytes(b'not-an-image')
+            result = finalize_generated_collection(
+                {
+                    'output_path': str(root),
+                    'provider': 'agnes',
+                    'model': 'test',
+                    'media_type': 'image',
+                    'auto_enroll_named_corpus': True,
+                    'collection_name': 'Accepted outputs',
+                },
+                {
+                    'fingerprint': 'f' * 64,
+                    'completed': {
+                        'good': {
+                            'prompt_sha256': '1' * 64,
+                            'category': 'test',
+                            'media_type': 'image',
+                            'model': 'test',
+                            'local': {'path': str(valid), 'sha256': sha256(valid)},
+                        },
+                        'bad': {
+                            'prompt_sha256': '2' * 64,
+                            'category': 'test',
+                            'media_type': 'image',
+                            'model': 'test',
+                            'local': {'path': str(invalid), 'sha256': sha256(invalid)},
+                        },
+                    },
+                },
+            )
+            collection = result['generated_media_collection']
+            self.assertEqual(collection['valid_asset_count'], 1)
+            self.assertEqual(collection['quarantined_asset_count'], 1)
+            self.assertTrue(Path(collection['manifest_path']).is_file())
+            self.assertTrue((root / 'named-corpora' / 'accepted-outputs' / 'manifest.json').is_file())
+            self.assertTrue(any((root / 'quarantine').iterdir()))
+
+    def test_generated_media_validation_rejects_corrupt_image(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'bad.png'
+            path.write_bytes(b'bad')
+            with self.assertRaises(Exception):
+                validate_media(path, 'image')
 
 
 if __name__ == '__main__':
