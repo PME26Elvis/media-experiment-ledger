@@ -1,169 +1,181 @@
 # Media Experiment Ledger Studio Specification Index
 
-This directory is the normative human-readable specification set for the `app-main` product line.
-
-The desktop product is deliberately specified as a system of documents rather than a single monolithic proposal. The expected implementation may eventually contain tens of thousands of lines across Electron main/preload processes, Vue/Vuetify renderer code, worker runtimes, media pipelines, model adapters, database migrations, packaging scripts and platform-specific update logic. A one-file specification would become difficult to review, contradict and safely revise.
+This directory is the normative human-readable specification set for the `app-main` desktop product line.
 
 ## Current status
 
-- Public product name: **Media Experiment Ledger Studio**
+- Public product: **Media Experiment Ledger Studio**
 - Descriptor: **Atlas · Detection · Media Automation**
-- Product status: `specification_in_progress`
+- Product status: `implementation_ready`
 - Implementation status: `not_started`
-- Specification baseline: `2026-07-22.2`
+- Specification baseline: `2026-07-22.3`
 - Machine contract: [`../../app-product-contract.json`](../../app-product-contract.json)
 - Long-lived product branch: `app-main`
 - Draft review PR: `#29`
-- Target review model: iterative specification rounds with explicit user decisions
+- Blocking product questions: **0**
+- Next action: wait for explicit user instruction to begin implementation
+
+The specification is intentionally large because the product is not a minimal wrapper. It defines a complete cross-platform local-first application with media acquisition, large-corpus processing, Atlas document production, multi-model detection, hardware acceleration, updates, synchronization, scheduling, publishing, recovery and comprehensive release evidence.
+
+## Controlling v1 principle
+
+Specification round 3 establishes:
+
+> When a capability uses mature engineering techniques and its main difficulty is implementation volume, platform integration or testing effort, it MUST be completed in v1 rather than deferred merely to reduce scope.
+
+This does not weaken security, data integrity or licensing gates. Unknown redistribution rights, unsafe arbitrary code, unsupported accuracy claims and unavailable platform capabilities remain valid boundaries.
 
 ## Normative precedence
 
-Until the baseline documents are fully consolidated before implementation, conflicts are resolved in this order:
+Conflicts are resolved in this order:
 
-1. `app-product-contract.json` for stable machine-enforced invariants;
-2. the newest accepted specification-round document;
-3. `LICENSING_AND_DISTRIBUTION_POLICY.md` for rights/distribution boundaries;
-4. `DECISIONS.md` and accepted decision records;
-5. numbered baseline specifications;
-6. provisional defaults in `OPEN_QUESTIONS.md`.
+1. `app-product-contract.json` version `2026-07-22.3`;
+2. [`SPECIFICATION_ROUND_03.md`](SPECIFICATION_ROUND_03.md);
+3. [`V1_SCOPE_ACCEPTANCE_MATRIX.md`](V1_SCOPE_ACCEPTANCE_MATRIX.md);
+4. [`V1_TDD_SDD_ENGINEERING_POLICY.md`](V1_TDD_SDD_ENGINEERING_POLICY.md);
+5. [`SPECIFICATION_ROUND_02.md`](SPECIFICATION_ROUND_02.md);
+6. [`LICENSING_AND_DISTRIBUTION_POLICY.md`](LICENSING_AND_DISTRIBUTION_POLICY.md);
+7. accepted decisions and numbered baseline specifications;
+8. supporting references.
 
-## Document map
+A newer accepted decision overrides earlier provisional or deferral language. Implementation MUST consolidate affected numbered specifications as feature branches touch them; developers must not use stale baseline wording to reduce round-three scope.
 
-| Document | Scope | Current state |
+## Core normative documents
+
+| Document | Scope | State |
 |---|---|---|
-| [`SPECIFICATION_ROUND_02.md`](SPECIFICATION_ROUND_02.md) | Accepted product name, packages, sample tiers, `.env`, tray, Atlas editor/templates, detector subset and open-source posture | **Normative round 2** |
-| [`LICENSING_AND_DISTRIBUTION_POLICY.md`](LICENSING_AND_DISTRIBUTION_POLICY.md) | Apache-2.0 app source, notices/SBOM, model/data/font/UI asset rights and takedown resilience | **Accepted** |
-| [`00_PRODUCT_CHARTER.md`](00_PRODUCT_CHARTER.md) | Product intent, personas, local-first principles, scope boundaries and user journeys | Baseline defined; round 2 applies |
-| [`01_UX_DESIGN_SYSTEM.md`](01_UX_DESIGN_SYSTEM.md) | Vuetify 3 component rules, responsive layouts, hover, motion, accessibility and information architecture | Baseline defined |
-| [`02_DESKTOP_ARCHITECTURE_AND_SECURITY.md`](02_DESKTOP_ARCHITECTURE_AND_SECURITY.md) | Electron processes, IPC, filesystem, workers, database, secrets and threat model | Baseline defined; packaging/engine questions remain |
-| [`03_DATA_PROJECT_AND_RELEASE_SPEC.md`](03_DATA_PROJECT_AND_RELEASE_SPEC.md) | Project schema, paths, import/export, two-tier sample corpus, Release assets and workflow inputs | Baseline defined; round 2 applies |
-| [`04_MEDIA_API_AUTOMATION_SPEC.md`](04_MEDIA_API_AUTOMATION_SPEC.md) | Agnes integration, API keys, execution policies, scheduling, retries, stop conditions and audit | Baseline defined; `.env`/tray decisions accepted |
-| [`05_ATLAS_STUDIO_SPEC.md`](05_ATLAS_STUDIO_SPEC.md) | App-native Atlas pipeline, hybrid document editing, seven templates and PDF export | Baseline defined; round 2 applies |
-| [`06_DETECTION_STUDIO_SPEC.md`](06_DETECTION_STUDIO_SPEC.md) | Multi-model registry, licensing, representative v1 models, checkpoints, progress and comparison | Baseline defined; round 2 applies |
-| [`07_PERFORMANCE_AND_SCALE_SPEC.md`](07_PERFORMANCE_AND_SCALE_SPEC.md) | Thousands-of-assets architecture, thumbnails, virtualization, workers, caching and budgets | Baseline defined |
-| [`08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md`](08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md) | Online/offline updates, signing, six required package targets, migrations, backup and rollback | Baseline defined; package tool remains open |
-| [`09_TESTING_RELEASE_AND_ACCEPTANCE.md`](09_TESTING_RELEASE_AND_ACCEPTANCE.md) | Test pyramid, six-target matrix, benchmark gates, rights validation, Release verification and acceptance criteria | Baseline defined; round 2 adds gates |
-| [`10_ROADMAP_AND_DELIVERY_PLAN.md`](10_ROADMAP_AND_DELIVERY_PLAN.md) | Staged delivery plan, implementation gates and dependency ordering | Baseline defined; round 2 scope applies |
-| [`DECISIONS.md`](DECISIONS.md) | Original accepted/provisional architecture/product decisions | Active baseline |
-| [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) | Resolved round-two answers plus remaining implementation-blocking questions | Active |
-| [`REFERENCES.md`](REFERENCES.md) | Primary upstream references and dependency/licensing review checklist | Active |
-| [`../../app/LICENSE`](../../app/LICENSE) | Apache License 2.0 for app-specific source | Accepted |
-| [`../../app/NOTICE`](../../app/NOTICE) | Initial project notice and third-party boundary | Accepted |
+| [`SPECIFICATION_ROUND_03.md`](SPECIFICATION_ROUND_03.md) | Complete-v1 principle; packaging, signing, engine, vault, GPU, PDF, import, query, sync, scheduler, telemetry, templates, custom ONNX and publishing | **Normative round 3** |
+| [`V1_SCOPE_ACCEPTANCE_MATRIX.md`](V1_SCOPE_ACCEPTANCE_MATRIX.md) | Requirement IDs and release evidence for the complete v1 | **Release-blocking** |
+| [`V1_TDD_SDD_ENGINEERING_POLICY.md`](V1_TDD_SDD_ENGINEERING_POLICY.md) | SDD/TDD workflow, test stack, coverage, mutation, fault injection and CI gates | **Release-blocking** |
+| [`SPECIFICATION_ROUND_02.md`](SPECIFICATION_ROUND_02.md) | Name, six packages, sample tiers, `.env`, tray, hybrid editor, templates, detector subset and open-source posture | Accepted |
+| [`LICENSING_AND_DISTRIBUTION_POLICY.md`](LICENSING_AND_DISTRIBUTION_POLICY.md) | Apache-2.0 app source and separate model/data/font/template rights | Accepted |
+| [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) | Historical decisions; no blocking questions remain | Resolved register |
+| [`ROUND_03_REFERENCES.md`](ROUND_03_REFERENCES.md) | Official references for builder/updater, safeStorage, Python runtime, libsodium, ONNX providers and test stack | Supporting |
 
-## Round-two accepted decisions
+## Numbered baseline specifications
 
-The user has approved:
+| Document | Scope |
+|---|---|
+| [`00_PRODUCT_CHARTER.md`](00_PRODUCT_CHARTER.md) | Product intent, personas, local-first principles, scope and journeys |
+| [`01_UX_DESIGN_SYSTEM.md`](01_UX_DESIGN_SYSTEM.md) | Vuetify 3 design system, RWD, hover, transitions, accessibility and information architecture |
+| [`02_DESKTOP_ARCHITECTURE_AND_SECURITY.md`](02_DESKTOP_ARCHITECTURE_AND_SECURITY.md) | Electron processes, typed IPC, workers, engine, secrets and threat model |
+| [`03_DATA_PROJECT_AND_RELEASE_SPEC.md`](03_DATA_PROJECT_AND_RELEASE_SPEC.md) | Projects, paths, import/export, sample corpora and Releases |
+| [`04_MEDIA_API_AUTOMATION_SPEC.md`](04_MEDIA_API_AUTOMATION_SPEC.md) | Agnes image/video calls, pacing, retries, budgets, scheduling and recovery |
+| [`05_ATLAS_STUDIO_SPEC.md`](05_ATLAS_STUDIO_SPEC.md) | Atlas analysis, evidence, hybrid editor, templates and PDF export |
+| [`06_DETECTION_STUDIO_SPEC.md`](06_DETECTION_STUDIO_SPEC.md) | Model registry, licenses, checkpoints, comparison and inference |
+| [`07_PERFORMANCE_AND_SCALE_SPEC.md`](07_PERFORMANCE_AND_SCALE_SPEC.md) | 10,000-image/1,000-video design, proxies, virtualization, caches and workers |
+| [`08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md`](08_UPDATE_MIGRATION_AND_RECOVERY_SPEC.md) | Online/offline updates, backup, migration and Recovery Center |
+| [`09_TESTING_RELEASE_AND_ACCEPTANCE.md`](09_TESTING_RELEASE_AND_ACCEPTANCE.md) | Original test/release baseline, extended by round-three TDD/SDD policy |
+| [`10_ROADMAP_AND_DELIVERY_PLAN.md`](10_ROADMAP_AND_DELIVERY_PLAN.md) | Dependency ordering and delivery gates; all mature capabilities now belong to v1 |
+| [`DECISIONS.md`](DECISIONS.md) | Baseline decision history |
+| [`REFERENCES.md`](REFERENCES.md) | Initial upstream references and audit checklist |
 
-- a technical studio identity rather than a generic desktop suffix;
-- Windows installer + portable, macOS arm64 + Intel, Linux AppImage + `.deb` as required targets;
-- both Quick Start and Full Research sample corpora;
-- encrypted secrets by default with explicit expert `.env` file-backed mode;
-- tray/background execution for active jobs;
-- a hybrid structured/freeform Atlas editor;
-- Traditional Chinese Academic and 16:9 Presentation Report templates;
-- representative detector tiers rather than every upstream variant;
-- fully open-source source and public binaries, with the project choosing a conservative license policy.
+## Accepted v1 architecture summary
 
-## How future specification rounds work
+### Application stack
 
-Each review round should follow this sequence:
-
-1. The user describes a desired capability, workflow, concern or preference.
-2. The affected specification documents or an explicit normative round amendment are updated.
-3. New decisions receive stable IDs in `DECISIONS.md` or the round decision record.
-4. Questions that still materially affect implementation remain in `OPEN_QUESTIONS.md` with a provisional default.
-5. The machine contract is changed only when the invariant is stable enough to enforce.
-6. Milestones and acceptance tests are synchronized.
-7. Contradictions with the existing web/analysis product are called out explicitly.
-8. The draft PR remains open until the user declares the specification ready for implementation.
-9. Before implementation begins, accepted amendments are consolidated back into the numbered specifications so developers do not need to infer precedence across many rounds.
-
-A future round may expand one topic by thousands of lines. That is expected. Length is not treated as a defect when the content establishes behavior, failure handling, data integrity, platform differences, testing or acceptance criteria.
-
-## Decision states
-
-### Accepted
-
-The user has directly requested the behavior or the behavior is required by a hard platform/security constraint. Implementation may treat it as stable.
-
-### Provisional
-
-A mainstream default has been selected to keep the design coherent, but the user has not explicitly approved the exact choice. Provisional decisions must be easy to replace and are collected in the open-question register.
-
-### Open
-
-The answer changes packaging, data compatibility, licensing, privacy, cost or the primary user workflow enough that implementation should not irreversibly commit to one answer.
-
-### Rejected
-
-The idea is outside product scope or conflicts with a stronger requirement. Rejected decisions remain recorded to prevent repeated ambiguity.
-
-## Specification quality rules
-
-Every major module specification must include:
-
-- goals and non-goals;
-- principal user journeys;
-- UI states, empty states and error states;
-- data inputs and outputs;
-- persistent schemas and versioning;
-- background job stages;
-- cancellation, pause, resume and recovery behavior;
-- performance constraints;
-- security and privacy boundaries;
-- platform differences;
-- telemetry/logging behavior;
-- test coverage;
-- release, license and migration implications;
-- acceptance criteria;
-- unresolved questions.
-
-## Implementation rules already fixed
-
-### Renderer
-
+- Electron + Vite.
 - Vue 3 + Vuetify 3.
 - Composition API and `<script setup lang="ts">`.
-- No Options API in ordinary components.
-- `v-row`/`v-col` responsive grids for primary layout.
-- `v-hover` and transitions for meaningful interactive surfaces.
-- Semantic colors and icons, not decorative random colors.
-- Reduced-motion support is mandatory.
-- The renderer never receives unrestricted Node.js, filesystem or process execution access.
+- TypeScript strict.
+- Pinia for UI/session state.
+- TanStack Vue Query for bounded asynchronous query state over typed IPC.
+- SQLite as authoritative project data.
+- `electron-builder` + `electron-updater`.
 
-### Desktop runtime
+### Platform packages
 
-- Main process owns windows, native dialogs, OS integration, updates and privileged filesystem access.
-- Preload exposes a narrow, typed, versioned IPC API.
-- Long-running media work executes outside the renderer and normally outside the Electron main event loop.
-- Database and job state use durable transactions.
-- Source media is never modified in place by analysis or document editing.
-- Active jobs can continue in the tray only through explicit lifecycle behavior.
+- Windows x64 NSIS installer and portable package.
+- macOS arm64 and Intel x64 DMG/update ZIP.
+- Linux x64 AppImage and `.deb`.
+- Windows signing and Apple signing/notarization required for stable `1.0.0`.
 
-### Product boundaries
+### Runtime and acceleration
 
-- API-based generation is optional.
-- Atlas and object detection are independent products inside the same workspace.
-- The current repository's Releases may seed sample data, but raw data must pass explicit privacy and rights review.
-- PDF export is a static document workflow; GIF animation is not promised inside PDF.
-- Detector disagreement without human labels is not an accuracy benchmark.
-- Application updates must preserve settings and projects through explicit schema migrations.
-- App source being Apache-2.0 does not license third-party model weights or sample data.
+- Self-contained version-pinned Python engine; no user Python installation.
+- Versioned child-process protocol; no public local server.
+- CPU universal fallback.
+- DirectML Windows, CUDA Windows/Linux and CoreML macOS in v1.
+- Signed/provider-compatible acceleration packs may be separate downloads.
 
-## Definition of specification-ready
+### Credentials
 
-The specification can move from `specification_in_progress` to `implementation_ready` only when:
+- OS secure storage when genuinely secure.
+- Linux `basic_text` persistence rejected.
+- Session secret mode.
+- Explicit `.env` expert mode.
+- Portable encrypted vault using Argon2id and XChaCha20-Poly1305 through a reviewed library.
 
-- every accepted module has an implementation milestone;
-- all security-critical choices are accepted rather than open;
-- packaging/updater and engine-runtime architecture are approved;
-- the six required package targets have concrete build/update test plans;
-- model artifact distribution has passed artifact-level license review;
-- project and config schemas have stable versioning rules;
-- the update and migration contract is approved;
-- large-corpus performance budgets are measurable;
-- every v1 capability has acceptance tests;
-- unresolved questions are either answered or explicitly deferred beyond v1;
-- accepted round amendments are consolidated into the numbered specifications.
+### Atlas and Detection
 
-Until then, the branch is a product-definition branch and must not be presented as a completed app.
+- Atlas and Detection are independent job domains.
+- Hybrid structured/freeform Atlas editor.
+- Seven built-in templates plus declarative template import/export.
+- Default video PDF representation is a 10%/50%/90% frame strip with all major static alternatives.
+- Required detector models: YOLOX-Tiny/S/L and NanoDet-Plus-m-320/m-416/m-1.5x-416.
+- Known, declarative and sandboxed-WASM custom ONNX adapter paths.
+
+### Data and integrations
+
+- Quick Start and Full Research corpora.
+- Sanitized full prompts and normalized provenance when rights review passes.
+- Adaptive managed-copy/external-reference imports.
+- Generated Media collection with optional named-corpus enrollment.
+- GitHub Release publisher.
+- Task Scheduler, LaunchAgent and `systemd --user` scheduling.
+- Provider-agnostic cloud-folder sync using blobs, snapshots and journals—not live SQLite synchronization.
+- Five complete locales: `zh-TW`, `en`, `zh-CN`, `ja`, `ko`.
+- Local diagnostics plus default-off opt-in remote telemetry subsystem.
+
+## Development method
+
+All implementation follows SDD and TDD:
+
+```text
+Decision -> Requirement ID -> Failing test -> Implementation -> CI evidence -> Release manifest
+```
+
+Required layers include:
+
+- Vitest TypeScript tests;
+- Vue Test Utils component tests;
+- typed IPC contracts;
+- pytest/property tests for the engine;
+- real FFmpeg and ONNX inference;
+- Playwright Electron E2E;
+- visual/accessibility/all-locale tests;
+- update and migration E2E;
+- deliberate process kill, disk-full, corruption, network and GPU fault injection;
+- real DirectML/CUDA/CoreML hardware tests;
+- six-target clean-machine install/update tests;
+- large-corpus benchmarks;
+- license, SBOM, notice, secret and signature gates.
+
+A feature is incomplete when only its happy path works.
+
+## Specification-ready determination
+
+The previous readiness gates are now satisfied at the product-decision level:
+
+- all accepted modules have a v1 requirement matrix;
+- security-critical architecture decisions are accepted;
+- packaging/updater and self-contained engine architecture are fixed;
+- all six packages have required test evidence;
+- update/signing policy is fixed;
+- credential fallback and portable vault are fixed;
+- GPU providers are fixed;
+- model/data artifact rights remain explicit release gates rather than unanswered product questions;
+- performance targets are measurable;
+- SDD/TDD and acceptance evidence are defined;
+- all previous P0/P1/P2 questions are resolved.
+
+Therefore the product status is `implementation_ready`. This does not mean the app exists. Implementation remains `not_started` and waits for the user's explicit instruction.
+
+## Branch and merge policy
+
+- `main` remains the existing web/analysis/Release product line.
+- `app-main` is the long-lived desktop integration branch.
+- Implementation feature branches start from `app-main`.
+- Use normal merge commits.
+- Preserve branches unless the user asks for deletion.
+- Draft PR #29 remains an unmerged specification review surface until the user changes that instruction.
