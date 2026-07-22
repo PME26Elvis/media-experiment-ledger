@@ -58,9 +58,17 @@ function imageUrl(path: string | undefined, warnings: string[]): string | undefi
     warnings.push('Missing image path.')
     return undefined
   }
+  if (/\0|[\u0001-\u001f\u007f]/u.test(path)) {
+    warnings.push(`Invalid image path: ${path.replaceAll('\0', '\\0')}`)
+    return undefined
+  }
   try {
-    if (!existsSync(path) || !statSync(path).isFile()) {
+    if (!existsSync(path)) {
       warnings.push(`Missing image: ${path}`)
+      return undefined
+    }
+    if (!statSync(path).isFile()) {
+      warnings.push(`Invalid image path: ${path}`)
       return undefined
     }
     return pathToFileURL(path).href
@@ -78,12 +86,8 @@ function renderBlock(block: ReportBlock, warnings: string[]): string {
     const level = block.style.fontSize >= 34 ? 1 : block.style.fontSize >= 24 ? 2 : 3
     return `<h${level} class="block heading" style="${style}">${text}</h${level}>`
   }
-  if (block.type === 'rich-text') {
-    return `<div class="block rich-text" style="${style}">${text}</div>`
-  }
-  if (block.type === 'callout') {
-    return `<aside class="block callout ${block.tone ?? 'info'}" style="${style}">${text}</aside>`
-  }
+  if (block.type === 'rich-text') return `<div class="block rich-text" style="${style}">${text}</div>`
+  if (block.type === 'callout') return `<aside class="block callout ${block.tone ?? 'info'}" style="${style}">${text}</aside>`
   if (block.type === 'statistics') {
     const rows = (block.statistics ?? [])
       .map(row => `<div class="stat"><strong>${escapeHtml(row.value)}</strong><span>${escapeHtml(row.label)}</span></div>`)
