@@ -8,9 +8,10 @@ import {
   session,
   Tray,
 } from 'electron'
-import { existsSync } from 'node:fs'
+import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { StudioDatabase } from './database'
+import { engineReady } from './engine'
 import { JobManager } from './job-manager'
 import { registerIpc } from './ipc'
 import { ModelManager } from './model-manager'
@@ -36,13 +37,13 @@ function preloadPath(): string {
   return join(__dirname, '../preload/index.js')
 }
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     width: 1480,
     height: 940,
     minWidth: 390,
     minHeight: 640,
-    show: false,
+    show: process.env.MEL_SMOKE_TEST !== '1' ? false : true,
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#0b1020' : '#f5f7fb',
     webPreferences: {
       preload: preloadPath(),
@@ -53,7 +54,7 @@ function createWindow(): void {
       spellcheck: true,
     },
   })
-  mainWindow.once('ready-to-show', () => mainWindow?.show())
+  if (process.env.MEL_SMOKE_TEST !== '1') mainWindow.once('ready-to-show', () => mainWindow?.show())
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }))
   mainWindow.webContents.on('will-navigate', (event, url) => {
     if (!url.startsWith('file:') && !url.startsWith('http://127.0.0.1:5173')) event.preventDefault()
@@ -62,7 +63,7 @@ function createWindow(): void {
   else void mainWindow.loadFile(rendererPath())
 
   mainWindow.on('close', event => {
-    if (quitting || !database) return
+    if (quitting || !database || process.env.MEL_SMOKE_TEST === '1') return
     event.preventDefault()
     const settings = database.getSettings()
     if (settings.closeBehavior === 'tray') {
@@ -93,6 +94,7 @@ function createWindow(): void {
       }
     })
   })
+  return mainWindow
 }
 
 function createTray(): void {
@@ -106,7 +108,7 @@ function createTray(): void {
     tray.setToolTip('Media Experiment Ledger Studio')
     tray.setContextMenu(Menu.buildFromTemplate([
       { label: 'Open Studio', click: () => mainWindow?.show() },
-      { label: 'Job Center', click: () => { mainWindow?.show(); void mainWindow?.webContents.executeJavaScript("location.hash='#/jobs'") } },
+      { label: 'Job Center', click: () => { mainWindow?.show(); void mainWindow?.loadURL('file://' + rendererPath() + '#/jobs') } },
       { type: 'separator' },
       {
         label: 'Quit',
@@ -132,6 +134,47 @@ function startSleepMonitor(): void {
     }
   }, 2000)
   sleepMonitor.unref()
+}
+
+function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
+  if (process.env.MEL_SMOKE_TEST !== '1') return
+  const resultPath = process.env.MEL_SMOKE_RESULT_PATH
+  if (!resultPath) throw new Error('MEL_SMOKE_RESULT_PATH is required in smoke mode.')
+  let completed = false
+  const finish = async (error?: Error) => {
+    if (completed) return
+    completed = true
+    let preloadBridge = false
+    try {
+      preloadBridge = Boolean(await window.webContents.executeJavaScript(
+        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery)",
+        true,
+      ))
+    } catch {
+      preloadBridge = false
+    }
+    const evidence = {
+      schemaVersion: 1,
+      appVersion: app.getVersion(),
+      packaged: app.isPackaged,
+      platform: process.platform,
+      arch: process.arch,
+      rendererLoaded: !window.webContents.isLoading(),
+      preloadBridge,
+      engineReady: await engineReady(),
+      database: db.integrityCheck(),
+      resourcesPath: process.resourcesPath,
+      error: error?.message,
+      createdAt: new Date().toISOString(),
+    }
+    writeFileSync(resultPath, JSON.stringify(evidence, null, 2), 'utf8')
+    const success = evidence.packaged && evidence.rendererLoaded && evidence.preloadBridge && evidence.engineReady && evidence.database.ok && !error
+    quitting = true
+    app.exit(success ? 0 : 1)
+  }
+  window.webContents.once('did-finish-load', () => { void finish() })
+  window.webContents.once('did-fail-load', (_event, code, description) => { void finish(new Error(`Renderer load failed ${code}: ${description}`)) })
+  setTimeout(() => { void finish(new Error('Packaged application smoke timed out.')) }, 45_000).unref()
 }
 
 const hasLock = app.requestSingleInstanceLock()
@@ -170,7 +213,11 @@ else {
       recovery,
       updater,
     )
-    createWindow()
+    const window = createWindow()
+    if (process.env.MEL_SMOKE_TEST === '1') {
+      startPackagedSmoke(window, database)
+      return
+    }
     createTray()
     startSleepMonitor()
     if (settings.checkUpdatesOnLaunch ?? true) void updater.check()
