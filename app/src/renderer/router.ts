@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import AtlasView from './views/AtlasView.vue'
 import AutomationView from './views/AutomationView.vue'
 import DetectionView from './views/DetectionView.vue'
+import DiagnosticsView from './views/DiagnosticsView.vue'
 import ImportView from './views/ImportView.vue'
 import JobsView from './views/JobsView.vue'
 import ModelsView from './views/ModelsView.vue'
@@ -25,6 +26,7 @@ export const router = createRouter({
     { path: '/models', name: 'models', component: ModelsView },
     { path: '/reports', name: 'reports', component: ReportsView },
     { path: '/updates', name: 'updates', component: UpdatesView },
+    { path: '/diagnostics', name: 'diagnostics', component: DiagnosticsView },
     { path: '/settings', name: 'settings', component: SettingsView },
     { path: '/:pathMatch(.*)*', redirect: '/workspace' },
   ],
