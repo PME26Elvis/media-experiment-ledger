@@ -30,6 +30,8 @@ const frameRate = ref(24)
 const width = ref<number | undefined>()
 const height = ref<number | undefined>()
 const negativePrompt = ref('')
+const autoEnrollNamedCorpus = ref(false)
+const collectionName = ref('')
 const running = ref(false)
 const profiles = ref<SecretProfileSummary[]>([])
 const credentialProfileId = ref('')
@@ -79,6 +81,8 @@ async function run() {
         width: width.value,
         height: height.value,
         negative_prompt: negativePrompt.value || undefined,
+        auto_enroll_named_corpus: autoEnrollNamedCorpus.value,
+        collection_name: collectionName.value || undefined,
         credential_profile_id: credentialProfileId.value,
       },
     })
@@ -90,50 +94,21 @@ async function run() {
 
 <template>
   <div class="page-wrap">
-    <PageHeader
-      eyebrow="Media Automation"
-      title="Rate-conscious generation orchestration"
-      subtitle="Durable submission, video polling, resumable downloads, bounded retries and circuit breakers run outside the renderer."
-      icon="mdi-robot-outline"
-      color="accent"
-    />
-    <v-alert
-      v-if="!availableProfiles.length"
-      type="warning"
-      variant="tonal"
-      class="mb-5"
-      title="No unlocked Agnes credential"
-    >
+    <PageHeader eyebrow="Media Automation" title="Rate-conscious generation orchestration" subtitle="Durable submission, video polling, verified Generated Media, bounded retries and circuit breakers run outside the renderer." icon="mdi-robot-outline" color="accent" />
+    <v-alert v-if="!availableProfiles.length" type="warning" variant="tonal" class="mb-5" title="No unlocked Agnes credential">
       Create or unlock a compatible credential profile in Settings. The API key is injected only into the isolated engine process.
     </v-alert>
     <v-card class="glass pa-6">
       <v-row>
-        <v-col cols="12" md="4">
-          <v-select v-model="provider" label="Provider" :items="['agnes']" prepend-inner-icon="mdi-cloud-outline" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select
-            v-model="credentialProfileId"
-            label="Credential profile"
-            :items="availableProfiles.map(profile => ({ title: `${profile.name} · ${profile.backend}`, value: profile.id }))"
-            prepend-inner-icon="mdi-key-chain-variant"
-          />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="mediaType" label="Media type" :items="['image', 'video']" prepend-inner-icon="mdi-movie-open-outline" @update:model-value="model = modelItems[0]" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-select v-model="model" label="Provider model" :items="modelItems" prepend-inner-icon="mdi-brain" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model.number="interval" type="number" min="0" label="Create interval (seconds)" prepend-inner-icon="mdi-timer-outline" />
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-text-field v-model.number="concurrency" type="number" min="1" max="8" label="Concurrent workers" prepend-inner-icon="mdi-call-split" />
-        </v-col>
+        <v-col cols="12" md="4"><v-select v-model="provider" label="Provider" :items="['agnes']" prepend-inner-icon="mdi-cloud-outline" /></v-col>
+        <v-col cols="12" md="4"><v-select v-model="credentialProfileId" label="Credential profile" :items="availableProfiles.map(profile => ({ title: `${profile.name} · ${profile.backend}`, value: profile.id }))" prepend-inner-icon="mdi-key-chain-variant" /></v-col>
+        <v-col cols="12" md="4"><v-select v-model="mediaType" label="Media type" :items="['image', 'video']" prepend-inner-icon="mdi-movie-open-outline" @update:model-value="model = modelItems[0]" /></v-col>
+        <v-col cols="12" md="4"><v-select v-model="model" label="Provider model" :items="modelItems" prepend-inner-icon="mdi-brain" /></v-col>
+        <v-col cols="12" md="4"><v-text-field v-model.number="interval" type="number" min="0" label="Create interval (seconds)" prepend-inner-icon="mdi-timer-outline" /></v-col>
+        <v-col cols="12" md="4"><v-text-field v-model.number="concurrency" type="number" min="1" max="8" label="Concurrent workers" prepend-inner-icon="mdi-call-split" /></v-col>
         <v-col cols="12">
           <PathField v-model="promptFile" kind="file" :extensions="['txt', 'jsonl']" label="Prompt text or JSONL file" hint="JSONL may include id, category and prompt fields." />
-          <PathField v-model="output" label="Generated media output" hint="State, audit events, media and SHA receipts remain together." />
+          <PathField v-model="output" label="Generated media output" hint="State, audit events, media, collection manifests and SHA receipts remain together." />
         </v-col>
       </v-row>
 
@@ -148,6 +123,17 @@ async function run() {
           </v-row>
         </v-card>
       </v-expand-transition>
+
+      <v-card variant="tonal" color="primary" class="pa-4 mb-5">
+        <div class="d-flex align-center ga-3 mb-2">
+          <v-icon icon="mdi-folder-check-outline" />
+          <div><div class="font-weight-bold">Generated Media collection</div><div class="text-caption">Every downloaded file is decoded again. Corrupt media is quarantined; verified media becomes content-addressed blobs.</div></div>
+        </div>
+        <v-row>
+          <v-col cols="12" md="5"><v-switch v-model="autoEnrollNamedCorpus" color="primary" label="Auto-enroll verified successes into a named local corpus" hide-details /></v-col>
+          <v-col cols="12" md="7"><v-text-field v-model="collectionName" label="Named corpus" prepend-inner-icon="mdi-folder-star-outline" :disabled="!autoEnrollNamedCorpus" /></v-col>
+        </v-row>
+      </v-card>
 
       <v-expansion-panels variant="accordion" class="mb-6">
         <v-expansion-panel title="Reliability, retry and budget controls">
@@ -172,13 +158,7 @@ async function run() {
         </v-expansion-panel>
       </v-expansion-panels>
 
-      <v-btn
-        color="primary"
-        prepend-icon="mdi-play"
-        :loading="running"
-        :disabled="!output || !promptFile || !credentialProfileId"
-        @click="run"
-      >
+      <v-btn color="primary" prepend-icon="mdi-play" :loading="running" :disabled="!output || !promptFile || !credentialProfileId || (autoEnrollNamedCorpus && !collectionName)" @click="run">
         Start durable automation
       </v-btn>
     </v-card>
