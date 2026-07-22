@@ -24,6 +24,8 @@ jobs:
         with: { node-version: '22.21.1' }
       - uses: actions/setup-python@v5
         with: { python-version: '3.12' }
+      - name: Validate package manifest JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('package.json','utf8'))"
       - name: Install JavaScript dependencies
         run: npm install --loglevel verbose
       - run: npm run typecheck
