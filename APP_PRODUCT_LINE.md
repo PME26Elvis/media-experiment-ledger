@@ -50,7 +50,7 @@ The second specification round fixes these product-level invariants:
 8. Detection v1 uses representative tiers rather than every model variant: YOLOX-Tiny/S/L and NanoDet-Plus-m-320/m-416/m-1.5x-416.
 9. The app source and public binaries are open source under Apache-2.0. Model weights, generated sample data, fonts, icons and other third-party artifacts remain separately reviewed and may not be redistributed merely because the app itself is open source.
 
-The normative detail is recorded in [`docs/app/SPECIFICATION_ROUND_02.md`](docs/app/SPECIFICATION_ROUND_02.md), [`docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md`](docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md), and [`app-product-contract.json`](app-product-contract.json).
+The normative detail is recorded in [`docs/app/SPECIFICATION_ROUND_02.md`](docs/app/SPECIFICATION_ROUND_02.md), [`docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md`](docs/app/LICENSING_AND_DISTRIBUTION_POLICY.md), and [`app-product-contract.json`](app-product-contract.json). Resolved and remaining questions are synchronized in [`docs/app/OPEN_QUESTIONS.md`](docs/app/OPEN_QUESTIONS.md).
 
 ## Non-negotiable frontend baseline
 
