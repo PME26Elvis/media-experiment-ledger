@@ -219,15 +219,7 @@ The product specification is now `implementation_ready`. Implementation remains 
 
 There are no unresolved P0/P1/P2 product decisions required before implementation.
 
-During implementation, an engineer may discover:
-
-- a platform API limitation;
-- a dependency regression;
-- an artifact rights problem;
-- a security issue;
-- a measurable performance contradiction.
-
-Such discoveries MUST produce an ADR/spec correction with evidence. They MUST NOT silently remove or defer a required v1 capability. When legal rights prevent bundling, the acquisition mode changes to verified download-on-demand or user-supplied rather than deleting the feature.
+During implementation, an engineer may discover a platform API limitation, dependency regression, artifact rights problem, security issue or measurable performance contradiction. Such discoveries MUST produce an ADR/spec correction with evidence. They MUST NOT silently remove or defer a required v1 capability.
 
 ## Next authorized action
 
