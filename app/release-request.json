@@ -1,5 +1,6 @@
 {
   "schema_version": 1,
+  "request_revision": 2,
   "source_branch": "app-main",
   "version": "auto",
   "channel": "beta",
