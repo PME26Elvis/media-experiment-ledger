@@ -20,28 +20,74 @@ jobs:
         with:
           ref: app-v1-beta-trigger
       - name: Capture recent app-main workflow runs and Studio releases
+        shell: bash
         run: |
-          set -euo pipefail
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs?branch=app-main&per_page=30" \
-            --jq '{workflow_runs: [.workflow_runs[] | {id, name, event, status, conclusion, run_number, head_sha, created_at, updated_at, html_url}]}' \
-            > workflow-runs.json
-          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=50" \
-            --jq '{studio_releases: [.[] | select(.tag_name | startswith("studio-v")) | {id, tag_name, name, draft, prerelease, created_at, published_at, target_commitish, html_url, assets: [.assets[] | {name, size, state, browser_download_url}]}]}' \
-            > studio-releases.json
-          python - <<'PY'
+          set +e
+          gh api -X GET "repos/${GITHUB_REPOSITORY}/actions/runs" \
+            -f branch=app-main -f per_page=50 \
+            > workflow-runs-raw.json 2> workflow-runs-error.txt
+          runs_status=$?
+          gh api -X GET "repos/${GITHUB_REPOSITORY}/releases" \
+            -f per_page=50 \
+            > releases-raw.json 2> releases-error.txt
+          releases_status=$?
+          RUNS_STATUS="$runs_status" RELEASES_STATUS="$releases_status" python - <<'PY'
           import json
+          import os
           from datetime import datetime, timezone
           from pathlib import Path
-          runs = json.loads(Path('workflow-runs.json').read_text())
-          releases = json.loads(Path('studio-releases.json').read_text())
+
+          def load(path: str, fallback):
+              try:
+                  return json.loads(Path(path).read_text(encoding='utf-8'))
+              except Exception:
+                  return fallback
+
+          runs_raw = load('workflow-runs-raw.json', {})
+          releases_raw = load('releases-raw.json', [])
+          runs = []
+          for item in runs_raw.get('workflow_runs', []):
+              runs.append({key: item.get(key) for key in (
+                  'id', 'name', 'event', 'status', 'conclusion', 'run_number',
+                  'head_sha', 'head_branch', 'created_at', 'updated_at', 'html_url',
+              )})
+          releases = []
+          for item in releases_raw if isinstance(releases_raw, list) else []:
+              tag = str(item.get('tag_name') or '')
+              if not tag.startswith('studio-v'):
+                  continue
+              releases.append({
+                  'id': item.get('id'),
+                  'tag_name': tag,
+                  'name': item.get('name'),
+                  'draft': item.get('draft'),
+                  'prerelease': item.get('prerelease'),
+                  'created_at': item.get('created_at'),
+                  'published_at': item.get('published_at'),
+                  'target_commitish': item.get('target_commitish'),
+                  'html_url': item.get('html_url'),
+                  'assets': [
+                      {key: asset.get(key) for key in ('name', 'size', 'state', 'browser_download_url')}
+                      for asset in item.get('assets', [])
+                  ],
+              })
           payload = {
               'captured_at_utc': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-              **runs,
-              **releases,
+              'api_status': {
+                  'workflow_runs': int(os.environ['RUNS_STATUS']),
+                  'releases': int(os.environ['RELEASES_STATUS']),
+              },
+              'errors': {
+                  'workflow_runs': Path('workflow-runs-error.txt').read_text(encoding='utf-8', errors='replace'),
+                  'releases': Path('releases-error.txt').read_text(encoding='utf-8', errors='replace'),
+              },
+              'workflow_runs': runs,
+              'studio_releases': releases,
           }
-          Path('release-monitor-result.json').write_text(json.dumps(payload, indent=2) + '\n')
+          Path('release-monitor-result.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
           PY
       - name: Commit status snapshot
+        shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
