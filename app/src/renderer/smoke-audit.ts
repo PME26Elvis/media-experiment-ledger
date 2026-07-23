@@ -1,5 +1,6 @@
 import { nextTick } from 'vue'
 import type { Router } from 'vue-router'
+import { localizedRouteMarker } from './literal-i18n'
 
 export const SMOKE_LOCALES = ['zh-TW', 'en', 'zh-CN', 'ja', 'ko'] as const
 export type SmokeLocale = typeof SMOKE_LOCALES[number]
@@ -19,6 +20,8 @@ export interface RendererSmokeCheck {
   horizontalOverflow: boolean
   unnamedInteractive: string[]
   leakedTranslationKeys: string[]
+  localizedMarker: string
+  localizedMarkerFound: boolean
   errorCount: number
   domSummary?: string
   passed: boolean
@@ -154,6 +157,8 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
           const translationKeys = leakedTranslationKeys()
           const horizontalOverflow = documentWidth > viewportWidth + 2
           const errorCount = capturedErrors.length - errorStart
+          const localizedMarker = localizedRouteMarker(route, locale)
+          const localizedMarkerFound = localizedMarker.length > 0 && (document.querySelector('.page-wrap')?.textContent ?? '').includes(localizedMarker)
           checks.push({
             route,
             locale,
@@ -163,9 +168,11 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
             horizontalOverflow,
             unnamedInteractive,
             leakedTranslationKeys: translationKeys,
+            localizedMarker,
+            localizedMarkerFound,
             errorCount,
-            domSummary: rendered ? undefined : domSummary(),
-            passed: rendered && !horizontalOverflow && unnamedInteractive.length === 0 && translationKeys.length === 0 && errorCount === 0,
+            domSummary: rendered && localizedMarkerFound ? undefined : domSummary(),
+            passed: rendered && !horizontalOverflow && unnamedInteractive.length === 0 && translationKeys.length === 0 && localizedMarkerFound && errorCount === 0,
           })
         }
       }
