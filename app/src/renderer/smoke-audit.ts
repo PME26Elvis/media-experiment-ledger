@@ -102,6 +102,10 @@ function animationFrame(): Promise<void> {
   return new Promise(resolve => requestAnimationFrame(() => resolve()))
 }
 
+function delay(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
   const deadline = performance.now() + timeoutMs
   await nextTick()
@@ -111,9 +115,20 @@ async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
       await animationFrame()
       return Boolean(document.querySelector('.page-wrap'))
     }
-    await new Promise(resolve => setTimeout(resolve, 25))
+    await delay(25)
   }
   return false
+}
+
+async function applyStableLocale(i18n: SmokeLocaleController, locale: SmokeLocale): Promise<void> {
+  // Allow route-level async initialization (notably Settings loading the saved locale)
+  // to finish before the audit applies its isolated locale override.
+  await delay(100)
+  i18n.global.locale.value = locale
+  await nextTick()
+  await animationFrame()
+  await animationFrame()
+  await delay(25)
 }
 
 function domSummary(): string {
@@ -149,8 +164,8 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
         for (const route of api.routes()) {
           const errorStart = capturedErrors.length
           await router.push(route)
-          i18n.global.locale.value = locale
           const rendered = await waitForRouteRoot()
+          await applyStableLocale(i18n, locale)
           const documentWidth = document.documentElement.scrollWidth
           const viewportWidth = document.documentElement.clientWidth
           const unnamedInteractive = unnamedInteractiveElements()
