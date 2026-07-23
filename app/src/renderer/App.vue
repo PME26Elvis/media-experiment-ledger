@@ -25,6 +25,7 @@ const items = computed(() => [
   ['jobs', 'mdi-progress-clock'],
   ['models', 'mdi-cube-outline'],
   ['reports', 'mdi-file-chart-outline'],
+  ['integrations', 'mdi-connection'],
   ['updates', 'mdi-update'],
   ['diagnostics', 'mdi-shield-account-outline'],
   ['settings', 'mdi-cog-outline'],
