@@ -54,6 +54,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -66,13 +68,16 @@ jobs:
       - name: Run engine unit tests
         run: python scripts/run_python_tests.py
       - name: Build and inventory self-contained engine
-        run: python scripts/build_engine.py
+        run: python scripts/build_engine.py > engine-build-${{ matrix.id }}.log 2>&1
       - name: Qualify provider against pinned CPU baseline
-        run: python scripts/qualify_detection_provider.py --provider ${{ matrix.provider }} --required --output provider-${{ matrix.id }}.json
-      - name: Validate packaged inventory matches qualified provider
+        id: provider_qualification
+        continue-on-error: true
+        run: python scripts/qualify_detection_provider.py --provider ${{ matrix.provider }} --required --output provider-${{ matrix.id }}.json > provider-${{ matrix.id }}.log 2>&1
+      - name: Print and enforce provider evidence
         env:
           PROVIDER: ${{ matrix.provider }}
           MATRIX_ID: ${{ matrix.id }}
+          QUALIFICATION_OUTCOME: ${{ steps.provider_qualification.outcome }}
         run: |
           python - <<'PY'
           import json
@@ -85,14 +90,27 @@ jobs:
               'coreml': 'CoreMLExecutionProvider',
               'cuda': 'CUDAExecutionProvider',
           }
+          evidence_path = Path(f"provider-{os.environ['MATRIX_ID']}.json")
+          if not evidence_path.is_file():
+              log_path = Path(f"provider-{os.environ['MATRIX_ID']}.log")
+              print(log_path.read_text(encoding='utf-8', errors='replace') if log_path.is_file() else 'provider log missing')
+              raise SystemExit('provider evidence was not written')
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          print(json.dumps(evidence, indent=2))
           manifest = json.loads(Path('engine-bin/mel-engine/engine-build-manifest.json').read_text(encoding='utf-8'))
-          evidence = json.loads(Path(f"provider-{os.environ['MATRIX_ID']}.json").read_text(encoding='utf-8'))
           provider = names[os.environ['PROVIDER']]
           available = manifest.get('provider_inventory', {}).get('available_providers', [])
+          failures = []
+          if os.environ['QUALIFICATION_OUTCOME'] != 'success':
+              failures.append(f"qualification command outcome={os.environ['QUALIFICATION_OUTCOME']}")
           if provider not in available:
-              raise SystemExit(f'packaged engine missing qualified provider {provider}: {available}')
-          if not evidence.get('passed') or evidence.get('target', {}).get('assigned_node_count', 0) <= 0:
-              raise SystemExit(f'provider evidence did not prove node execution: {evidence}')
+              failures.append(f'packaged engine missing qualified provider {provider}: {available}')
+          if not evidence.get('passed'):
+              failures.append(f"provider evidence failed: {evidence.get('error') or evidence.get('comparison')}")
+          if evidence.get('target', {}).get('assigned_node_count', 0) <= 0:
+              failures.append(f"provider did not execute graph nodes: {evidence.get('target')}")
+          if failures:
+              raise SystemExit('\n'.join(failures))
           PY
       - uses: actions/upload-artifact@v4
         if: always()
@@ -100,6 +118,8 @@ jobs:
           name: stable-provider-${{ matrix.id }}
           path: |
             app/provider-${{ matrix.id }}.json
+            app/provider-${{ matrix.id }}.log
+            app/engine-build-${{ matrix.id }}.log
             app/engine-bin/mel-engine/engine-build-manifest.json
             app/python-test.log
           if-no-files-found: warn
@@ -114,6 +134,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
