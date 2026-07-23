@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "request_revision": 1,
+  "enabled": false,
+  "source_sha": "",
+  "tier": "quick-start",
+  "version": 1,
+  "source_release_tags": "",
+  "rights_attestation": "config/studio-sample-corpus-rights.example.json",
+  "draft": true
+}
