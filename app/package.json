@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "description": "Local-first Atlas, object detection and media automation studio",
+  "homepage": "https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main/app",
+  "author": {
+    "name": "PME26Elvis",
+    "email": "216649502+PME26Elvis@users.noreply.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PME26Elvis/media-experiment-ledger.git",
+    "directory": "app"
+  },
+  "bugs": {
+    "url": "https://github.com/PME26Elvis/media-experiment-ledger/issues"
+  },
+  "desktopName": "Media Experiment Ledger Studio",
   "main": "dist/main/main/main.js",
   "license": "Apache-2.0",
   "engines": { "node": ">=22.12.0 <23" },
@@ -96,7 +110,12 @@
         { "target": "AppImage", "arch": ["x64"] },
         { "target": "deb", "arch": ["x64"] }
       ],
-      "category": "Graphics"
+      "category": "Graphics",
+      "maintainer": "PME26Elvis <216649502+PME26Elvis@users.noreply.github.com>",
+      "vendor": "PME26Elvis",
+      "synopsis": "Local-first Atlas, detection and media automation studio",
+      "description": "Cross-platform desktop studio for durable media import, Atlas analysis, object detection, report production and bounded media automation.",
+      "syncDesktopName": true
     },
     "publish": [
       {

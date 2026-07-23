@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "request_revision": 2,
+  "request_revision": 3,
   "source_branch": "app-main",
   "version": "auto",
   "channel": "beta",
   "draft": false,
   "publish": true,
-  "release_notes": "First public validation release of the cross-platform Media Experiment Ledger Studio desktop application. This beta is intended for end-to-end package, workflow and usability evaluation before signed stable qualification.",
+  "release_notes": "First public validation release of the cross-platform Media Experiment Ledger Studio desktop application. This beta is intended for end-to-end package, workflow and usability evaluation before signed stable qualification. The release pipeline now isolates unsigned prerelease packaging from stable signing credentials and validates native Linux package metadata.",
   "features": [
     "Cross-platform Electron and Vuetify desktop workspace for local media experiments",
     "Durable image and video import, hashing, proxy generation and resumable jobs",
@@ -15,6 +15,8 @@
     "Credential profiles, media automation budgets, recovery center and update workflows",
     "Windows installer and portable, macOS arm64 and x64, Linux AppImage and deb packages",
     "Collision-safe release versioning, exact source-SHA builds and packaged application launch evidence",
+    "Unsigned prerelease builds isolated from stable signing and notarization secrets",
+    "Validated Linux package publisher, maintainer, homepage and desktop integration metadata",
     "Responsive product branding, release documentation and repository app-main entry"
   ],
   "quick_start_tag": "",

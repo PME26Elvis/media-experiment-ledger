@@ -9,6 +9,8 @@ IGNORED_NAMES = {
     'builder-debug.yml',
     'builder-effective-config.yaml',
 }
+PACKAGE_SUFFIXES = {'.exe', '.dmg', '.zip', '.appimage', '.deb'}
+METADATA_SUFFIXES = {'.yml', '.yaml', '.json'}
 
 
 def copy(source: Path, destination: Path) -> None:
@@ -30,29 +32,41 @@ def main() -> int:
     for path in sorted(release_root.rglob('*')):
         if not path.is_file():
             continue
-        if path.name in IGNORED_NAMES or path.suffix in IGNORED_SUFFIXES:
+        suffix = path.suffix.lower()
+        if path.name in IGNORED_NAMES or suffix in IGNORED_SUFFIXES:
             continue
-        if path.suffix.lower() not in {
-            '.exe', '.dmg', '.zip', '.appimage', '.deb', '.yml', '.yaml', '.json'
-        }:
+        if suffix not in PACKAGE_SUFFIXES | METADATA_SUFFIXES:
             continue
-        destination = output / path.name
+        destination_name = (
+            path.name
+            if suffix in PACKAGE_SUFFIXES
+            else f'{args.platform_id}-{path.name}'
+        )
+        destination = output / destination_name
         if destination.exists():
-            destination = output / f'{args.platform_id}-{path.name}'
+            raise RuntimeError(
+                f'Duplicate collected release asset name for {args.platform_id}: '
+                f'{destination_name}'
+            )
         copy(path, destination)
         copied += 1
 
     evidence_root = app_root / 'release-evidence'
     for path in sorted(evidence_root.glob('*')):
         if path.is_file():
-            copy(path, output / f'{args.platform_id}-{path.name}')
+            destination = output / f'{args.platform_id}-{path.name}'
+            if destination.exists():
+                raise RuntimeError(f'Duplicate release evidence name: {destination.name}')
+            copy(path, destination)
             copied += 1
 
-    for evidence_name in ('packaged-smoke-evidence.json',):
-        evidence = app_root / evidence_name
-        if evidence.is_file():
-            copy(evidence, output / f'{args.platform_id}-{evidence.name}')
-            copied += 1
+    evidence = app_root / 'packaged-smoke-evidence.json'
+    if evidence.is_file():
+        copy(
+            evidence,
+            output / f'{args.platform_id}-packaged-smoke-evidence.json',
+        )
+        copied += 1
 
     engine_manifest = app_root / 'engine-bin' / 'mel-engine' / 'engine-build-manifest.json'
     if not engine_manifest.is_file():
