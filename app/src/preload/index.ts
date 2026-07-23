@@ -1,8 +1,79 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type MelDesktopApi } from '../shared/contracts'
-import { CUSTOM_MODEL_IPC, type CustomModelApi } from '../shared/custom-model-contracts'
-import { DIAGNOSTICS_IPC, type DiagnosticsApi } from '../shared/diagnostics-contracts'
-import { TEMPLATE_IPC, type ReportTemplateApi } from '../shared/template-contracts'
+import type { MelDesktopApi } from '../shared/contracts'
+import type { CustomModelApi } from '../shared/custom-model-contracts'
+import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
+import type { ReportTemplateApi } from '../shared/template-contracts'
+
+// A sandboxed Electron preload may not load arbitrary relative CommonJS modules.
+// Keep the runtime dependency surface limited to `electron`, while TypeScript verifies
+// these local channel maps against the canonical shared contracts at build time.
+const IPC = {
+  systemInfo: 'mel:system-info',
+  chooseDirectory: 'mel:choose-directory',
+  chooseFile: 'mel:choose-file',
+  revealPath: 'mel:reveal-path',
+  settingsGet: 'mel:settings-get',
+  settingsSet: 'mel:settings-set',
+  jobsList: 'mel:jobs-list',
+  jobsCreate: 'mel:jobs-create',
+  jobsControl: 'mel:jobs-control',
+  modelsList: 'mel:models-list',
+  modelsImport: 'mel:models-import',
+  modelsRemove: 'mel:models-remove',
+  secretsList: 'mel:secrets-list',
+  secretsSave: 'mel:secrets-save',
+  secretsRemove: 'mel:secrets-remove',
+  secretsUnlock: 'mel:secrets-unlock',
+  secretsLock: 'mel:secrets-lock',
+  corporaList: 'mel:corpora-list',
+  corporaRefresh: 'mel:corpora-refresh',
+  corporaImport: 'mel:corpora-import',
+  corporaInstall: 'mel:corpora-install',
+  corporaRemove: 'mel:corpora-remove',
+  reportsList: 'mel:reports-list',
+  reportsCreate: 'mel:reports-create',
+  reportsGet: 'mel:reports-get',
+  reportsSave: 'mel:reports-save',
+  reportsDelete: 'mel:reports-delete',
+  reportsImportAtlas: 'mel:reports-import-atlas',
+  reportsExportPdf: 'mel:reports-export-pdf',
+  reportsRevisions: 'mel:reports-revisions',
+  reportsRestore: 'mel:reports-restore',
+  recoveryList: 'mel:recovery-list',
+  recoveryCreate: 'mel:recovery-create',
+  recoveryRestore: 'mel:recovery-restore',
+  recoveryRemove: 'mel:recovery-remove',
+  recoveryIntegrity: 'mel:recovery-integrity',
+  updaterStatus: 'mel:updater-status',
+  updaterCheck: 'mel:updater-check',
+  updaterDownload: 'mel:updater-download',
+  updaterInstall: 'mel:updater-install',
+  updaterImportOffline: 'mel:updater-import-offline',
+  updaterOpenOffline: 'mel:updater-open-offline',
+} as const satisfies typeof import('../shared/contracts').IPC
+
+const DIAGNOSTICS_IPC = {
+  preview: 'mel:diagnostics-preview',
+  createBundle: 'mel:diagnostics-create-bundle',
+  consentGet: 'mel:telemetry-consent-get',
+  consentSet: 'mel:telemetry-consent-set',
+  send: 'mel:telemetry-send',
+} as const satisfies typeof import('../shared/diagnostics-contracts').DIAGNOSTICS_IPC
+
+const TEMPLATE_IPC = {
+  list: 'mel:templates-list',
+  import: 'mel:templates-import',
+  export: 'mel:templates-export',
+  remove: 'mel:templates-remove',
+  apply: 'mel:templates-apply',
+  applied: 'mel:templates-applied',
+} as const satisfies typeof import('../shared/template-contracts').TEMPLATE_IPC
+
+const CUSTOM_MODEL_IPC = {
+  list: 'mel:custom-model-list',
+  import: 'mel:custom-model-import',
+  remove: 'mel:custom-model-remove',
+} as const satisfies typeof import('../shared/custom-model-contracts').CUSTOM_MODEL_IPC
 
 const api: MelDesktopApi = {
   systemInfo: () => ipcRenderer.invoke(IPC.systemInfo),
