@@ -14,6 +14,19 @@ export interface EngineEvent {
   message?: string
 }
 
+export interface EngineProviderInventory {
+  schema_version: number
+  runtime_version: string
+  runtime_device: string
+  platform: string
+  machine: string
+  available_providers: string[]
+  provider_support: Record<string, { provider: string; available: boolean }>
+  distributions: Record<string, string>
+}
+
+let providerInventoryPromise: Promise<EngineProviderInventory | undefined> | undefined
+
 export function engineSourceRoot(): string {
   return join(app.getAppPath(), 'engine')
 }
@@ -38,6 +51,27 @@ export async function engineReady(): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+export async function engineProviderInventory(refresh = false): Promise<EngineProviderInventory | undefined> {
+  if (refresh) providerInventoryPromise = undefined
+  providerInventoryPromise ??= (async () => {
+    if (!await engineReady()) return undefined
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 20_000)
+    try {
+      const result = await runEngine({ operation: 'providers' }, () => undefined, controller.signal)
+      const available = result.available_providers
+      const support = result.provider_support
+      if (!Array.isArray(available) || !support || typeof support !== 'object') return undefined
+      return result as unknown as EngineProviderInventory
+    } catch {
+      return undefined
+    } finally {
+      clearTimeout(timeout)
+    }
+  })()
+  return providerInventoryPromise
 }
 
 function developmentPython(): string {
@@ -72,15 +106,19 @@ export function runEngine(
       shell: false,
     })
     let finalResult: Record<string, unknown> | undefined
+    let settled = false
+    const finish = (callback: () => void) => {
+      if (settled) return
+      settled = true
+      callback()
+    }
     const stdout = createInterface({ input: child.stdout })
     stdout.on('line', (line) => {
       try {
         const event = JSON.parse(line) as EngineEvent
         onEvent(event)
         if (event.type === 'result') finalResult = event.data ?? {}
-        if (event.type === 'error') {
-          reject(new Error(event.message ?? 'Engine error'))
-        }
+        if (event.type === 'error') finish(() => reject(new Error(event.message ?? 'Engine error')))
       } catch {
         onEvent({ type: 'log', message: line })
       }
@@ -88,12 +126,15 @@ export function runEngine(
     child.stderr.on('data', (chunk) => {
       onEvent({ type: 'log', message: String(chunk).trim() })
     })
-    child.on('error', reject)
+    child.on('error', error => finish(() => reject(error)))
     child.on('exit', (code) => {
-      if (code === 0) resolve(finalResult ?? {})
-      else reject(new Error(`Engine exited with code ${code}`))
+      if (code === 0) finish(() => resolve(finalResult ?? {}))
+      else finish(() => reject(new Error(`Engine exited with code ${code}`)))
     })
-    signal.addEventListener('abort', () => child.kill(), { once: true })
+    signal.addEventListener('abort', () => {
+      child.kill()
+      finish(() => reject(new Error('Engine request aborted')))
+    }, { once: true })
     child.stdin.write(`${JSON.stringify(payload)}\n`)
     child.stdin.end()
   })
