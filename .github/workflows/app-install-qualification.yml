@@ -7,6 +7,7 @@ on:
     paths:
       - '.github/workflows/app-install-qualification.yml'
       - 'app/scripts/smoke_packaged_app.py'
+      - 'app/scripts/find_installed_linux_executable.py'
       - 'app/package.json'
       - 'app/package-lock.json'
       - 'app/src/**'
@@ -142,7 +143,7 @@ jobs:
           cp "$OLD_DEB" "$RUNNER_TEMP/mel-baseline.deb"
           sudo apt-get install -y "$RUNNER_TEMP/mel-baseline.deb"
           PACKAGE="$(dpkg-deb -f "$RUNNER_TEMP/mel-baseline.deb" Package)"
-          EXE="$(dpkg -L "$PACKAGE" | grep '^/usr/bin/' | head -n 1)"
+          EXE="$(python scripts/find_installed_linux_executable.py --package "$PACKAGE")"
           test -x "$EXE"
           echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
           echo "INSTALLED_EXE=$EXE" >> "$GITHUB_ENV"
