@@ -218,7 +218,7 @@ else {
     const settings = database.getSettings()
     const updater = new UpdateManager(userDataPath, recovery, jobs, settings.updateChannel ?? 'beta')
     const templates = new TemplateManager(userDataPath)
-    const reports = new ReportManager(userDataPath)
+    const reports = new ReportManager(userDataPath, templates)
 
     registerIpc(
       database,
