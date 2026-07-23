@@ -1,0 +1,50 @@
+name: Sync Studio README entry
+
+on:
+  push:
+    branches: [studio-entry-main]
+    paths:
+      - '.github/studio-entry-request.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-studio-readme-entry
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: studio-entry-main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Insert or refresh bilingual Studio entry
+        run: python tools/sync_studio_readme_entry.py
+      - name: Verify markers and links
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          for name in ('README.md', 'README.en.md'):
+              text = Path(name).read_text(encoding='utf-8')
+              assert text.count('<!-- STUDIO_ENTRY:START -->') == 1
+              assert text.count('<!-- STUDIO_ENTRY:END -->') == 1
+              assert '/tree/app-main' in text
+              assert 'releases?q=studio-v' in text
+          PY
+      - name: Commit synchronized README entry
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- README.md README.en.md; then
+            echo 'README entries already synchronized.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md README.en.md
+          git commit -m 'Add Media Experiment Ledger Studio entry'
+          git push origin HEAD:studio-entry-main
