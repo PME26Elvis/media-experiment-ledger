@@ -212,18 +212,16 @@ export class SchedulerManager {
     } else if (request.cadence.kind === 'daily') {
       scheduleXml = `<key>StartCalendarInterval</key><dict><key>Hour</key><integer>${request.cadence.hour}</integer><key>Minute</key><integer>${request.cadence.minute}</integer></dict>`
     } else {
-      const entries = [...new Set(request.cadence.weekdays)].sort((a, b) => a - b).map(day =>
-        `<dict><key>Weekday</key><integer>${day + 1}</integer><key>Hour</key><integer>${request.cadence.hour}</integer><key>Minute</key><integer>${request.cadence.minute}</integer></dict>`).join('')
+      const cadence = request.cadence
+      const entries = [...new Set(cadence.weekdays)].sort((a, b) => a - b).map(day =>
+        `<dict><key>Weekday</key><integer>${day + 1}</integer><key>Hour</key><integer>${cadence.hour}</integer><key>Minute</key><integer>${cadence.minute}</integer></dict>`).join('')
       scheduleXml = `<key>StartCalendarInterval</key><array>${entries}</array>`
     }
     const content = `<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0"><dict><key>Label</key><string>${xml(label)}</string><key>ProgramArguments</key><array><string>${xml(this.executablePath)}</string><string>--mel-schedule=${xml(id)}</string></array>${scheduleXml}<key>ProcessType</key><string>Background</string></dict></plist>\n`
     return {
       backend: 'launch-agent',
       files: [{ path, content }],
-      commands: [
-        ['launchctl', 'bootout', `gui/${this.uid}`, path],
-        ['launchctl', 'bootstrap', `gui/${this.uid}`, path],
-      ],
+      commands: [['launchctl', 'bootstrap', `gui/${this.uid}`, path]],
     }
   }
 
