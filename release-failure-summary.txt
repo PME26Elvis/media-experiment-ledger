@@ -1,0 +1,24 @@
+===== JOB 89105378572 =====
+[job-log.zip]
+  End-of-central-directory signature not found.  Either this file is not
+  a zipfile, or it constitutes one disk of a multi-part archive.  In the
+  latter case the central directory and zipfile comment will be found on
+  the last disk(s) of this archive.
+unzip:  cannot find zipfile directory in one of job-log.zip or
+        job-log.zip.zip, and cannot find job-log.zip.ZIP, period.
+===== JOB 89105378575 =====
+[job-log.zip]
+  End-of-central-directory signature not found.  Either this file is not
+  a zipfile, or it constitutes one disk of a multi-part archive.  In the
+  latter case the central directory and zipfile comment will be found on
+  the last disk(s) of this archive.
+unzip:  cannot find zipfile directory in one of job-log.zip or
+        job-log.zip.zip, and cannot find job-log.zip.ZIP, period.
+===== JOB 89105378580 =====
+[job-log.zip]
+  End-of-central-directory signature not found.  Either this file is not
+  a zipfile, or it constitutes one disk of a multi-part archive.  In the
+  latter case the central directory and zipfile comment will be found on
+  the last disk(s) of this archive.
+unzip:  cannot find zipfile directory in one of job-log.zip or
+        job-log.zip.zip, and cannot find job-log.zip.ZIP, period.
