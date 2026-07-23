@@ -1,6 +1,6 @@
 import { nextTick } from 'vue'
 import type { Router } from 'vue-router'
-import { localizedRouteMarker } from './literal-i18n'
+import { localizedRouteMarker } from './route-localization'
 
 export const SMOKE_LOCALES = ['zh-TW', 'en', 'zh-CN', 'ja', 'ko'] as const
 export type SmokeLocale = typeof SMOKE_LOCALES[number]
