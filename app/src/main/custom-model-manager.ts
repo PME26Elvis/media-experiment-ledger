@@ -37,6 +37,10 @@ function safeId(value: string): string {
   return value
 }
 
+function runtimeAdapter(manifest: UserModelManifest): ModelRecord['adapter'] {
+  return manifest.adapter === 'yolox-v1' ? 'yolox-coco-v1' : 'nanodet-plus-coco-v1'
+}
+
 export class CustomModelManager {
   private readonly root: string
 
@@ -91,8 +95,8 @@ export class CustomModelManager {
       variant: manifest.variant,
       inputWidth: manifest.inputWidth,
       inputHeight: manifest.inputHeight,
-      adapter: manifest.adapter,
-      labels: manifest.labels,
+      adapter: runtimeAdapter(manifest),
+      labels: 'coco-80-v1',
       computeTier: tier(statSync(destination).size, manifest.inputWidth, manifest.inputHeight),
       distributionMode: 'user-supplied',
       licenseState: 'user-supplied-only',
