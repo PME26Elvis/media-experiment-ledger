@@ -88,7 +88,7 @@ async function main() {
     const second = renderReportHtml(document)
     const firstHash = sha256(Buffer.from(first.html, 'utf8'))
     const secondHash = sha256(Buffer.from(second.html, 'utf8'))
-    const htmlPageCount = (first.html.match(/<section class="page(?: freeform)?">/g) || []).length
+    const htmlPageCount = (first.html.match(/<section class="page\b/g) || []).length
     const htmlPath = join(root, 'report.html')
     writeFileSync(htmlPath, first.html, 'utf8')
 
