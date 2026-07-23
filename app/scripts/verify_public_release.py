@@ -7,8 +7,11 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-from finalize_release_assets import evidence_bundle_name
 from verify_release_assets import expected_evidence_names, expected_package_names
+
+
+def evidence_bundle_name(version: str) -> str:
+    return f'Media-Experiment-Ledger-Studio-{version}-evidence.zip'
 
 
 def sha256(path: Path) -> str:
