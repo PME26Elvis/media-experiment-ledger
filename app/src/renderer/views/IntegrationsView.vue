@@ -209,7 +209,7 @@ async function runWasm() {
         <v-card class="glass pa-6 h-100">
           <div class="text-overline text-primary">WASM</div>
           <div class="text-h5 mb-4">{{ t('integrations.wasmTitle') }}</div>
-          <PathField v-model="wasm.modulePath" :label="t('integrations.modulePath')" :extensions="['wasm']" mode="file" />
+          <PathField v-model="wasm.modulePath" :label="t('integrations.modulePath')" :extensions="['wasm']" kind="file" />
           <v-text-field v-model="wasm.sha256" label="Pinned SHA-256" prepend-inner-icon="mdi-fingerprint" />
           <v-textarea v-model="wasm.inputJson" label="Input JSON" rows="5" spellcheck="false" />
           <v-row>
