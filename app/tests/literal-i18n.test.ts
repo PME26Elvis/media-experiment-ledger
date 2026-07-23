@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   PRODUCT_LOCALES,
   catalogEntries,
-  localizedRouteMarker,
   localizeTree,
   translateLiteral,
 } from '../src/renderer/literal-i18n'
+import { localizedRouteMarker } from '../src/renderer/route-localization'
 
 describe('literal product localization', () => {
   it('keeps every exact-match catalog entry complete across supported non-English locales', () => {
