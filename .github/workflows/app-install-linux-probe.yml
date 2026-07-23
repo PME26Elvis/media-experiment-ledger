@@ -1,0 +1,106 @@
+name: Linux Install Lifecycle Probe
+
+on:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - '.github/workflows/app-install-linux-probe.yml'
+      - '.github/workflows/app-install-qualification.yml'
+      - 'app/scripts/smoke_packaged_app.py'
+      - 'app/scripts/find_installed_linux_executable.py'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/src/**'
+      - 'app/engine/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-install-probe-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies and build engine
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+          npm ci --loglevel error
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+          python scripts/build_engine.py > linux-probe-engine.log 2>&1
+      - name: Build baseline deb
+        run: |
+          npm version 0.9.9 --no-git-tag-version --allow-same-version
+          npm run build > linux-probe-baseline-build.log 2>&1
+          npx electron-builder --linux deb --x64 --publish never > linux-probe-baseline-package.log 2>&1
+          OLD_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$OLD_DEB"
+          cp "$OLD_DEB" "$RUNNER_TEMP/mel-baseline.deb"
+      - name: Install and qualify baseline deb
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get install -y "$RUNNER_TEMP/mel-baseline.deb"
+          PACKAGE="$(dpkg-deb -f "$RUNNER_TEMP/mel-baseline.deb" Package)"
+          EXE="$(python scripts/find_installed_linux_executable.py --package "$PACKAGE")"
+          test -x "$EXE"
+          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+          echo "INSTALLED_EXE=$EXE" >> "$GITHUB_ENV"
+          python scripts/smoke_packaged_app.py --executable "$EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-probe-baseline-smoke.json
+          printf '%s\n' '{"schemaVersion":1,"createdBy":"baseline"}' > "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - name: Build RC.2 deb and AppImage
+        run: |
+          rm -rf release
+          npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
+          npm run build > linux-probe-rc2-build.log 2>&1
+          npx electron-builder --linux deb AppImage --x64 --publish never > linux-probe-rc2-package.log 2>&1
+          NEW_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
+          APPIMAGE="$(find release -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$NEW_DEB" && test -n "$APPIMAGE"
+          echo "NEW_DEB=$NEW_DEB" >> "$GITHUB_ENV"
+          echo "APPIMAGE=$APPIMAGE" >> "$GITHUB_ENV"
+      - name: Upgrade deb and qualify installed application
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get install -y "$NEW_DEB"
+          python scripts/smoke_packaged_app.py --executable "$INSTALLED_EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-probe-upgrade-smoke.json
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - name: Qualify AppImage independently
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          chmod +x "$APPIMAGE"
+          python scripts/smoke_packaged_app.py --executable "$APPIMAGE" --user-data "$RUNNER_TEMP/mel-appimage-user-data" --output linux-probe-appimage-smoke.json
+      - name: Remove deb and retain user data
+        if: always()
+        run: |
+          if [ -n "${PACKAGE:-}" ] && dpkg-query -W "$PACKAGE" >/dev/null 2>&1; then sudo dpkg -r "$PACKAGE"; fi
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-install-probe
+          path: |
+            app/linux-probe-*.json
+            app/linux-probe-*.log
+          if-no-files-found: warn
+          retention-days: 7
