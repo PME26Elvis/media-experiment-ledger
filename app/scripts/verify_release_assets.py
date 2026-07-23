@@ -15,8 +15,8 @@ def expected_package_names(version: str) -> list[str]:
         f'{stem}-macos-arm64.zip',
         f'{stem}-macos-x64.dmg',
         f'{stem}-macos-x64.zip',
-        f'{stem}-linux-x64.AppImage',
-        f'{stem}-linux-x64.deb',
+        f'{stem}-linux-x86_64.AppImage',
+        f'{stem}-linux-amd64.deb',
     ]
 
 
