@@ -1,32 +1,67 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { ModelRecord } from '../../shared/contracts'
+import type { ModelRecord, SystemInfo } from '../../shared/contracts'
 import PageHeader from '../components/PageHeader.vue'
 import PathField from '../components/PathField.vue'
+
+type ProviderKey = 'cpu' | 'directml' | 'cuda' | 'coreml'
+type ProviderSupport = Record<ProviderKey, { provider: string; available: boolean }>
+type ProviderAwareSystemInfo = SystemInfo & {
+  engineProviders?: {
+    runtime_version: string
+    runtime_device: string
+    available_providers: string[]
+    provider_support: Partial<ProviderSupport>
+    distributions: Record<string, string>
+  }
+}
 
 const input = ref('')
 const output = ref('')
 const modelId = ref('')
-const provider = ref('cpu')
+const provider = ref<ProviderKey>('cpu')
 const threshold = ref(0.35)
 const nmsThreshold = ref(0.45)
 const loading = ref(false)
 const models = ref<ModelRecord[]>([])
+const providerInventory = ref<ProviderAwareSystemInfo['engineProviders']>()
 
 const installed = computed(() => models.value.filter(model => model.installed))
 const selected = computed(() => installed.value.find(model => model.id === modelId.value))
+const providerOptions = computed(() => {
+  const labels: Record<ProviderKey, string> = {
+    cpu: 'CPU',
+    directml: 'DirectML',
+    cuda: 'CUDA',
+    coreml: 'CoreML',
+  }
+  return (Object.keys(labels) as ProviderKey[]).map(value => {
+    const support = providerInventory.value?.provider_support?.[value]
+    const available = value === 'cpu' || support?.available === true
+    return {
+      title: `${labels[value]}${available ? '' : ' · unavailable'}`,
+      value,
+      props: { disabled: !available },
+    }
+  })
+})
+const selectedProviderAvailable = computed(() =>
+  provider.value === 'cpu' || providerInventory.value?.provider_support?.[provider.value]?.available === true)
 
 onMounted(async () => {
-  const [builtIn, custom] = await Promise.all([
+  const [builtIn, custom, systemInfo] = await Promise.all([
     window.mel.models.list(),
     window.melCustomModels.list(),
+    window.mel.systemInfo() as Promise<ProviderAwareSystemInfo>,
   ])
   models.value = [...builtIn, ...custom]
+  providerInventory.value = systemInfo.engineProviders
   modelId.value = installed.value[0]?.id ?? ''
+  if (!selectedProviderAvailable.value) provider.value = 'cpu'
 })
 
 async function run() {
-  if (!selected.value?.localPath) return
+  if (!selected.value?.localPath || !selectedProviderAvailable.value) return
   loading.value = true
   try {
     await window.mel.jobs.create({
@@ -43,6 +78,7 @@ async function run() {
         input_height: selected.value.inputHeight,
         labels: selected.value.labels,
         execution_provider: provider.value,
+        allow_provider_fallback: false,
         score_threshold: threshold.value,
         nms_iou_threshold: nmsThreshold.value,
         max_detections: 300,
@@ -82,7 +118,7 @@ async function run() {
           <v-select
             v-model="provider"
             label="Execution provider"
-            :items="['cpu', 'directml', 'cuda', 'coreml']"
+            :items="providerOptions"
             prepend-inner-icon="mdi-expansion-card-variant"
           />
         </v-col>
@@ -93,11 +129,24 @@ async function run() {
           <v-slider v-model="nmsThreshold" label="NMS IoU" min="0.1" max="0.9" step="0.05" thumb-label color="secondary" />
         </v-col>
       </v-row>
+      <v-alert v-if="providerInventory" color="secondary" variant="tonal" density="compact" class="mb-4">
+        ONNX Runtime {{ providerInventory.runtime_version }} · {{ providerInventory.runtime_device }} ·
+        {{ providerInventory.available_providers.join(', ') }}
+      </v-alert>
+      <v-alert v-else color="warning" variant="tonal" density="compact" class="mb-4">
+        Provider inventory is unavailable. Detection remains limited to the verified CPU path.
+      </v-alert>
       <v-alert v-if="selected" color="info" variant="tonal" density="compact" class="mb-4">
         {{ selected.adapter }} · {{ selected.inputWidth }}×{{ selected.inputHeight }} · {{ selected.sha256?.slice(0, 16) }}…
         <span v-if="selected.id.startsWith('user-')"> · user-supplied-only</span>
       </v-alert>
-      <v-btn color="accent" prepend-icon="mdi-crosshairs-gps" :loading="loading" :disabled="!input || !output || !selected" @click="run">
+      <v-btn
+        color="accent"
+        prepend-icon="mdi-crosshairs-gps"
+        :loading="loading"
+        :disabled="!input || !output || !selected || !selectedProviderAvailable"
+        @click="run"
+      >
         Start detection
       </v-btn>
     </v-card>
