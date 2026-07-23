@@ -34,8 +34,9 @@ class SampleCorpusReleaseWorkflowTests(unittest.TestCase):
         text = WORKFLOW.read_text(encoding='utf-8')
         self.assertIn("branches: [app-main]", text)
         self.assertIn("'.github/studio-sample-corpus-request.json'", text)
-        self.assertIn("does not match immutable workflow SHA", text)
-        self.assertIn("--target \"$GITHUB_SHA\"", text)
+        self.assertIn('does not match the pre-trigger app-main SHA', text)
+        self.assertIn('--target "$REQUEST_SOURCE_SHA"', text)
+        self.assertIn("EVENT_BEFORE: ${{ github.event.before || '' }}", text)
 
 
 if __name__ == '__main__':
