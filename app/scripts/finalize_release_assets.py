@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from verify_release_assets import verify
+
 EXCLUDED = {
     'SHA256SUMS',
     'SHA256SUMS.asc',
@@ -59,7 +61,21 @@ def build_manifest(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def finalize(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
+def finalize(
+    root: Path,
+    plan: dict[str, Any],
+    *,
+    minimum_package_bytes: int = 1_000_000,
+) -> dict[str, Any]:
+    verification = verify(
+        root,
+        plan,
+        minimum_package_bytes=minimum_package_bytes,
+    )
+    (root / 'release-verification.json').write_text(
+        json.dumps(verification, ensure_ascii=False, indent=2) + '\n',
+        encoding='utf-8',
+    )
     manifest = build_manifest(root, plan)
     checksums = '\n'.join(
         f"{entry['sha256']}  {entry['path']}" for entry in manifest['assets']
@@ -81,6 +97,7 @@ def main() -> int:
     parser.add_argument('--git-sha', default='')
     parser.add_argument('--quick-start-tag', default='')
     parser.add_argument('--full-research-tag', default='')
+    parser.add_argument('--minimum-package-bytes', type=int, default=1_000_000)
     args = parser.parse_args()
     root = Path(args.root).resolve()
     if args.plan:
@@ -95,7 +112,11 @@ def main() -> int:
             'quick_start_tag': args.quick_start_tag,
             'full_research_tag': args.full_research_tag,
         }
-    manifest = finalize(root, plan)
+    manifest = finalize(
+        root,
+        plan,
+        minimum_package_bytes=args.minimum_package_bytes,
+    )
     print(json.dumps({
         'assets': manifest['asset_count'],
         'bytes': manifest['total_bytes'],
