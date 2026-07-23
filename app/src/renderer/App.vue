@@ -1,19 +1,38 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useDisplay } from 'vuetify'
+import { localizeTree, observeLiteralLocalization } from './literal-i18n'
 
 const drawer = ref(true)
 const rail = ref(false)
+const localizedRoot = ref<HTMLElement>()
 const { mdAndUp } = useDisplay()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const route = useRoute()
+let stopLocalization: (() => void) | undefined
 
 watch(mdAndUp, (desktop) => {
   drawer.value = desktop
   if (!desktop) rail.value = false
 }, { immediate: true })
+
+async function refreshLocalizedCopy() {
+  await nextTick()
+  if (localizedRoot.value) localizeTree(localizedRoot.value, String(locale.value))
+}
+
+watch([locale, () => route.fullPath], refreshLocalizedCopy, { flush: 'post' })
+
+onMounted(async () => {
+  await refreshLocalizedCopy()
+  if (localizedRoot.value) {
+    stopLocalization = observeLiteralLocalization(localizedRoot.value, () => String(locale.value))
+  }
+})
+
+onBeforeUnmount(() => stopLocalization?.())
 
 const items = computed(() => [
   ['workspace', 'mdi-view-dashboard-outline'],
@@ -87,11 +106,13 @@ const items = computed(() => [
     </v-navigation-drawer>
 
     <v-main>
-      <router-view v-slot="{ Component }">
-        <v-fade-transition mode="out-in">
-          <component :is="Component" />
-        </v-fade-transition>
-      </router-view>
+      <div ref="localizedRoot">
+        <router-view v-slot="{ Component }">
+          <v-fade-transition mode="out-in">
+            <component :is="Component" />
+          </v-fade-transition>
+        </router-view>
+      </div>
     </v-main>
   </v-app>
 </template>

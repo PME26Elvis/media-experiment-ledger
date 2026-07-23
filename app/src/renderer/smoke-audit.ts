@@ -1,5 +1,6 @@
 import { nextTick } from 'vue'
 import type { Router } from 'vue-router'
+import { localizedRouteMarker } from './route-localization'
 
 export const SMOKE_LOCALES = ['zh-TW', 'en', 'zh-CN', 'ja', 'ko'] as const
 export type SmokeLocale = typeof SMOKE_LOCALES[number]
@@ -19,6 +20,8 @@ export interface RendererSmokeCheck {
   horizontalOverflow: boolean
   unnamedInteractive: string[]
   leakedTranslationKeys: string[]
+  localizedMarker: string
+  localizedMarkerFound: boolean
   errorCount: number
   domSummary?: string
   passed: boolean
@@ -99,6 +102,10 @@ function animationFrame(): Promise<void> {
   return new Promise(resolve => requestAnimationFrame(() => resolve()))
 }
 
+function delay(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds))
+}
+
 async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
   const deadline = performance.now() + timeoutMs
   await nextTick()
@@ -108,9 +115,20 @@ async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
       await animationFrame()
       return Boolean(document.querySelector('.page-wrap'))
     }
-    await new Promise(resolve => setTimeout(resolve, 25))
+    await delay(25)
   }
   return false
+}
+
+async function applyStableLocale(i18n: SmokeLocaleController, locale: SmokeLocale): Promise<void> {
+  // Allow route-level async initialization (notably Settings loading the saved locale)
+  // to finish before the audit applies its isolated locale override.
+  await delay(100)
+  i18n.global.locale.value = locale
+  await nextTick()
+  await animationFrame()
+  await animationFrame()
+  await delay(25)
 }
 
 function domSummary(): string {
@@ -146,14 +164,16 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
         for (const route of api.routes()) {
           const errorStart = capturedErrors.length
           await router.push(route)
-          i18n.global.locale.value = locale
           const rendered = await waitForRouteRoot()
+          await applyStableLocale(i18n, locale)
           const documentWidth = document.documentElement.scrollWidth
           const viewportWidth = document.documentElement.clientWidth
           const unnamedInteractive = unnamedInteractiveElements()
           const translationKeys = leakedTranslationKeys()
           const horizontalOverflow = documentWidth > viewportWidth + 2
           const errorCount = capturedErrors.length - errorStart
+          const localizedMarker = localizedRouteMarker(route, locale)
+          const localizedMarkerFound = localizedMarker.length > 0 && (document.querySelector('.page-wrap')?.textContent ?? '').includes(localizedMarker)
           checks.push({
             route,
             locale,
@@ -163,9 +183,11 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
             horizontalOverflow,
             unnamedInteractive,
             leakedTranslationKeys: translationKeys,
+            localizedMarker,
+            localizedMarkerFound,
             errorCount,
-            domSummary: rendered ? undefined : domSummary(),
-            passed: rendered && !horizontalOverflow && unnamedInteractive.length === 0 && translationKeys.length === 0 && errorCount === 0,
+            domSummary: rendered && localizedMarkerFound ? undefined : domSummary(),
+            passed: rendered && !horizontalOverflow && unnamedInteractive.length === 0 && translationKeys.length === 0 && localizedMarkerFound && errorCount === 0,
           })
         }
       }
