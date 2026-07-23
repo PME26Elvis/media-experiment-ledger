@@ -2,8 +2,11 @@ import { existsSync, statSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import type { ReportBlock, ReportDocument, ReportTextStyle } from '../shared/contracts'
 import { reportTemplate } from '../shared/report-templates'
+import type { ReportTemplateDefinition } from '../shared/template-contracts'
 
 export interface RenderedReport { html: string; warnings: string[] }
+
+type RenderTemplate = Pick<ReportTemplateDefinition, 'page' | 'marginInches' | 'colors' | 'fontFamily'>
 
 export function escapeHtml(value: string): string {
   return value
@@ -104,8 +107,8 @@ function renderBlock(block: ReportBlock, warnings: string[]): string {
   return ''
 }
 
-export function renderReportHtml(document: ReportDocument): RenderedReport {
-  const template = reportTemplate(document.template)
+export function renderReportHtml(document: ReportDocument, override?: RenderTemplate): RenderedReport {
+  const template = override ?? reportTemplate(document.template)
   const warnings: string[] = []
   const maxPage = Math.max(1, ...document.blocks.map(block => block.layout.page))
   const pages = Array.from({ length: maxPage }, (_, index) => index + 1)
