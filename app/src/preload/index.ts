@@ -1,6 +1,8 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { IPC, type MelDesktopApi } from '../shared/contracts'
+import { CUSTOM_MODEL_IPC, type CustomModelApi } from '../shared/custom-model-contracts'
 import { DIAGNOSTICS_IPC, type DiagnosticsApi } from '../shared/diagnostics-contracts'
+import { TEMPLATE_IPC, type ReportTemplateApi } from '../shared/template-contracts'
 
 const api: MelDesktopApi = {
   systemInfo: () => ipcRenderer.invoke(IPC.systemInfo),
@@ -73,5 +75,22 @@ const diagnostics: DiagnosticsApi = {
   send: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.send),
 }
 
+const templates: ReportTemplateApi = {
+  list: () => ipcRenderer.invoke(TEMPLATE_IPC.list),
+  import: path => ipcRenderer.invoke(TEMPLATE_IPC.import, path),
+  export: (id, outputDirectory) => ipcRenderer.invoke(TEMPLATE_IPC.export, id, outputDirectory),
+  remove: id => ipcRenderer.invoke(TEMPLATE_IPC.remove, id),
+  apply: (documentId, templateId) => ipcRenderer.invoke(TEMPLATE_IPC.apply, documentId, templateId),
+  applied: documentId => ipcRenderer.invoke(TEMPLATE_IPC.applied, documentId),
+}
+
+const customModels: CustomModelApi = {
+  list: () => ipcRenderer.invoke(CUSTOM_MODEL_IPC.list),
+  import: manifestPath => ipcRenderer.invoke(CUSTOM_MODEL_IPC.import, manifestPath),
+  remove: modelId => ipcRenderer.invoke(CUSTOM_MODEL_IPC.remove, modelId),
+}
+
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))
 contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
+contextBridge.exposeInMainWorld('melTemplates', Object.freeze(templates))
+contextBridge.exposeInMainWorld('melCustomModels', Object.freeze(customModels))
