@@ -56,12 +56,17 @@ jobs:
       - name: Build product renderer
         run: npm run build
       - name: Generate a real 500-page Chromium PDF
+        id: report_benchmark
+        continue-on-error: true
         env:
           MEL_REPORT_BENCHMARK_PAGES: '500'
           MEL_REPORT_BENCHMARK_OUTPUT: ${{ github.workspace }}/app/report-500-page-benchmark.json
           MEL_REPORT_BENCHMARK_PDF: ${{ github.workspace }}/app/report-500-page-benchmark.pdf
         run: xvfb-run -a npm run benchmark:report
       - name: Independently verify PDF page count and evidence
+        id: pdf_verify
+        if: always() && hashFiles('app/report-500-page-benchmark.json') != '' && hashFiles('app/report-500-page-benchmark.pdf') != ''
+        continue-on-error: true
         run: |
           python - <<'PY'
           import hashlib
@@ -75,6 +80,13 @@ jobs:
           reader = PdfReader(str(pdf_path))
           page_count = len(reader.pages)
           digest = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+          evidence['independent_pdf_page_count'] = page_count
+          evidence['independent_pdf_sha256'] = digest
+          evidence['independent_pdf_checks'] = {
+              'exact_page_count': page_count == 500,
+              'sha256_matches': evidence.get('pdf_sha256') == digest,
+          }
+          evidence_path.write_text(json.dumps(evidence, indent=2) + '\n', encoding='utf-8')
           if page_count != 500:
               raise SystemExit(f'expected 500 PDF pages, found {page_count}')
           if evidence.get('page_target') != 500 or evidence.get('html_page_count') != 500:
@@ -82,24 +94,11 @@ jobs:
           if evidence.get('pdf_sha256') != digest:
               raise SystemExit('PDF SHA-256 does not match benchmark evidence')
           if not evidence.get('passed'):
-              raise SystemExit(f"report benchmark failed: {evidence.get('criteria')}")
-          evidence['independent_pdf_page_count'] = page_count
-          evidence['independent_pdf_sha256'] = digest
-          evidence_path.write_text(json.dumps(evidence, indent=2) + '\n', encoding='utf-8')
+              raise SystemExit(f"report benchmark failed: {evidence.get('criteria') or evidence.get('error')}")
           PY
-      - name: Validate large-corpus criteria
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          evidence = json.loads(Path('performance-evidence/large-corpus-benchmark.json').read_text(encoding='utf-8'))
-          if not evidence.get('passed'):
-              raise SystemExit(f"large-corpus benchmark failed: {evidence.get('acceptance')}")
-          scenario = evidence.get('scenario', {})
-          if scenario.get('images') != 10000 or scenario.get('videos') != 1000:
-              raise SystemExit('large-corpus fixture count mismatch')
-          PY
-      - uses: actions/upload-artifact@v4
+      - name: Preserve benchmark evidence
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: stable-performance-evidence
           path: |
@@ -107,4 +106,48 @@ jobs:
             app/report-500-page-benchmark.json
             app/report-500-page-benchmark.pdf
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: warn
+      - name: Enforce all stable performance criteria
+        if: always()
+        env:
+          REPORT_STEP_OUTCOME: ${{ steps.report_benchmark.outcome }}
+          PDF_VERIFY_OUTCOME: ${{ steps.pdf_verify.outcome }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          failures = []
+          corpus_path = Path('performance-evidence/large-corpus-benchmark.json')
+          report_path = Path('report-500-page-benchmark.json')
+          pdf_path = Path('report-500-page-benchmark.pdf')
+
+          if not corpus_path.is_file():
+              failures.append('large-corpus evidence missing')
+          else:
+              corpus = json.loads(corpus_path.read_text(encoding='utf-8'))
+              if not corpus.get('passed'):
+                  failures.append(f"large-corpus criteria failed: {corpus.get('acceptance')}")
+              scenario = corpus.get('scenario', {})
+              if scenario.get('images') != 10000 or scenario.get('videos') != 1000:
+                  failures.append(f'large-corpus fixture mismatch: {scenario}')
+
+          if not report_path.is_file():
+              failures.append('500-page report evidence missing')
+          else:
+              report = json.loads(report_path.read_text(encoding='utf-8'))
+              if not report.get('passed'):
+                  failures.append(f"500-page report criteria failed: {report.get('criteria') or report.get('error')}")
+              independent = report.get('independent_pdf_checks', {})
+              if independent and not all(independent.values()):
+                  failures.append(f'independent PDF checks failed: {independent}')
+          if not pdf_path.is_file():
+              failures.append('500-page PDF missing')
+          if os.environ.get('REPORT_STEP_OUTCOME') != 'success':
+              failures.append(f"report benchmark step outcome={os.environ.get('REPORT_STEP_OUTCOME')}")
+          if os.environ.get('PDF_VERIFY_OUTCOME') != 'success':
+              failures.append(f"PDF verification step outcome={os.environ.get('PDF_VERIFY_OUTCOME')}")
+          if failures:
+              raise SystemExit('\n'.join(failures))
+          PY
