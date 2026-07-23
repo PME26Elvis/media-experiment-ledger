@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
-  "request_revision": 7,
-  "requested_at_taipei": "2026-07-23T12:10:00+08:00",
+  "request_revision": 8,
+  "requested_at_taipei": "2026-07-23T12:20:00+08:00",
   "source_sha": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
+  "release_run_id": 29978691019,
   "job_ids": []
 }
