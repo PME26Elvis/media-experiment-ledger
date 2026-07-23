@@ -20,7 +20,7 @@ afterEach(() => {
 })
 
 describe('declarative custom model manifests', () => {
-  it('imports only an adjacent hash-pinned ONNX artifact and lists it as user-supplied', () => {
+  it('imports an adjacent hash-pinned ONNX artifact and maps it to a verified runtime adapter', () => {
     const userData = root()
     const source = root()
     const model = Buffer.from('synthetic-onnx-fixture')
@@ -43,10 +43,12 @@ describe('declarative custom model manifests', () => {
     const manager = new CustomModelManager(userData)
     const record = manager.import(manifestPath)
     expect(record.id).toMatch(/^user-yolox-/u)
+    expect(record.adapter).toBe('yolox-coco-v1')
+    expect(record.labels).toBe('coco-80-v1')
     expect(record.distributionMode).toBe('user-supplied')
     expect(record.licenseState).toBe('user-supplied-only')
     expect(readFileSync(record.localPath!)).toEqual(model)
-    expect(manager.list()).toEqual([expect.objectContaining({ id: record.id, installed: true })])
+    expect(manager.list()).toEqual([expect.objectContaining({ id: record.id, installed: true, adapter: 'yolox-coco-v1' })])
     expect(manager.remove(record.id)).toBe(true)
     expect(manager.list()).toEqual([])
   })
