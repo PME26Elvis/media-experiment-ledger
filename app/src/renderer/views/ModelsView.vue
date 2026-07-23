@@ -109,8 +109,8 @@ onMounted(refresh)
 
     <v-row>
       <v-col v-for="model in models" :key="model.id" cols="12" md="6" xl="4">
-        <v-hover v-slot="{ isHovering, props }">
-          <v-card v-bind="props" class="glass module-card pa-5 h-100" :class="{ 'is-hovered': isHovering }">
+        <v-hover v-slot="hover">
+          <v-card v-bind="hover?.props" class="glass module-card pa-5 h-100" :class="{ 'is-hovered': Boolean(hover?.isHovering) }">
             <div class="d-flex justify-space-between ga-2">
               <v-avatar :color="model.family === 'YOLOX' ? 'primary' : 'secondary'" variant="tonal" rounded="lg">
                 <v-icon icon="mdi-cube-scan" />
