@@ -11,6 +11,8 @@ import {
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { registerCustomModelIpc } from './custom-model-ipc'
+import { CustomModelManager } from './custom-model-manager'
 import { StudioDatabase } from './database'
 import { registerDiagnosticsIpc } from './diagnostics-ipc'
 import { engineReady } from './engine'
@@ -22,6 +24,8 @@ import { ReportManager } from './report-manager'
 import { SampleCorpusManager } from './sample-corpus-manager'
 import { SecretStore } from './secret-store'
 import { SupportManager } from './support-manager'
+import { registerTemplateIpc } from './template-ipc'
+import { TemplateManager } from './template-manager'
 import { UpdateManager } from './update-manager'
 
 let mainWindow: BrowserWindow | null = null
@@ -158,7 +162,7 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
     let preloadBridge = false
     try {
       preloadBridge = Boolean(await window.webContents.executeJavaScript(
-        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics && window.melDiagnostics.preview)",
+        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics?.preview && window.melTemplates?.list && window.melCustomModels?.list)",
         true,
       ))
     } catch {
@@ -213,6 +217,8 @@ else {
     const recovery = new RecoveryManager(userDataPath, database, app.getVersion())
     const settings = database.getSettings()
     const updater = new UpdateManager(userDataPath, recovery, jobs, settings.updateChannel ?? 'beta')
+    const templates = new TemplateManager(userDataPath)
+    const reports = new ReportManager(userDataPath)
 
     registerIpc(
       database,
@@ -220,11 +226,13 @@ else {
       new ModelManager(database, userDataPath),
       secrets,
       new SampleCorpusManager(userDataPath, jobs),
-      new ReportManager(userDataPath),
+      reports,
       recovery,
       updater,
     )
     registerDiagnosticsIpc(new SupportManager(userDataPath, database))
+    registerTemplateIpc(templates)
+    registerCustomModelIpc(new CustomModelManager(userDataPath))
     const window = createWindow()
     if (process.env.MEL_SMOKE_TEST === '1') {
       startPackagedSmoke(window, database)
