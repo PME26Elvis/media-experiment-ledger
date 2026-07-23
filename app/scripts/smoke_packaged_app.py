@@ -12,6 +12,7 @@ APP_ROOT = Path(__file__).resolve().parents[1]
 RELEASE_ROOT = APP_ROOT / 'release'
 PRODUCT_NAME = 'Media Experiment Ledger Studio'
 OUTPUT_PATH = APP_ROOT / 'packaged-smoke-evidence.json'
+MINIMUM_ROUTE_AUDIT_CHECKS = 130
 
 
 def candidates() -> list[Path]:
@@ -43,7 +44,7 @@ def persist_evidence(
 ) -> dict[str, object]:
     evidence: dict[str, object] = {
         **(app_evidence or {}),
-        'runnerSchemaVersion': 2,
+        'runnerSchemaVersion': 3,
         'executable': str(executable.relative_to(APP_ROOT)) if executable else None,
         'exitCode': completed.returncode if completed else None,
         'stdoutTail': (completed.stdout or '')[-12000:] if completed else '',
@@ -137,11 +138,15 @@ def main() -> int:
             'packaged': True,
             'rendererLoaded': True,
             'preloadBridge': True,
+            'routeAuditPassed': True,
             'engineReady': True,
         }
         failures = [key for key, value in expected.items() if evidence.get(key) is not value]
         if not (evidence.get('database') or {}).get('ok') if isinstance(evidence.get('database'), dict) else True:
             failures.append('database.ok')
+        route_checks = evidence.get('routeAuditChecks')
+        if not isinstance(route_checks, int) or route_checks < MINIMUM_ROUTE_AUDIT_CHECKS:
+            failures.append(f'routeAuditChecks<{MINIMUM_ROUTE_AUDIT_CHECKS}')
         if completed.returncode != 0:
             failures.append(f'exit={completed.returncode}')
         if failure:
