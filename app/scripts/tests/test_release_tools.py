@@ -109,12 +109,15 @@ class ReleaseAssetTests(unittest.TestCase):
             result = verify(root, plan, minimum_package_bytes=1)
             self.assertEqual(result['package_count'], 8)
             self.assertEqual(result['evidence_count'], 8)
-            manifest = finalize(root, plan)
+            manifest = finalize(root, plan, minimum_package_bytes=1)
             self.assertEqual(manifest['schema_version'], 2)
             self.assertEqual(manifest['source_sha'], 'c' * 40)
             self.assertEqual(manifest['release_date_taipei'], '2026-07-23')
             self.assertTrue((root / 'SHA256SUMS').is_file())
             self.assertTrue((root / 'release-manifest.json').is_file())
+            self.assertTrue((root / 'release-verification.json').is_file())
+            checksums = (root / 'SHA256SUMS').read_text(encoding='utf-8')
+            self.assertIn('release-verification.json', checksums)
 
     def test_missing_architecture_is_release_blocking(self) -> None:
         plan = {'version': '0.1.0-beta.1'}
