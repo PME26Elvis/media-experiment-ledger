@@ -4,6 +4,13 @@
 
 A release-backed experiment platform for structured image and video generation runs. The repository keeps prompt banks, immutable experiment Releases, reproducible analytics, full-corpus image/video repeatability atlases, forecasts, and an Astro/Starlight observatory without committing original result folders to Git history.
 
+<!-- STUDIO_ENTRY:START -->
+> [!TIP]
+> **Desktop app: Media Experiment Ledger Studio**  
+> The cross-platform, local-first Atlas, object-detection, and media-automation desktop product is maintained on [`app-main`](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main).  
+> [Download Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v) · [Desktop app guide](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/app/README.md) · [Complete specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/docs/app/README.md)
+<!-- STUDIO_ENTRY:END -->
+
 ## Project contract and data integrity
 
 - [`project-contract.json`](project-contract.json) is the machine-validated synchronization anchor; [`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) is the human-readable contract.
