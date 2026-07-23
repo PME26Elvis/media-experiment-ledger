@@ -131,6 +131,8 @@ jobs:
           python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
           python scripts/build_engine.py
       - name: Build and install baseline deb
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           npm version 0.9.9 --no-git-tag-version --allow-same-version
           npm run build
@@ -138,7 +140,7 @@ jobs:
           OLD_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
           test -n "$OLD_DEB"
           cp "$OLD_DEB" "$RUNNER_TEMP/mel-baseline.deb"
-          sudo dpkg -i "$RUNNER_TEMP/mel-baseline.deb"
+          sudo apt-get install -y "$RUNNER_TEMP/mel-baseline.deb"
           PACKAGE="$(dpkg-deb -f "$RUNNER_TEMP/mel-baseline.deb" Package)"
           EXE="$(dpkg -L "$PACKAGE" | grep '^/usr/bin/' | head -n 1)"
           test -x "$EXE"
@@ -148,6 +150,8 @@ jobs:
           mkdir -p "$RUNNER_TEMP/mel-user-data"
           printf '%s\n' '{"schemaVersion":1,"createdBy":"baseline"}' > "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
       - name: Build RC.2, upgrade deb and qualify AppImage
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           rm -rf release
           npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
@@ -156,7 +160,7 @@ jobs:
           NEW_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
           APPIMAGE="$(find release -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$NEW_DEB" && test -n "$APPIMAGE"
-          sudo dpkg -i "$NEW_DEB"
+          sudo apt-get install -y "$NEW_DEB"
           python scripts/smoke_packaged_app.py --executable "$INSTALLED_EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-upgrade-smoke.json
           test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
           chmod +x "$APPIMAGE"
@@ -261,6 +265,8 @@ jobs:
           python scripts/smoke_packaged_app.py --executable "$EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output macos-upgrade-smoke.json
           test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
       - name: Remove app bundle and verify user-data retention
+        env:
+          MATRIX_ARCH: ${{ matrix.id }}
         run: |
           rm -rf "$RUNNER_TEMP/Applications/Media Experiment Ledger Studio.app"
           test ! -e "$INSTALLED_EXE"
@@ -278,8 +284,6 @@ jobs:
               'userDataRetained': True,
           }, indent=2) + '\n', encoding='utf-8')
           PY
-        env:
-          MATRIX_ARCH: ${{ matrix.id }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
