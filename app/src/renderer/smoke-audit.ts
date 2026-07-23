@@ -14,11 +14,13 @@ export interface RendererSmokeCheck {
   route: string
   locale: SmokeLocale
   viewport: string
+  currentRoute: string
   rendered: boolean
   horizontalOverflow: boolean
   unnamedInteractive: string[]
   leakedTranslationKeys: string[]
   errorCount: number
+  domSummary?: string
   passed: boolean
 }
 
@@ -29,6 +31,12 @@ export interface RendererSmokeApi {
 }
 
 const capturedErrors: string[] = []
+
+function stringifyConsoleValue(value: unknown): string {
+  if (value instanceof Error) return value.stack ?? value.message
+  if (typeof value === 'string') return value
+  try { return JSON.stringify(value) } catch { return String(value) }
+}
 
 function describeElement(element: Element): string {
   const id = element.getAttribute('id')
@@ -105,9 +113,20 @@ async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
   return false
 }
 
+function domSummary(): string {
+  const main = document.querySelector('main')
+  const source = main?.innerHTML ?? document.body.innerHTML
+  return source.replaceAll(/\s+/gu, ' ').slice(0, 3000)
+}
+
 export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): void {
   if (new URLSearchParams(window.location.search).get('mel-smoke') !== '1') return
 
+  const originalConsoleError = console.error.bind(console)
+  console.error = (...values: unknown[]) => {
+    capturedErrors.push(`[console.error] ${values.map(stringifyConsoleValue).join(' ')}`)
+    originalConsoleError(...values)
+  }
   window.addEventListener('error', event => {
     capturedErrors.push(event.error instanceof Error ? event.error.stack ?? event.error.message : event.message)
   })
@@ -139,11 +158,13 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
             route,
             locale,
             viewport,
+            currentRoute: router.currentRoute.value.fullPath,
             rendered,
             horizontalOverflow,
             unnamedInteractive,
             leakedTranslationKeys: translationKeys,
             errorCount,
+            domSummary: rendered ? undefined : domSummary(),
             passed: rendered && !horizontalOverflow && unnamedInteractive.length === 0 && translationKeys.length === 0 && errorCount === 0,
           })
         }
