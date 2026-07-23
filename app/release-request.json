@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
-  "request_revision": 3,
+  "request_revision": 4,
   "source_branch": "app-main",
   "version": "auto",
   "channel": "beta",
   "draft": false,
   "publish": true,
-  "release_notes": "First public validation release of the cross-platform Media Experiment Ledger Studio desktop application. This beta is intended for end-to-end package, workflow and usability evaluation before signed stable qualification. The release pipeline now isolates unsigned prerelease packaging from stable signing credentials and validates native Linux package metadata.",
+  "release_notes": "Second public validation release of Media Experiment Ledger Studio. This beta keeps the successful cross-platform package matrix from beta.1 while replacing the noisy recursive asset export with an exact public allowlist and one consolidated, deterministic evidence bundle. beta.1 remains available as immutable historical release evidence; beta.2 is the recommended download.",
   "features": [
     "Cross-platform Electron and Vuetify desktop workspace for local media experiments",
     "Durable image and video import, hashing, proxy generation and resumable jobs",
@@ -14,10 +14,10 @@
     "YOLOX and NanoDet-Plus detection with verified built-in decoders and user-supplied ONNX manifests",
     "Credential profiles, media automation budgets, recovery center and update workflows",
     "Windows installer and portable, macOS arm64 and x64, Linux AppImage and deb packages",
-    "Collision-safe release versioning, exact source-SHA builds and packaged application launch evidence",
-    "Unsigned prerelease builds isolated from stable signing and notarization secrets",
-    "Validated Linux package publisher, maintainer, homepage and desktop integration metadata",
-    "Responsive product branding, release documentation and repository app-main entry"
+    "Exact public Release allowlist that blocks unpacked runtime executables and internal resources",
+    "Deterministic consolidated evidence ZIP with four-platform engine, launch, SBOM, notices, build-input and updater metadata",
+    "End-to-end public asset verification across checksums, manifest, source SHA and evidence bundle contents",
+    "Collision-safe beta.2 publication without editing or clobbering beta.1"
   ],
   "quick_start_tag": "",
   "full_research_tag": ""
