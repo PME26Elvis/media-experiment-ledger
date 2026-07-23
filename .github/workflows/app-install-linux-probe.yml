@@ -77,17 +77,20 @@ jobs:
           test -n "$NEW_DEB" && test -n "$APPIMAGE"
           echo "NEW_DEB=$NEW_DEB" >> "$GITHUB_ENV"
           echo "APPIMAGE=$APPIMAGE" >> "$GITHUB_ENV"
-      - name: Upgrade deb and qualify installed application
+      - name: Install RC.2 deb upgrade
         env:
           DEBIAN_FRONTEND: noninteractive
+        run: sudo apt-get install -y "$NEW_DEB"
+      - name: Qualify upgraded deb application
         run: |
-          sudo apt-get install -y "$NEW_DEB"
           python scripts/smoke_packaged_app.py --executable "$INSTALLED_EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-probe-upgrade-smoke.json
           test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
       - name: Qualify AppImage independently
+        if: always()
         env:
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: |
+          test -n "${APPIMAGE:-}"
           chmod +x "$APPIMAGE"
           python scripts/smoke_packaged_app.py --executable "$APPIMAGE" --user-data "$RUNNER_TEMP/mel-appimage-user-data" --output linux-probe-appimage-smoke.json
       - name: Remove deb and retain user data
