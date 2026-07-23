@@ -11,17 +11,21 @@ import {
 import { existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { CloudSyncManager } from './cloud-sync-manager'
 import { registerCustomModelIpc } from './custom-model-ipc'
 import { CustomModelManager } from './custom-model-manager'
 import { StudioDatabase } from './database'
 import { registerDiagnosticsIpc } from './diagnostics-ipc'
 import { engineReady } from './engine'
+import { GitHubReleasePublisher } from './github-release-publisher'
+import { registerIntegrationIpc } from './integration-ipc'
 import { JobManager } from './job-manager'
 import { registerIpc } from './ipc'
 import { ModelManager } from './model-manager'
 import { applyPendingRecovery, createColdStartupBackup, RecoveryManager } from './recovery-manager'
 import { ReportManager } from './report-manager'
 import { SampleCorpusManager } from './sample-corpus-manager'
+import { SchedulerManager } from './scheduler-manager'
 import { SecretStore } from './secret-store'
 import { SupportManager } from './support-manager'
 import { registerTemplateIpc } from './template-ipc'
@@ -33,6 +37,7 @@ let tray: Tray | null = null
 let quitting = false
 let database: StudioDatabase | null = null
 let jobs: JobManager | null = null
+let schedulerManager: SchedulerManager | null = null
 let sleepBlockerId: number | undefined
 let sleepMonitor: NodeJS.Timeout | undefined
 
@@ -42,6 +47,11 @@ function rendererPath(): string {
 
 function preloadPath(): string {
   return join(__dirname, '../preload/index.js')
+}
+
+function scheduleIdFromArgv(argv: string[]): string | undefined {
+  const value = argv.find(argument => argument.startsWith('--mel-schedule='))?.slice('--mel-schedule='.length)
+  return value && /^[0-9a-f-]{36}$/iu.test(value) ? value : undefined
 }
 
 function createWindow(): BrowserWindow {
@@ -162,7 +172,7 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
     let preloadBridge = false
     try {
       preloadBridge = Boolean(await window.webContents.executeJavaScript(
-        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics?.preview && window.melTemplates?.list && window.melCustomModels?.list)",
+        "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics?.preview && window.melTemplates?.list && window.melCustomModels?.list && window.melIntegrations?.schedules?.list && window.melIntegrations?.sync?.run && window.melIntegrations?.github?.publish && window.melIntegrations?.wasm?.postprocess)",
         true,
       ))
     } catch {
@@ -192,10 +202,19 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
   setTimeout(() => { void finish(new Error('Packaged application smoke timed out.')) }, 45_000).unref()
 }
 
-const hasLock = app.requestSingleInstanceLock()
+const initialScheduleId = scheduleIdFromArgv(process.argv)
+const hasLock = app.requestSingleInstanceLock(initialScheduleId ? { melScheduleId: initialScheduleId } : {})
 if (!hasLock) app.quit()
 else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv, _workingDirectory, additionalData) => {
+    const forwarded = typeof additionalData?.melScheduleId === 'string'
+      ? scheduleIdFromArgv([`--mel-schedule=${additionalData.melScheduleId}`])
+      : scheduleIdFromArgv(argv)
+    if (forwarded && schedulerManager && database) {
+      void schedulerManager.runNow(forwarded).catch(error => {
+        database?.recordMaintenance('scheduled-job-launch-failed', { scheduleId: forwarded, error: error instanceof Error ? error.message : String(error) })
+      })
+    }
     if (!mainWindow) return
     if (mainWindow.isMinimized()) mainWindow.restore()
     mainWindow.show()
@@ -219,6 +238,7 @@ else {
     const updater = new UpdateManager(userDataPath, recovery, jobs, settings.updateChannel ?? 'beta')
     const templates = new TemplateManager(userDataPath)
     const reports = new ReportManager(userDataPath, templates)
+    schedulerManager = new SchedulerManager(userDataPath, { createJob: request => jobs!.create(request) })
 
     registerIpc(
       database,
@@ -233,6 +253,12 @@ else {
     registerDiagnosticsIpc(new SupportManager(userDataPath, database))
     registerTemplateIpc(templates)
     registerCustomModelIpc(new CustomModelManager(userDataPath))
+    registerIntegrationIpc(schedulerManager, new CloudSyncManager(), new GitHubReleasePublisher(secrets))
+    if (initialScheduleId) {
+      void schedulerManager.runNow(initialScheduleId).catch(error => {
+        database?.recordMaintenance('scheduled-job-launch-failed', { scheduleId: initialScheduleId, error: error instanceof Error ? error.message : String(error) })
+      })
+    }
     const window = createWindow()
     if (process.env.MEL_SMOKE_TEST === '1') {
       startPackagedSmoke(window, database)
