@@ -23,6 +23,12 @@ function parseRepository(value: string): { owner: string; repo: string } {
   return { owner: match[1]!, repo: match[2]! }
 }
 
+function validTag(tag: string): boolean {
+  if (!tag || tag.length > 200 || tag.startsWith('-') || tag.endsWith('.') || tag.includes('..') || tag.includes('@{')) return false
+  const forbidden = [' ', '\t', '\r', '\n', '~', '^', ':', '?', '*', '[', ']', '\\']
+  return forbidden.every(character => !tag.includes(character)) && !/[\u0000-\u001f\u007f]/u.test(tag)
+}
+
 function safeAssetName(path: string): string {
   const name = basename(path)
   if (!name || name === '.' || name === '..' || /[\u0000-\u001f\u007f]/u.test(name)) throw new Error('Release asset name is invalid.')
@@ -42,7 +48,7 @@ export class GitHubReleasePublisher {
     if (!token) throw new Error('GitHub credential profile did not resolve a token.')
 
     const tag = request.tag.trim()
-    if (!tag || tag.length > 200 || /[\s~^:?*[\\]/u.test(tag)) throw new Error('Release tag is invalid.')
+    if (!validTag(tag)) throw new Error('Release tag is invalid.')
     const paths = request.assetPaths.map(path => resolve(path))
     const assetNames = paths.map(safeAssetName)
     if (new Set(assetNames).size !== assetNames.length) throw new Error('Release asset file names must be unique.')
