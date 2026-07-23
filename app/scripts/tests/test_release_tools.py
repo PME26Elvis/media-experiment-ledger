@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
+APP_ROOT = Path(__file__).resolve().parents[2]
+REPOSITORY_ROOT = APP_ROOT.parent
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
@@ -78,6 +80,31 @@ class ReleasePlanTests(unittest.TestCase):
         self.assertIn('when signing keys are configured', text)
         self.assertNotIn('signed checksum file', text)
 
+    def test_prerelease_steps_do_not_receive_signing_secret_paths(self) -> None:
+        workflow = (REPOSITORY_ROOT / '.github/workflows/app-release-core.yml').read_text(
+            encoding='utf-8'
+        )
+        unsigned_windows = workflow.split(
+            'Build unsigned Windows prerelease packages', 1
+        )[1].split('Build signed Windows stable packages', 1)[0]
+        unsigned_macos = workflow.split(
+            'Build unsigned macOS prerelease packages', 1
+        )[1].split('Build signed and notarized macOS stable packages', 1)[0]
+        self.assertNotIn('WIN_CSC_LINK', unsigned_windows)
+        self.assertNotIn('MAC_CSC_LINK', unsigned_macos)
+        self.assertNotIn('APPLE_ID', unsigned_macos)
+        self.assertIn("CSC_IDENTITY_AUTO_DISCOVERY: 'false'", unsigned_windows)
+        self.assertIn("CSC_IDENTITY_AUTO_DISCOVERY: 'false'", unsigned_macos)
+
+    def test_linux_package_metadata_is_complete(self) -> None:
+        package = json.loads((APP_ROOT / 'package.json').read_text(encoding='utf-8'))
+        self.assertTrue(package['homepage'].startswith('https://github.com/'))
+        self.assertIn('@', package['author']['email'])
+        linux = package['build']['linux']
+        self.assertIn('@', linux['maintainer'])
+        self.assertTrue(linux['syncDesktopName'])
+        self.assertEqual(package['desktopName'], 'Media Experiment Ledger Studio')
+
 
 class ReleaseAssetTests(unittest.TestCase):
     def test_exact_package_and_evidence_matrix(self) -> None:
@@ -109,6 +136,13 @@ class ReleaseAssetTests(unittest.TestCase):
             result = verify(root, plan, minimum_package_bytes=1)
             self.assertEqual(result['package_count'], 8)
             self.assertEqual(result['evidence_count'], 8)
+            self.assertEqual(
+                expected_package_names(plan['version'])[-2:],
+                [
+                    'Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-x86_64.AppImage',
+                    'Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-amd64.deb',
+                ],
+            )
             manifest = finalize(root, plan, minimum_package_bytes=1)
             self.assertEqual(manifest['schema_version'], 2)
             self.assertEqual(manifest['source_sha'], 'c' * 40)
