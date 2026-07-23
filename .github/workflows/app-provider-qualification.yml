@@ -11,8 +11,12 @@ on:
       - 'app/engine/mel_engine/detection.py'
       - 'app/engine/mel_engine/__main__.py'
       - 'app/engine/tests/test_providers.py'
+      - 'app/engine/tests/test_detection_providers.py'
       - 'app/scripts/build_engine.py'
       - 'app/scripts/qualify_detection_provider.py'
+      - 'app/src/main/engine.ts'
+      - 'app/src/main/ipc.ts'
+      - 'app/src/renderer/views/DetectionView.vue'
       - 'object-detection/model-lock.json'
       - 'object-detection/coco-80.json'
       - 'tools/yolo_core.py'
@@ -67,6 +71,7 @@ jobs:
       - name: Validate packaged inventory matches qualified provider
         env:
           PROVIDER: ${{ matrix.provider }}
+          MATRIX_ID: ${{ matrix.id }}
         run: |
           python - <<'PY'
           import json
@@ -88,9 +93,6 @@ jobs:
           if not evidence.get('passed') or evidence.get('target', {}).get('assigned_node_count', 0) <= 0:
               raise SystemExit(f'provider evidence did not prove node execution: {evidence}')
           PY
-        env:
-          PROVIDER: ${{ matrix.provider }}
-          MATRIX_ID: ${{ matrix.id }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
