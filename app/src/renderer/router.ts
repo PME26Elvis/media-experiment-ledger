@@ -4,6 +4,7 @@ import AutomationView from './views/AutomationView.vue'
 import DetectionView from './views/DetectionView.vue'
 import DiagnosticsView from './views/DiagnosticsView.vue'
 import ImportView from './views/ImportView.vue'
+import IntegrationsView from './views/IntegrationsView.vue'
 import JobsView from './views/JobsView.vue'
 import ModelsView from './views/ModelsView.vue'
 import ReportsView from './views/ReportsView.vue'
@@ -25,6 +26,7 @@ export const router = createRouter({
     { path: '/jobs', name: 'jobs', component: JobsView },
     { path: '/models', name: 'models', component: ModelsView },
     { path: '/reports', name: 'reports', component: ReportsView },
+    { path: '/integrations', name: 'integrations', component: IntegrationsView },
     { path: '/updates', name: 'updates', component: UpdatesView },
     { path: '/diagnostics', name: 'diagnostics', component: DiagnosticsView },
     { path: '/settings', name: 'settings', component: SettingsView },
