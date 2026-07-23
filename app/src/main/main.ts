@@ -54,6 +54,12 @@ function scheduleIdFromArgv(argv: string[]): string | undefined {
   return value && /^[0-9a-f-]{36}$/iu.test(value) ? value : undefined
 }
 
+function scheduleIdFromAdditionalData(value: unknown): string | undefined {
+  if (!value || typeof value !== 'object') return undefined
+  const scheduleId = (value as Record<string, unknown>).melScheduleId
+  return typeof scheduleId === 'string' ? scheduleIdFromArgv([`--mel-schedule=${scheduleId}`]) : undefined
+}
+
 function createWindow(): BrowserWindow {
   mainWindow = new BrowserWindow({
     width: 1480,
@@ -207,9 +213,7 @@ const hasLock = app.requestSingleInstanceLock(initialScheduleId ? { melScheduleI
 if (!hasLock) app.quit()
 else {
   app.on('second-instance', (_event, argv, _workingDirectory, additionalData) => {
-    const forwarded = typeof additionalData?.melScheduleId === 'string'
-      ? scheduleIdFromArgv([`--mel-schedule=${additionalData.melScheduleId}`])
-      : scheduleIdFromArgv(argv)
+    const forwarded = scheduleIdFromAdditionalData(additionalData) ?? scheduleIdFromArgv(argv)
     if (forwarded && schedulerManager && database) {
       void schedulerManager.runNow(forwarded).catch(error => {
         database?.recordMaintenance('scheduled-job-launch-failed', { scheduleId: forwarded, error: error instanceof Error ? error.message : String(error) })
