@@ -3,16 +3,18 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from verify_release_assets import verify
+from verify_release_assets import expected_package_names, verify
 
-EXCLUDED = {
+GENERATED_NAMES = {
     'SHA256SUMS',
     'SHA256SUMS.asc',
     'release-manifest.json',
+    'release-verification.json',
 }
 
 
@@ -24,14 +26,28 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def evidence_bundle_name(version: str) -> str:
+    return f'Media-Experiment-Ledger-Studio-{version}-evidence.zip'
+
+
+def write_deterministic_zip(path: Path, files: list[Path], root: Path) -> None:
+    with zipfile.ZipFile(path, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+        for source in sorted(files, key=lambda item: item.name):
+            relative = source.relative_to(root).as_posix()
+            info = zipfile.ZipInfo(relative, date_time=(1980, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, source.read_bytes())
+
+
 def build_manifest(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
     files = [
-        path for path in root.rglob('*')
-        if path.is_file() and path.name not in EXCLUDED
+        path for path in root.iterdir()
+        if path.is_file() and path.name not in {'SHA256SUMS', 'SHA256SUMS.asc', 'release-manifest.json'}
     ]
     entries = [
         {
-            'path': path.relative_to(root).as_posix(),
+            'path': path.name,
             'name': path.name,
             'size_bytes': path.stat().st_size,
             'sha256': sha256(path),
@@ -39,7 +55,7 @@ def build_manifest(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
         for path in sorted(files)
     ]
     return {
-        'schema_version': 2,
+        'schema_version': 3,
         'product': 'Media Experiment Ledger Studio',
         'version': plan['version'],
         'tag': plan.get('tag') or f"studio-v{plan['version']}",
@@ -55,6 +71,7 @@ def build_manifest(root: Path, plan: dict[str, Any]) -> dict[str, Any]:
             'quick_start': plan.get('quick_start_tag') or None,
             'full_research': plan.get('full_research_tag') or None,
         },
+        'public_asset_policy': 'eight_packages_plus_consolidated_evidence',
         'asset_count': len(entries),
         'total_bytes': sum(entry['size_bytes'] for entry in entries),
         'assets': entries,
@@ -67,15 +84,43 @@ def finalize(
     *,
     minimum_package_bytes: int = 1_000_000,
 ) -> dict[str, Any]:
+    root = root.resolve()
+    for name in GENERATED_NAMES | {evidence_bundle_name(str(plan['version']))}:
+        (root / name).unlink(missing_ok=True)
+
     verification = verify(
         root,
         plan,
         minimum_package_bytes=minimum_package_bytes,
     )
+    package_names = set(expected_package_names(str(plan['version'])))
+    notes_name = 'RELEASE_NOTES.md'
+    if not (root / notes_name).is_file():
+        raise RuntimeError('RELEASE_NOTES.md must exist before release finalization.')
+
+    evidence_files = [
+        path for path in root.iterdir()
+        if path.is_file() and path.name not in package_names | {notes_name}
+    ]
+    if not evidence_files:
+        raise RuntimeError('No release evidence files were available to bundle.')
+    bundle_name = evidence_bundle_name(str(plan['version']))
+    bundle_path = root / bundle_name
+    write_deterministic_zip(bundle_path, evidence_files, root)
+    for path in evidence_files:
+        path.unlink()
+
+    verification.update({
+        'schema_version': 2,
+        'evidence_bundle': bundle_name,
+        'bundled_evidence_count': len(evidence_files),
+        'public_asset_policy': 'eight_packages_plus_consolidated_evidence',
+    })
     (root / 'release-verification.json').write_text(
         json.dumps(verification, ensure_ascii=False, indent=2) + '\n',
         encoding='utf-8',
     )
+
     manifest = build_manifest(root, plan)
     checksums = '\n'.join(
         f"{entry['sha256']}  {entry['path']}" for entry in manifest['assets']
@@ -122,6 +167,7 @@ def main() -> int:
         'bytes': manifest['total_bytes'],
         'source_sha': manifest['source_sha'],
         'release_date_taipei': manifest['release_date_taipei'],
+        'public_asset_policy': manifest['public_asset_policy'],
     }, indent=2))
     return 0
 
