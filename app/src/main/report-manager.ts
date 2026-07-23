@@ -20,6 +20,7 @@ import type {
 } from '../shared/contracts'
 import { reportTemplate } from '../shared/report-templates'
 import { renderReportHtml } from './report-renderer'
+import type { TemplateManager } from './template-manager'
 
 const templateIds = [
   'research-light',
@@ -142,7 +143,10 @@ export class ReportManager {
   private readonly revisionsRoot: string
   private readonly tempRoot: string
 
-  constructor(userDataPath: string) {
+  constructor(
+    userDataPath: string,
+    private readonly templates?: Pick<TemplateManager, 'templateForDocument'>,
+  ) {
     this.documentsRoot = join(userDataPath, 'reports', 'documents')
     this.revisionsRoot = join(userDataPath, 'reports', 'revisions')
     this.tempRoot = join(userDataPath, 'reports', 'temp')
@@ -319,8 +323,10 @@ export class ReportManager {
     outputDirectory: string,
   ): Promise<ReportExportResult> {
     const document = this.get(id)
-    const rendered = renderReportHtml(document)
-    const template = reportTemplate(document.template)
+    const customTemplate = this.templates?.templateForDocument(document.id)
+    const builtInTemplate = reportTemplate(document.template)
+    const rendered = renderReportHtml(document, customTemplate)
+    const page = customTemplate?.page ?? builtInTemplate.page
     const outputRoot = resolve(outputDirectory)
     mkdirSync(outputRoot, { recursive: true })
     const htmlPath = join(this.tempRoot, `${document.id}-${Date.now()}.html`)
@@ -344,8 +350,8 @@ export class ReportManager {
         generateTaggedPDF: true,
         generateDocumentOutline: true,
         pageSize: {
-          width: template.page.widthInches,
-          height: template.page.heightInches,
+          width: page.widthInches,
+          height: page.heightInches,
         },
         margins: { top: 0, bottom: 0, left: 0, right: 0 },
       })
@@ -363,7 +369,9 @@ export class ReportManager {
         document_id: document.id,
         document_revision: document.revision,
         document_sha256: sha256(JSON.stringify(document)),
-        template: document.template,
+        template: customTemplate
+          ? { kind: 'custom-snapshot', definition: customTemplate }
+          : { kind: 'built-in', id: document.template },
         pdf_path: pdfPath,
         pdf_sha256: digest,
         pdf_size_bytes: pdf.length,
