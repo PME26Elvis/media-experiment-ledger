@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import unittest
 from pathlib import Path
 
@@ -22,13 +23,25 @@ class SampleCorpusReleaseWorkflowTests(unittest.TestCase):
         self.assertIn('Publish verified corpus Release once', text)
         self.assertIn('-F draft=false', text)
 
-    def test_request_file_is_safe_by_default(self) -> None:
+    def test_request_is_disabled_or_an_immutable_reviewed_instruction(self) -> None:
         request = json.loads(REQUEST.read_text(encoding='utf-8'))
         self.assertEqual(request['schema_version'], 1)
-        self.assertFalse(request['enabled'])
-        self.assertEqual(request['tier'], 'quick-start')
-        self.assertEqual(request['source_release_tags'], '')
-        self.assertTrue(request['draft'])
+        self.assertGreaterEqual(int(request['request_revision']), 1)
+        self.assertIn(request['tier'], {'quick-start', 'full-research'})
+        self.assertGreaterEqual(int(request['version']), 1)
+        self.assertIsInstance(request['draft'], bool)
+
+        if not request['enabled']:
+            self.assertEqual(request['source_sha'], '')
+            return
+
+        source_sha = str(request['source_sha'])
+        self.assertRegex(source_sha, re.compile(r'^[0-9a-f]{40}$'))
+        if request['tier'] == 'quick-start':
+            self.assertEqual(request['source_release_tags'], '')
+        else:
+            self.assertTrue(str(request['source_release_tags']).strip())
+            self.assertTrue(str(request['rights_attestation']).strip())
 
     def test_push_trigger_is_narrow_and_source_sha_is_pinned(self) -> None:
         text = WORKFLOW.read_text(encoding='utf-8')
