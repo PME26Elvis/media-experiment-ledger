@@ -87,9 +87,22 @@ function leakedTranslationKeys(): string[] {
   return [...new Set(text.match(/\b(?:app|nav|common|integrations|workspace|import|samples|automation|atlas|detection|jobs|models|reports|updates|diagnostics|settings)\.[a-z][a-zA-Z0-9_.-]*/gu) ?? [])].sort()
 }
 
-async function settle(): Promise<void> {
+function animationFrame(): Promise<void> {
+  return new Promise(resolve => requestAnimationFrame(() => resolve()))
+}
+
+async function waitForRouteRoot(timeoutMs = 2000): Promise<boolean> {
+  const deadline = performance.now() + timeoutMs
   await nextTick()
-  await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+  while (performance.now() < deadline) {
+    if (document.querySelector('.page-wrap')) {
+      await animationFrame()
+      await animationFrame()
+      return Boolean(document.querySelector('.page-wrap'))
+    }
+    await new Promise(resolve => setTimeout(resolve, 25))
+  }
+  return false
 }
 
 export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): void {
@@ -115,12 +128,11 @@ export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): 
           const errorStart = capturedErrors.length
           await router.push(route)
           i18n.global.locale.value = locale
-          await settle()
+          const rendered = await waitForRouteRoot()
           const documentWidth = document.documentElement.scrollWidth
           const viewportWidth = document.documentElement.clientWidth
           const unnamedInteractive = unnamedInteractiveElements()
           const translationKeys = leakedTranslationKeys()
-          const rendered = Boolean(document.querySelector('.page-wrap'))
           const horizontalOverflow = documentWidth > viewportWidth + 2
           const errorCount = capturedErrors.length - errorStart
           checks.push({
