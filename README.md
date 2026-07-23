@@ -4,6 +4,13 @@
 
 這是一個以 GitHub Releases 為資料層的媒體生成實驗平台，用來管理圖片／影片 prompt、不可變更的實驗資料、可重建分析、圖片與影片 Prompt Repeatability Atlas、預測模型與 GitHub Pages 儀表板，同時避免把大型原始結果直接提交進 Git history。
 
+<!-- STUDIO_ENTRY:START -->
+> [!TIP]
+> **桌面版：Media Experiment Ledger Studio**  
+> 跨平台、本機優先的 Atlas、物件偵測與媒體自動化桌面產品維護於 [`app-main`](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main)。  
+> [下載 Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v) · [桌面 App 說明](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/app/README.md) · [完整規格](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/docs/app/README.md)
+<!-- STUDIO_ENTRY:END -->
+
 ## 專案契約與資料完整性
 
 - [`project-contract.json`](project-contract.json) 是機器可驗證的同步錨點；[`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) 是人類可讀版本。

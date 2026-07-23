@@ -1,0 +1,60 @@
+name: Release Media Experiment Ledger Studio
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer without leading v, or auto
+        required: false
+        default: auto
+        type: string
+      channel:
+        description: Release channel
+        required: true
+        default: beta
+        type: choice
+        options: [alpha, beta, stable]
+      release_notes:
+        description: Optional Markdown release summary
+        required: false
+        type: string
+      features:
+        description: Optional comma/newline-separated feature and fix list
+        required: false
+        type: string
+      quick_start_tag:
+        description: Compatible Quick Start corpus Release tag
+        required: false
+        type: string
+      full_research_tag:
+        description: Compatible Full Research corpus Release tag
+        required: false
+        type: string
+      draft:
+        description: Keep the completed Release as a private draft
+        required: true
+        default: true
+        type: boolean
+      publish:
+        description: Create the GitHub Release after all verification
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: PME26Elvis/media-experiment-ledger/.github/workflows/app-release-core.yml@app-main
+    with:
+      source_ref: app-main
+      version_override: ${{ inputs.version }}
+      channel_override: ${{ inputs.channel }}
+      release_notes_override: ${{ inputs.release_notes }}
+      features_override: ${{ inputs.features }}
+      quick_start_tag_override: ${{ inputs.quick_start_tag }}
+      full_research_tag_override: ${{ inputs.full_research_tag }}
+      draft_override: ${{ format('{0}', inputs.draft) }}
+      publish_override: ${{ format('{0}', inputs.publish) }}
+    secrets: inherit
