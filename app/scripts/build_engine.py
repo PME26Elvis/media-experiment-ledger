@@ -84,11 +84,17 @@ def build() -> Path:
 
 def smoke(executable: Path) -> None:
     with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        inputs = root / 'inputs'
+        output = root / 'project'
+        inputs.mkdir()
         request = json.dumps({
             'operation': 'scan',
             'job_id': 'engine-build-smoke',
-            'image_path': directory,
+            'image_path': str(inputs),
             'video_path': '',
+            'output_path': str(output),
+            'import_mode': 'reference',
         }) + '\n'
         completed = run(
             [str(executable)],
@@ -100,7 +106,14 @@ def smoke(executable: Path) -> None:
         events = [json.loads(line) for line in completed.stdout.splitlines() if line.strip()]
         results = [event for event in events if event.get('type') == 'result']
         errors = [event for event in events if event.get('type') == 'error']
-        if errors or not results or results[-1].get('data', {}).get('count') != 0:
+        data = results[-1].get('data', {}) if results else {}
+        if (
+            errors
+            or not results
+            or data.get('indexed_count') != 0
+            or data.get('error_count') != 0
+            or not (output / 'media-index.json').is_file()
+        ):
             raise RuntimeError(
                 f'Engine smoke failed. stdout={completed.stdout!r} stderr={completed.stderr!r}',
             )
