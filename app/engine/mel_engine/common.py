@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable
 
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.bmp', '.tif', '.tiff'}
-VIDEO_EXTENSIONS = {'.mp4', '.mov', '.m4v', '.webm', '.mkv', '.avi'}
+VIDEO_EXTENSIONS = {'.gif', '.mp4', '.mov', '.m4v', '.webm', '.mkv', '.avi'}
 EventSink = Callable[..., None]
 
 
@@ -20,15 +20,20 @@ def canonical_json(value: Any) -> str:
 
 def iter_media(paths: Iterable[str]) -> list[Path]:
     result: list[Path] = []
+    supported = IMAGE_EXTENSIONS | VIDEO_EXTENSIONS
     for raw in paths:
         if not raw:
             continue
         path = Path(raw).expanduser().resolve()
-        if path.is_file() and path.suffix.lower() in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS:
+        if path.is_file() and path.suffix.lower() in supported:
             result.append(path)
         elif path.is_dir():
-            result.extend(p for p in path.rglob('*') if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS | VIDEO_EXTENSIONS)
-    return sorted(set(result), key=lambda p: str(p).lower())
+            result.extend(
+                candidate
+                for candidate in path.rglob('*')
+                if candidate.is_file() and candidate.suffix.lower() in supported
+            )
+    return sorted(set(result), key=lambda candidate: str(candidate).lower())
 
 
 def sha256(path: Path) -> str:
