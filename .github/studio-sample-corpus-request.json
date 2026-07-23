@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "request_revision": 2,
+  "request_revision": 3,
   "enabled": true,
-  "source_sha": "638481521e6abf87399f64094e243a933671327f",
+  "source_sha": "70fdc996f606a64d3d6b236253e586c17023261f",
   "tier": "quick-start",
-  "version": 1,
+  "version": 2,
   "source_release_tags": "",
   "rights_attestation": "config/studio-sample-corpus-rights.example.json",
   "draft": false
