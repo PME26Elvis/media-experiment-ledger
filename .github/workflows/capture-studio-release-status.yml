@@ -86,12 +86,44 @@ jobs:
           }
           Path('release-monitor-result.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
           PY
+      - name: Capture requested failure job log tails
+        shell: bash
+        run: |
+          set +e
+          python - <<'PY' > requested-job-ids.txt
+          import json
+          from pathlib import Path
+          request = json.loads(Path('.github/release-status-request.json').read_text())
+          for value in request.get('job_ids', []):
+              print(int(value))
+          PY
+          : > release-failure-summary.txt
+          while IFS= read -r job_id; do
+            [[ -n "$job_id" ]] || continue
+            rm -rf job-log job-log.zip
+            mkdir -p job-log
+            echo "===== JOB ${job_id} =====" >> release-failure-summary.txt
+            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > job-log.zip 2>> release-failure-summary.txt
+            status=$?
+            if [[ $status -ne 0 ]]; then
+              echo "log download failed with status ${status}" >> release-failure-summary.txt
+              continue
+            fi
+            unzip -q job-log.zip -d job-log 2>> release-failure-summary.txt
+            find job-log -type f -print0 | sort -z | while IFS= read -r -d '' file; do
+              echo "--- ${file} ---" >> release-failure-summary.txt
+              grep -Ein 'error|failed|failure|cannot|not found|invalid|ENOENT|ERR_' "$file" \
+                | tail -n 80 >> release-failure-summary.txt || true
+              echo "--- tail ---" >> release-failure-summary.txt
+              tail -n 160 "$file" >> release-failure-summary.txt
+            done
+          done < requested-job-ids.txt
       - name: Commit status snapshot
         shell: bash
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add release-monitor-result.json
-          git commit -m 'Capture Studio release status' || exit 0
+          git add release-monitor-result.json release-failure-summary.txt
+          git commit -m 'Capture Studio release status and failure logs' || exit 0
           git push origin HEAD:app-v1-beta-trigger
