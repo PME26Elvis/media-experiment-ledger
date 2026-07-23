@@ -74,9 +74,13 @@ def validate_explicit_version(version: str, channel: str) -> None:
     prerelease = match.group(4) or ''
     if channel == 'stable' and prerelease:
         raise ValueError('Stable releases must not contain a prerelease suffix.')
-    if channel in {'alpha', 'beta'} and not prerelease.startswith(f'{channel}.'):
+    if channel == 'alpha' and not prerelease.startswith('alpha.'):
+        raise ValueError('alpha releases must use an -alpha.N prerelease suffix, or version=auto.')
+    if channel == 'beta' and not (
+        prerelease.startswith('beta.') or prerelease.startswith('rc.')
+    ):
         raise ValueError(
-            f'{channel} releases must use a matching -{channel}.N prerelease suffix, or version=auto.'
+            'beta distribution accepts -beta.N or -rc.N prerelease suffixes, or version=auto.'
         )
 
 
