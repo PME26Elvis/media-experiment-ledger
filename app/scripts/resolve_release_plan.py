@@ -3,10 +3,9 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from zoneinfo import ZoneInfo
 
 SEMVER = re.compile(
     r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)'
@@ -14,6 +13,7 @@ SEMVER = re.compile(
 )
 CHANNELS = {'alpha', 'beta', 'stable'}
 TAG_PREFIX = 'studio-v'
+TAIPEI_TIMEZONE = timezone(timedelta(hours=8), name='Asia/Taipei')
 
 
 def parse_bool(value: Any, *, default: bool) -> bool:
@@ -143,7 +143,7 @@ def build_plan(
     if instant.tzinfo is None:
         instant = instant.replace(tzinfo=timezone.utc)
     instant = instant.astimezone(timezone.utc)
-    taipei = instant.astimezone(ZoneInfo('Asia/Taipei'))
+    taipei = instant.astimezone(TAIPEI_TIMEZONE)
 
     plan = {
         'schema_version': 1,
