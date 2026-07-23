@@ -32,6 +32,7 @@
     "engine:test": "python -m unittest discover -s engine/tests -p 'test_*.py'",
     "release:tools:test": "python -m unittest discover -s scripts/tests -p 'test_release_*.py'",
     "engine:build": "python scripts/build_engine.py",
+    "benchmark:report": "electron scripts/benchmark_report_pdf.cjs",
     "package": "npm run build && npm run engine:build && electron-builder --dir --publish never",
     "dist": "npm run build && npm run engine:build && electron-builder"
   },
