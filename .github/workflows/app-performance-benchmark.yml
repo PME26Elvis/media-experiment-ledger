@@ -60,12 +60,16 @@ jobs:
         continue-on-error: true
         env:
           MEL_REPORT_BENCHMARK_PAGES: '500'
-          MEL_REPORT_BENCHMARK_OUTPUT: ${{ github.workspace }}/app/report-500-page-benchmark.json
-          MEL_REPORT_BENCHMARK_PDF: ${{ github.workspace }}/app/report-500-page-benchmark.pdf
-        run: xvfb-run -a npm run benchmark:report
+          MEL_REPORT_BENCHMARK_OUTPUT: report-500-page-benchmark.json
+          MEL_REPORT_BENCHMARK_PDF: report-500-page-benchmark.pdf
+          ELECTRON_ENABLE_LOGGING: '1'
+        run: |
+          xvfb-run -a ./node_modules/.bin/electron --no-sandbox ./scripts/benchmark_report_pdf.cjs
+          test -s report-500-page-benchmark.json
+          test -s report-500-page-benchmark.pdf
       - name: Independently verify PDF page count and evidence
         id: pdf_verify
-        if: always() && hashFiles('app/report-500-page-benchmark.json') != '' && hashFiles('app/report-500-page-benchmark.pdf') != ''
+        if: always()
         continue-on-error: true
         run: |
           python - <<'PY'
@@ -76,7 +80,11 @@ jobs:
 
           evidence_path = Path('report-500-page-benchmark.json')
           pdf_path = Path('report-500-page-benchmark.pdf')
+          if not evidence_path.is_file():
+              raise SystemExit('500-page benchmark evidence is missing')
           evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          if not pdf_path.is_file():
+              raise SystemExit(f"500-page PDF is missing; benchmark error={evidence.get('error')}")
           reader = PdfReader(str(pdf_path))
           page_count = len(reader.pages)
           digest = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
