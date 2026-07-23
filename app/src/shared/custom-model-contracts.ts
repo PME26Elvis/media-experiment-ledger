@@ -1,6 +1,7 @@
 import type { ModelRecord } from './contracts'
 
 export const CUSTOM_MODEL_IPC = {
+  list: 'mel:custom-model-list',
   import: 'mel:custom-model-import',
   remove: 'mel:custom-model-remove',
 } as const
@@ -20,6 +21,7 @@ export interface UserModelManifest {
 }
 
 export interface CustomModelApi {
+  list(): Promise<ModelRecord[]>
   import(manifestPath: string): Promise<ModelRecord>
   remove(modelId: string): Promise<boolean>
 }
