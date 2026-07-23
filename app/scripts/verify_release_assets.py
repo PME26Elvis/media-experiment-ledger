@@ -47,6 +47,10 @@ def expected_evidence_names() -> list[str]:
     return result
 
 
+def evidence_bundle_name(version: str) -> str:
+    return f'Media-Experiment-Ledger-Studio-{version}-evidence.zip'
+
+
 def verify(root: Path, plan: dict[str, Any], *, minimum_package_bytes: int = 1_000_000) -> dict[str, Any]:
     root = root.resolve()
     names = [path.name for path in root.iterdir() if path.is_file()]
@@ -106,6 +110,10 @@ def verify(root: Path, plan: dict[str, Any], *, minimum_package_bytes: int = 1_0
     }
 
 
+def finalized_bundle_exists(root: Path, plan: dict[str, Any]) -> bool:
+    return (root / evidence_bundle_name(str(plan['version']))).is_file()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', required=True)
@@ -113,14 +121,32 @@ def main() -> int:
     parser.add_argument('--minimum-package-bytes', type=int, default=1_000_000)
     parser.add_argument('--output', default='')
     args = parser.parse_args()
+    root = Path(args.root).resolve()
     plan = json.loads(Path(args.plan).read_text(encoding='utf-8'))
-    result = verify(
-        Path(args.root), plan, minimum_package_bytes=args.minimum_package_bytes
-    )
-    if args.output:
-        Path(args.output).write_text(
-            json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
-        )
+
+    if finalized_bundle_exists(root, plan):
+        from verify_public_release import verify_public
+
+        result = verify_public(root, plan)
+        # The finalizer created release-verification.json before checksums and the
+        # release manifest. Rewriting that file here would invalidate both. When
+        # the workflow passes the same output path, verify it exists and preserve it.
+        if args.output:
+            output = Path(args.output).resolve()
+            if output != root / 'release-verification.json':
+                output.write_text(
+                    json.dumps(result, ensure_ascii=False, indent=2) + '\n',
+                    encoding='utf-8',
+                )
+            elif not output.is_file():
+                raise RuntimeError('Finalized release-verification.json is missing.')
+    else:
+        result = verify(root, plan, minimum_package_bytes=args.minimum_package_bytes)
+        if args.output:
+            Path(args.output).write_text(
+                json.dumps(result, ensure_ascii=False, indent=2) + '\n', encoding='utf-8'
+            )
+
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
