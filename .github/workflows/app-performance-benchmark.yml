@@ -46,11 +46,13 @@ jobs:
       - name: Install locked JavaScript dependencies
         run: npm ci --loglevel verbose
       - name: Generate and benchmark 10k images plus 1k GIFs
+        env:
+          PYTHONPATH: engine
         run: |
           python scripts/benchmark_large_corpus.py \
             --images 10000 \
-            --gifs 1000 \
-            --output large-corpus-benchmark.json
+            --videos 1000 \
+            --output performance-evidence
       - name: Build product renderer
         run: npm run build
       - name: Generate a real 500-page Chromium PDF
@@ -90,17 +92,18 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          evidence = json.loads(Path('large-corpus-benchmark.json').read_text(encoding='utf-8'))
+          evidence = json.loads(Path('performance-evidence/large-corpus-benchmark.json').read_text(encoding='utf-8'))
           if not evidence.get('passed'):
-              raise SystemExit(f"large-corpus benchmark failed: {evidence.get('criteria')}")
-          if evidence.get('fixture', {}).get('images') != 10000 or evidence.get('fixture', {}).get('gifs') != 1000:
+              raise SystemExit(f"large-corpus benchmark failed: {evidence.get('acceptance')}")
+          scenario = evidence.get('scenario', {})
+          if scenario.get('images') != 10000 or scenario.get('videos') != 1000:
               raise SystemExit('large-corpus fixture count mismatch')
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: stable-performance-evidence
           path: |
-            app/large-corpus-benchmark.json
+            app/performance-evidence/large-corpus-benchmark.json
             app/report-500-page-benchmark.json
             app/report-500-page-benchmark.pdf
           retention-days: 30
