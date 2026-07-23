@@ -32,6 +32,25 @@ import { registerTemplateIpc } from './template-ipc'
 import { TemplateManager } from './template-manager'
 import { UpdateManager } from './update-manager'
 
+interface RendererSmokeCheck {
+  route: string
+  locale: string
+  viewport: string
+  rendered: boolean
+  horizontalOverflow: boolean
+  unnamedInteractive: string[]
+  leakedTranslationKeys: string[]
+  errorCount: number
+  passed: boolean
+}
+
+interface RendererAuditSummary {
+  passed: boolean
+  checks: RendererSmokeCheck[]
+  failures: RendererSmokeCheck[]
+  rendererErrors: string[]
+}
+
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
 let quitting = false
@@ -83,6 +102,7 @@ function createWindow(): BrowserWindow {
     if (!url.startsWith('file:') && !url.startsWith('http://127.0.0.1:5173')) event.preventDefault()
   })
   if (process.env.VITE_DEV_SERVER_URL) void mainWindow.loadURL(process.env.VITE_DEV_SERVER_URL)
+  else if (process.env.MEL_SMOKE_TEST === '1') void mainWindow.loadFile(rendererPath(), { query: { 'mel-smoke': '1' } })
   else void mainWindow.loadFile(rendererPath())
 
   mainWindow.on('close', event => {
@@ -167,6 +187,29 @@ function startSleepMonitor(): void {
   sleepMonitor.unref()
 }
 
+async function auditPackagedRenderer(window: BrowserWindow): Promise<RendererAuditSummary> {
+  const checks: RendererSmokeCheck[] = []
+  const viewports = [
+    { name: 'mobile-390x760', width: 390, height: 760 },
+    { name: 'desktop-1440x900', width: 1440, height: 900 },
+  ]
+  for (const viewport of viewports) {
+    window.setContentSize(viewport.width, viewport.height)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const batch = await window.webContents.executeJavaScript(
+      `window.__melSmoke ? window.__melSmoke.auditAll(${JSON.stringify(viewport.name)}) : Promise.reject(new Error('Renderer smoke audit bridge missing.'))`,
+      true,
+    ) as RendererSmokeCheck[]
+    checks.push(...batch)
+  }
+  const rendererErrors = await window.webContents.executeJavaScript(
+    `window.__melSmoke ? window.__melSmoke.errors() : ['Renderer smoke audit bridge missing.']`,
+    true,
+  ) as string[]
+  const failures = checks.filter(check => !check.passed)
+  return { passed: failures.length === 0 && rendererErrors.length === 0, checks, failures, rendererErrors }
+}
+
 function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
   if (process.env.MEL_SMOKE_TEST !== '1') return
   const resultPath = process.env.MEL_SMOKE_RESULT_PATH
@@ -176,22 +219,32 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
     if (completed) return
     completed = true
     let preloadBridge = false
+    let rendererAudit: RendererAuditSummary = { passed: false, checks: [], failures: [], rendererErrors: [] }
     try {
       preloadBridge = Boolean(await window.webContents.executeJavaScript(
         "Boolean(window.mel && window.mel.systemInfo && window.mel.jobs && window.mel.updater && window.mel.recovery && window.melDiagnostics?.preview && window.melTemplates?.list && window.melCustomModels?.list && window.melIntegrations?.schedules?.list && window.melIntegrations?.sync?.run && window.melIntegrations?.github?.publish && window.melIntegrations?.wasm?.postprocess)",
         true,
       ))
-    } catch {
-      preloadBridge = false
+      rendererAudit = await auditPackagedRenderer(window)
+    } catch (auditError) {
+      rendererAudit = {
+        passed: false,
+        checks: [],
+        failures: [],
+        rendererErrors: [auditError instanceof Error ? auditError.stack ?? auditError.message : String(auditError)],
+      }
     }
     const evidence = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       appVersion: app.getVersion(),
       packaged: app.isPackaged,
       platform: process.platform,
       arch: process.arch,
       rendererLoaded: !window.webContents.isLoading(),
       preloadBridge,
+      rendererAudit,
+      routeAuditPassed: rendererAudit.passed,
+      routeAuditChecks: rendererAudit.checks.length,
       engineReady: await engineReady(),
       database: db.integrityCheck(),
       resourcesPath: process.resourcesPath,
@@ -199,13 +252,13 @@ function startPackagedSmoke(window: BrowserWindow, db: StudioDatabase): void {
       createdAt: new Date().toISOString(),
     }
     writeFileSync(resultPath, JSON.stringify(evidence, null, 2), 'utf8')
-    const success = evidence.packaged && evidence.rendererLoaded && evidence.preloadBridge && evidence.engineReady && evidence.database.ok && !error
+    const success = evidence.packaged && evidence.rendererLoaded && evidence.preloadBridge && evidence.routeAuditPassed && evidence.engineReady && evidence.database.ok && !error
     quitting = true
     app.exit(success ? 0 : 1)
   }
   window.webContents.once('did-finish-load', () => { void finish() })
   window.webContents.once('did-fail-load', (_event, code, description) => { void finish(new Error(`Renderer load failed ${code}: ${description}`)) })
-  setTimeout(() => { void finish(new Error('Packaged application smoke timed out.')) }, 45_000).unref()
+  setTimeout(() => { void finish(new Error('Packaged application smoke timed out.')) }, 150_000).unref()
 }
 
 const initialScheduleId = scheduleIdFromArgv(process.argv)
