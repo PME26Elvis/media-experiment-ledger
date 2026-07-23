@@ -256,24 +256,27 @@ jobs:
 
           python - <<'PY'
           import json, os, pathlib, subprocess
-          expected = sorted(path.name for path in pathlib.Path('sample-corpus-output').iterdir() if path.is_file())
+          tag = f"studio-sample-corpus-{os.environ['TIER']}-v{os.environ['VERSION']}"
           payload = subprocess.check_output([
-              'gh', 'api', f"repos/{os.environ['GITHUB_REPOSITORY']}/releases/tags/studio-sample-corpus-{os.environ['TIER']}-v{os.environ['VERSION']}"
+              'gh', 'release', 'view', tag,
+              '--repo', os.environ['GITHUB_REPOSITORY'],
+              '--json', 'databaseId,tagName,targetCommitish,isDraft,assets',
           ], text=True)
           release = json.loads(payload)
+          expected = sorted(path.name for path in pathlib.Path('sample-corpus-output').iterdir() if path.is_file())
           actual = sorted(asset['name'] for asset in release.get('assets', []))
           if actual != expected:
               raise SystemExit(f'remote asset set mismatch: expected={expected} actual={actual}')
-          if not release.get('draft'):
+          if not release.get('isDraft'):
               raise SystemExit('corpus Release must remain a draft until all remote assets are verified')
           pathlib.Path('remote-release-evidence.json').write_text(json.dumps({
               'schema_version': 1,
-              'release_id': release['id'],
-              'tag': release['tag_name'],
+              'release_id': release['databaseId'],
+              'tag': release['tagName'],
               'source_sha': os.environ['REQUEST_SOURCE_SHA'],
               'workflow_sha': os.environ['GITHUB_SHA'],
-              'target_commitish': release['target_commitish'],
-              'draft_before_publish': release['draft'],
+              'target_commitish': release['targetCommitish'],
+              'draft_before_publish': release['isDraft'],
               'asset_names': actual,
           }, indent=2) + '\n', encoding='utf-8')
           PY
@@ -282,12 +285,12 @@ jobs:
         run: |
           set -euo pipefail
           TAG="studio-sample-corpus-${TIER}-v${VERSION}"
-          RELEASE_ID="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id)"
+          RELEASE_ID="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json databaseId --jq .databaseId)"
           gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
             -F draft=false \
             -F prerelease=true \
             -f make_latest=legacy >/dev/null
-          test "$(gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" --jq .draft)" = "false"
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "false"
       - uses: actions/upload-artifact@v4
         if: env.REQUEST_ENABLED == 'true'
         with:
