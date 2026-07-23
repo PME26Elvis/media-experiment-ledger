@@ -10,6 +10,7 @@ from .common import emit
 from .detection import run_detection
 from .download import run_sample_download
 from .generated_collection import finalize_generated_collection
+from .providers import provider_inventory
 from .scan import run_scan
 
 
@@ -25,6 +26,8 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
         return finalize_generated_collection(request, run_automation(request))
     if operation == 'sample-download':
         return run_sample_download(request)
+    if operation == 'providers':
+        return provider_inventory()
     if operation == 'pdf-export':
         return {'status': 'document-export-delegated-to-electron-print-pipeline'}
     raise ValueError(f'Unsupported operation: {operation}')
