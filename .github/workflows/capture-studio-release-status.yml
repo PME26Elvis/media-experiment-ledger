@@ -1,0 +1,51 @@
+name: Capture Studio release status
+
+on:
+  push:
+    branches: [app-v1-beta-trigger]
+    paths:
+      - '.github/release-status-request.json'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: app-v1-beta-trigger
+      - name: Capture recent app-main workflow runs and Studio releases
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs?branch=app-main&per_page=30" \
+            --jq '{workflow_runs: [.workflow_runs[] | {id, name, event, status, conclusion, run_number, head_sha, created_at, updated_at, html_url}]}' \
+            > workflow-runs.json
+          gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=50" \
+            --jq '{studio_releases: [.[] | select(.tag_name | startswith("studio-v")) | {id, tag_name, name, draft, prerelease, created_at, published_at, target_commitish, html_url, assets: [.assets[] | {name, size, state, browser_download_url}]}]}' \
+            > studio-releases.json
+          python - <<'PY'
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+          runs = json.loads(Path('workflow-runs.json').read_text())
+          releases = json.loads(Path('studio-releases.json').read_text())
+          payload = {
+              'captured_at_utc': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+              **runs,
+              **releases,
+          }
+          Path('release-monitor-result.json').write_text(json.dumps(payload, indent=2) + '\n')
+          PY
+      - name: Commit status snapshot
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add release-monitor-result.json
+          git commit -m 'Capture Studio release status' || exit 0
+          git push origin HEAD:app-v1-beta-trigger
