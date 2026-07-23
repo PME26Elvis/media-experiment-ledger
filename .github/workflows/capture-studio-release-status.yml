@@ -100,23 +100,20 @@ jobs:
           : > release-failure-summary.txt
           while IFS= read -r job_id; do
             [[ -n "$job_id" ]] || continue
-            rm -rf job-log job-log.zip
-            mkdir -p job-log
+            log_file="job-${job_id}.log"
             echo "===== JOB ${job_id} =====" >> release-failure-summary.txt
-            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" > job-log.zip 2>> release-failure-summary.txt
+            gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/${job_id}/logs" \
+              > "$log_file" 2>> release-failure-summary.txt
             status=$?
             if [[ $status -ne 0 ]]; then
               echo "log download failed with status ${status}" >> release-failure-summary.txt
               continue
             fi
-            unzip -q job-log.zip -d job-log 2>> release-failure-summary.txt
-            find job-log -type f -print0 | sort -z | while IFS= read -r -d '' file; do
-              echo "--- ${file} ---" >> release-failure-summary.txt
-              grep -Ein 'error|failed|failure|cannot|not found|invalid|ENOENT|ERR_' "$file" \
-                | tail -n 80 >> release-failure-summary.txt || true
-              echo "--- tail ---" >> release-failure-summary.txt
-              tail -n 160 "$file" >> release-failure-summary.txt
-            done
+            echo "--- matched diagnostics ---" >> release-failure-summary.txt
+            grep -Ein 'error|failed|failure|cannot|not found|invalid|ENOENT|ERR_' "$log_file" \
+              | tail -n 120 >> release-failure-summary.txt || true
+            echo "--- tail ---" >> release-failure-summary.txt
+            tail -n 220 "$log_file" >> release-failure-summary.txt
           done < requested-job-ids.txt
       - name: Commit status snapshot
         shell: bash
