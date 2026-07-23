@@ -1,5 +1,5 @@
 {
-  "captured_at_utc": "2026-07-23T04:07:02.750910Z",
+  "captured_at_utc": "2026-07-23T04:14:52.429802Z",
   "api_status": {
     "workflow_runs": 0,
     "releases": 0
@@ -13,40 +13,40 @@
       "id": 29978693191,
       "name": "Validate ledger tooling",
       "event": "pull_request",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_number": 353,
       "head_sha": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
       "head_branch": "app-main",
       "created_at": "2026-07-23T04:06:26Z",
-      "updated_at": "2026-07-23T04:06:29Z",
+      "updated_at": "2026-07-23T04:08:15Z",
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29978693191"
-    },
-    {
-      "id": 29978691019,
-      "name": "Release Media Experiment Ledger Studio",
-      "event": "push",
-      "status": "in_progress",
-      "conclusion": null,
-      "run_number": 4,
-      "head_sha": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
-      "head_branch": "app-main",
-      "created_at": "2026-07-23T04:06:23Z",
-      "updated_at": "2026-07-23T04:06:40Z",
-      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29978691019"
     },
     {
       "id": 29978690888,
       "name": "Desktop App CI",
       "event": "push",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_number": 253,
       "head_sha": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
       "head_branch": "app-main",
       "created_at": "2026-07-23T04:06:23Z",
-      "updated_at": "2026-07-23T04:06:27Z",
+      "updated_at": "2026-07-23T04:09:07Z",
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29978690888"
+    },
+    {
+      "id": 29978691019,
+      "name": "Release Media Experiment Ledger Studio",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 4,
+      "head_sha": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
+      "head_branch": "app-main",
+      "created_at": "2026-07-23T04:06:23Z",
+      "updated_at": "2026-07-23T04:14:09Z",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29978691019"
     },
     {
       "id": 29976984163,
@@ -609,6 +609,97 @@
     }
   ],
   "studio_releases": [
+    {
+      "id": 358452814,
+      "tag_name": "studio-v0.1.0-beta.2",
+      "name": "Media Experiment Ledger Studio 0.1.0-beta.2",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2026-07-23T04:06:21Z",
+      "published_at": "2026-07-23T04:14:06Z",
+      "target_commitish": "8467880688ba5f9d3b33f07d97f7d342fc7936e7",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v0.1.0-beta.2",
+      "assets": [
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-evidence.zip",
+          "size": 445067,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-evidence.zip"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-linux-amd64.deb",
+          "size": 190803316,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-linux-amd64.deb"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-linux-x86_64.AppImage",
+          "size": 248525943,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-linux-x86_64.AppImage"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-arm64.dmg",
+          "size": 199990518,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-arm64.dmg"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-arm64.zip",
+          "size": 201623796,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-arm64.zip"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-x64.dmg",
+          "size": 218780412,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-x64.dmg"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-x64.zip",
+          "size": 220465827,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-macos-x64.zip"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-windows-x64-portable.exe",
+          "size": 170610804,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-windows-x64-portable.exe"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.2-windows-x64-setup.exe",
+          "size": 170841115,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/Media-Experiment-Ledger-Studio-0.1.0-beta.2-windows-x64-setup.exe"
+        },
+        {
+          "name": "release-manifest.json",
+          "size": 3598,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/release-manifest.json"
+        },
+        {
+          "name": "release-verification.json",
+          "size": 1924,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/release-verification.json"
+        },
+        {
+          "name": "RELEASE_NOTES.md",
+          "size": 2954,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/RELEASE_NOTES.md"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 1323,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.2/SHA256SUMS"
+        }
+      ]
+    },
     {
       "id": 358442453,
       "tag_name": "studio-v0.1.0-beta.1",
