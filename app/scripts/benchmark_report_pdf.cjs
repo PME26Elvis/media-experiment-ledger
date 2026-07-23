@@ -58,6 +58,23 @@ function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex')
 }
 
+function writeFailureEvidence(error) {
+  const evidence = {
+    schema_version: 1,
+    page_target: PAGE_COUNT,
+    passed: false,
+    error: {
+      name: error instanceof Error ? error.name : 'Error',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    },
+    output_pdf: PDF_PATH,
+    created_at: new Date().toISOString(),
+  }
+  writeFileSync(OUTPUT_PATH, `${JSON.stringify(evidence, null, 2)}\n`, 'utf8')
+  return evidence
+}
+
 async function main() {
   const root = mkdtempSync(join(tmpdir(), 'mel-report-benchmark-'))
   const initialRss = process.memoryUsage().rss
@@ -139,6 +156,7 @@ async function main() {
 }
 
 app.whenReady().then(main).catch(error => {
-  console.error(error)
+  const evidence = writeFailureEvidence(error)
+  console.error(JSON.stringify(evidence, null, 2))
   process.exitCode = 1
 }).finally(() => app.quit())
