@@ -86,6 +86,88 @@ jobs:
           }
           Path('release-monitor-result.json').write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
           PY
+      - name: Audit requested published evidence bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          request = json.loads(Path('.github/release-status-request.json').read_text())
+          print(request.get('release_tag', ''))
+          PY
+          )"
+          if [[ -z "$tag" ]]; then
+            echo '{"skipped": true, "reason": "release_tag not requested"}' > release-evidence-audit.json
+            exit 0
+          fi
+          rm -rf evidence-audit
+          mkdir -p evidence-audit
+          gh release download "$tag" \
+            --pattern 'Media-Experiment-Ledger-Studio-*-evidence.zip' \
+            --dir evidence-audit
+          TAG="$tag" python - <<'PY'
+          import json
+          import os
+          import zipfile
+          from datetime import datetime, timezone
+          from pathlib import Path, PurePosixPath
+
+          platforms = ['windows-x64', 'linux-x64', 'macos-arm64', 'macos-x64']
+          basenames = [
+              'engine-build-manifest.json',
+              'packaged-smoke-evidence.json',
+              'sbom.cdx.json',
+              'third-party-notices.json',
+              'build-input-manifest.json',
+          ]
+          metadata = {
+              'windows-x64': 'latest.yml',
+              'linux-x64': 'latest-linux.yml',
+              'macos-arm64': 'latest-mac.yml',
+              'macos-x64': 'latest-mac.yml',
+          }
+          expected = {
+              *(f'{platform}-{basename}' for platform in platforms for basename in basenames),
+              *(f'{platform}-{name}' for platform, name in metadata.items()),
+          }
+          archives = list(Path('evidence-audit').glob('*-evidence.zip'))
+          if len(archives) != 1:
+              raise RuntimeError(f'Expected one evidence ZIP, found {len(archives)}')
+          archive_path = archives[0]
+          with zipfile.ZipFile(archive_path) as archive:
+              names = archive.namelist()
+              duplicates = sorted({name for name in names if names.count(name) > 1})
+              unsafe = sorted(
+                  name for name in names
+                  if name.startswith('/') or '..' in PurePosixPath(name).parts
+              )
+              missing = sorted(expected - set(names))
+              unexpected = sorted(set(names) - expected)
+              bad_files = archive.testzip()
+          result = {
+              'schema_version': 1,
+              'captured_at_utc': datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
+              'release_tag': os.environ['TAG'],
+              'archive_name': archive_path.name,
+              'archive_size_bytes': archive_path.stat().st_size,
+              'member_count': len(names),
+              'unique_member_count': len(set(names)),
+              'expected_member_count': len(expected),
+              'duplicates': duplicates,
+              'unsafe_paths': unsafe,
+              'missing': missing,
+              'unexpected': unexpected,
+              'crc_failure': bad_files,
+              'passed': not duplicates and not unsafe and not missing and not unexpected and bad_files is None,
+              'members': sorted(names),
+          }
+          Path('release-evidence-audit.json').write_text(
+              json.dumps(result, indent=2) + '\n', encoding='utf-8'
+          )
+          if not result['passed']:
+              raise SystemExit('Evidence bundle audit failed.')
+          PY
       - name: Capture requested failure job log tails
         shell: bash
         run: |
@@ -121,6 +203,6 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add release-monitor-result.json release-failure-summary.txt
-          git commit -m 'Capture Studio release status and failure logs' || exit 0
+          git add release-monitor-result.json release-evidence-audit.json release-failure-summary.txt
+          git commit -m 'Capture Studio release status and evidence audit' || exit 0
           git push origin HEAD:app-v1-beta-trigger
