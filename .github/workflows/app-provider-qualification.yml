@@ -20,6 +20,7 @@ on:
       - 'object-detection/model-lock.json'
       - 'object-detection/coco-80.json'
       - 'tools/yolo_core.py'
+      - '.gitattributes'
 
 permissions:
   contents: read
@@ -61,7 +62,7 @@ jobs:
             app/engine/requirements.txt
             app/engine/requirements-build.txt
       - name: Install platform engine dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+        run: python -m pip install --upgrade pip --quiet && python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
       - name: Run engine unit tests
         run: python scripts/run_python_tests.py
       - name: Build and inventory self-contained engine
@@ -118,10 +119,10 @@ jobs:
           python-version: '3.12'
       - name: Install CUDA provider runtime
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+          python -m pip install --upgrade pip --quiet
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
           python -m pip uninstall -y onnxruntime
-          python -m pip install 'onnxruntime-gpu>=1.22,<2'
+          python -m pip install --quiet 'onnxruntime-gpu>=1.22,<2'
       - name: Prove CUDA provider node execution against CPU
         run: python scripts/qualify_detection_provider.py --provider cuda --required --output provider-linux-cuda.json
       - uses: actions/upload-artifact@v4
