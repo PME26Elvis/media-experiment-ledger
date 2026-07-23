@@ -1,5 +1,5 @@
 {
-  "captured_at_utc": "2026-07-23T03:26:47.109170Z",
+  "captured_at_utc": "2026-07-23T03:36:20.553808Z",
   "api_status": {
     "workflow_runs": 0,
     "releases": 0
@@ -13,39 +13,39 @@
       "id": 29976984163,
       "name": "Validate ledger tooling",
       "event": "pull_request",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_number": 352,
       "head_sha": "908d21b8c0cac44d713c398120689fc377db5424",
       "head_branch": "app-main",
       "created_at": "2026-07-23T03:26:05Z",
-      "updated_at": "2026-07-23T03:26:08Z",
+      "updated_at": "2026-07-23T03:28:03Z",
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29976984163"
     },
     {
       "id": 29976982527,
       "name": "Desktop App CI",
       "event": "push",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_number": 251,
       "head_sha": "908d21b8c0cac44d713c398120689fc377db5424",
       "head_branch": "app-main",
       "created_at": "2026-07-23T03:26:03Z",
-      "updated_at": "2026-07-23T03:26:07Z",
+      "updated_at": "2026-07-23T03:29:17Z",
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29976982527"
     },
     {
       "id": 29976982694,
       "name": "Release Media Experiment Ledger Studio",
       "event": "push",
-      "status": "in_progress",
-      "conclusion": null,
+      "status": "completed",
+      "conclusion": "success",
       "run_number": 3,
       "head_sha": "908d21b8c0cac44d713c398120689fc377db5424",
       "head_branch": "app-main",
       "created_at": "2026-07-23T03:26:03Z",
-      "updated_at": "2026-07-23T03:26:19Z",
+      "updated_at": "2026-07-23T03:34:39Z",
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29976982694"
     },
     {
@@ -569,5 +569,361 @@
       "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/actions/runs/29886450506"
     }
   ],
-  "studio_releases": []
+  "studio_releases": [
+    {
+      "id": 358442453,
+      "tag_name": "studio-v0.1.0-beta.1",
+      "name": "Media Experiment Ledger Studio 0.1.0-beta.1",
+      "draft": false,
+      "prerelease": true,
+      "created_at": "2026-07-23T03:26:00Z",
+      "published_at": "2026-07-23T03:34:36Z",
+      "target_commitish": "908d21b8c0cac44d713c398120689fc377db5424",
+      "html_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v0.1.0-beta.1",
+      "assets": [
+        {
+          "name": "base_library.zip",
+          "size": 1333490,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/base_library.zip"
+        },
+        {
+          "name": "elevate.exe",
+          "size": 107520,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/elevate.exe"
+        },
+        {
+          "name": "ffmpeg-win-x86_64-v7.1.exe",
+          "size": 87638016,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/ffmpeg-win-x86_64-v7.1.exe"
+        },
+        {
+          "name": "linux-x64-app-product-contract.json",
+          "size": 18340,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-app-product-contract.json"
+        },
+        {
+          "name": "linux-x64-app-update.yml",
+          "size": 125,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-app-update.yml"
+        },
+        {
+          "name": "linux-x64-build-input-manifest.json",
+          "size": 459,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-build-input-manifest.json"
+        },
+        {
+          "name": "linux-x64-coco-80.json",
+          "size": 1024,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-coco-80.json"
+        },
+        {
+          "name": "linux-x64-engine-build-manifest.json",
+          "size": 169721,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-engine-build-manifest.json"
+        },
+        {
+          "name": "linux-x64-latest-linux.yml",
+          "size": 649,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-latest-linux.yml"
+        },
+        {
+          "name": "linux-x64-packaged-smoke-evidence.json",
+          "size": 1556,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-packaged-smoke-evidence.json"
+        },
+        {
+          "name": "linux-x64-sbom.cdx.json",
+          "size": 55750,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-sbom.cdx.json"
+        },
+        {
+          "name": "linux-x64-third-party-notices.json",
+          "size": 200099,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-third-party-notices.json"
+        },
+        {
+          "name": "linux-x64-vk_swiftshader_icd.json",
+          "size": 107,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/linux-x64-vk_swiftshader_icd.json"
+        },
+        {
+          "name": "macos-arm64-app-product-contract.json",
+          "size": 18340,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-app-product-contract.json"
+        },
+        {
+          "name": "macos-arm64-app-update.yml",
+          "size": 125,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-app-update.yml"
+        },
+        {
+          "name": "macos-arm64-build-input-manifest.json",
+          "size": 462,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-build-input-manifest.json"
+        },
+        {
+          "name": "macos-arm64-coco-80.json",
+          "size": 1024,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-coco-80.json"
+        },
+        {
+          "name": "macos-arm64-engine-build-manifest.json",
+          "size": 164964,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-engine-build-manifest.json"
+        },
+        {
+          "name": "macos-arm64-latest-mac.yml",
+          "size": 612,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-latest-mac.yml"
+        },
+        {
+          "name": "macos-arm64-packaged-smoke-evidence.json",
+          "size": 725,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-packaged-smoke-evidence.json"
+        },
+        {
+          "name": "macos-arm64-sbom.cdx.json",
+          "size": 55750,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-sbom.cdx.json"
+        },
+        {
+          "name": "macos-arm64-third-party-notices.json",
+          "size": 200099,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-third-party-notices.json"
+        },
+        {
+          "name": "macos-arm64-vk_swiftshader_icd.json",
+          "size": 110,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-arm64-vk_swiftshader_icd.json"
+        },
+        {
+          "name": "macos-x64-app-product-contract.json",
+          "size": 18340,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-app-product-contract.json"
+        },
+        {
+          "name": "macos-x64-app-update.yml",
+          "size": 125,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-app-update.yml"
+        },
+        {
+          "name": "macos-x64-build-input-manifest.json",
+          "size": 460,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-build-input-manifest.json"
+        },
+        {
+          "name": "macos-x64-coco-80.json",
+          "size": 1024,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-coco-80.json"
+        },
+        {
+          "name": "macos-x64-engine-build-manifest.json",
+          "size": 165559,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-engine-build-manifest.json"
+        },
+        {
+          "name": "macos-x64-latest-mac.yml",
+          "size": 606,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-latest-mac.yml"
+        },
+        {
+          "name": "macos-x64-packaged-smoke-evidence.json",
+          "size": 1161,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-packaged-smoke-evidence.json"
+        },
+        {
+          "name": "macos-x64-sbom.cdx.json",
+          "size": 55750,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-sbom.cdx.json"
+        },
+        {
+          "name": "macos-x64-third-party-notices.json",
+          "size": 200099,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-third-party-notices.json"
+        },
+        {
+          "name": "macos-x64-vk_swiftshader_icd.json",
+          "size": 110,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/macos-x64-vk_swiftshader_icd.json"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-amd64.deb",
+          "size": 190804148,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-amd64.deb"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-x86_64.AppImage",
+          "size": 248530046,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-linux-x86_64.AppImage"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-arm64.dmg",
+          "size": 199993069,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-arm64.dmg"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-arm64.zip",
+          "size": 201623644,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-arm64.zip"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-x64.dmg",
+          "size": 218781107,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-x64.dmg"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-x64.zip",
+          "size": 220465668,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-macos-x64.zip"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-windows-x64-portable.exe",
+          "size": 170612310,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-windows-x64-portable.exe"
+        },
+        {
+          "name": "Media-Experiment-Ledger-Studio-0.1.0-beta.1-windows-x64-setup.exe",
+          "size": 170842675,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media-Experiment-Ledger-Studio-0.1.0-beta.1-windows-x64-setup.exe"
+        },
+        {
+          "name": "Media.Experiment.Ledger.Studio.exe",
+          "size": 225486336,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/Media.Experiment.Ledger.Studio.exe"
+        },
+        {
+          "name": "mel-engine.exe",
+          "size": 7973124,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/mel-engine.exe"
+        },
+        {
+          "name": "release-manifest.json",
+          "size": 13099,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/release-manifest.json"
+        },
+        {
+          "name": "release-verification.json",
+          "size": 1061,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/release-verification.json"
+        },
+        {
+          "name": "RELEASE_NOTES.md",
+          "size": 2897,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/RELEASE_NOTES.md"
+        },
+        {
+          "name": "SHA256SUMS",
+          "size": 5570,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/SHA256SUMS"
+        },
+        {
+          "name": "windows-x64-app-product-contract.json",
+          "size": 18729,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-app-product-contract.json"
+        },
+        {
+          "name": "windows-x64-app-update.yml",
+          "size": 125,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-app-update.yml"
+        },
+        {
+          "name": "windows-x64-build-input-manifest.json",
+          "size": 459,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-build-input-manifest.json"
+        },
+        {
+          "name": "windows-x64-coco-80.json",
+          "size": 1106,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-coco-80.json"
+        },
+        {
+          "name": "windows-x64-engine-build-manifest.json",
+          "size": 278117,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-engine-build-manifest.json"
+        },
+        {
+          "name": "windows-x64-latest.yml",
+          "size": 434,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-latest.yml"
+        },
+        {
+          "name": "windows-x64-packaged-smoke-evidence.json",
+          "size": 659,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-packaged-smoke-evidence.json"
+        },
+        {
+          "name": "windows-x64-sbom.cdx.json",
+          "size": 55750,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-sbom.cdx.json"
+        },
+        {
+          "name": "windows-x64-third-party-notices.json",
+          "size": 200099,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-third-party-notices.json"
+        },
+        {
+          "name": "windows-x64-vk_swiftshader_icd.json",
+          "size": 106,
+          "state": "uploaded",
+          "browser_download_url": "https://github.com/PME26Elvis/media-experiment-ledger/releases/download/studio-v0.1.0-beta.1/windows-x64-vk_swiftshader_icd.json"
+        }
+      ]
+    }
+  ]
 }
