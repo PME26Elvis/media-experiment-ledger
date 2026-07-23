@@ -1,0 +1,107 @@
+name: Stable Performance Qualification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - '.github/workflows/app-performance-benchmark.yml'
+      - 'app/scripts/benchmark_large_corpus.py'
+      - 'app/scripts/benchmark_report_pdf.cjs'
+      - 'app/src/main/import-pipeline.ts'
+      - 'app/src/main/report-renderer.ts'
+      - 'app/src/shared/report-templates.ts'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stable-performance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install display and PDF inspection runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          python -m pip install -r engine/requirements.txt pypdf==6.5.0
+      - name: Install locked JavaScript dependencies
+        run: npm ci --loglevel verbose
+      - name: Generate and benchmark 10k images plus 1k GIFs
+        run: |
+          python scripts/benchmark_large_corpus.py \
+            --images 10000 \
+            --gifs 1000 \
+            --output large-corpus-benchmark.json
+      - name: Build product renderer
+        run: npm run build
+      - name: Generate a real 500-page Chromium PDF
+        env:
+          MEL_REPORT_BENCHMARK_PAGES: '500'
+          MEL_REPORT_BENCHMARK_OUTPUT: ${{ github.workspace }}/app/report-500-page-benchmark.json
+          MEL_REPORT_BENCHMARK_PDF: ${{ github.workspace }}/app/report-500-page-benchmark.pdf
+        run: xvfb-run -a npm run benchmark:report
+      - name: Independently verify PDF page count and evidence
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from pypdf import PdfReader
+
+          evidence_path = Path('report-500-page-benchmark.json')
+          pdf_path = Path('report-500-page-benchmark.pdf')
+          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
+          reader = PdfReader(str(pdf_path))
+          page_count = len(reader.pages)
+          digest = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+          if page_count != 500:
+              raise SystemExit(f'expected 500 PDF pages, found {page_count}')
+          if evidence.get('page_target') != 500 or evidence.get('html_page_count') != 500:
+              raise SystemExit('renderer page evidence is inconsistent')
+          if evidence.get('pdf_sha256') != digest:
+              raise SystemExit('PDF SHA-256 does not match benchmark evidence')
+          if not evidence.get('passed'):
+              raise SystemExit(f"report benchmark failed: {evidence.get('criteria')}")
+          evidence['independent_pdf_page_count'] = page_count
+          evidence['independent_pdf_sha256'] = digest
+          evidence_path.write_text(json.dumps(evidence, indent=2) + '\n', encoding='utf-8')
+          PY
+      - name: Validate large-corpus criteria
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = json.loads(Path('large-corpus-benchmark.json').read_text(encoding='utf-8'))
+          if not evidence.get('passed'):
+              raise SystemExit(f"large-corpus benchmark failed: {evidence.get('criteria')}")
+          if evidence.get('fixture', {}).get('images') != 10000 or evidence.get('fixture', {}).get('gifs') != 1000:
+              raise SystemExit('large-corpus fixture count mismatch')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: stable-performance-evidence
+          path: |
+            app/large-corpus-benchmark.json
+            app/report-500-page-benchmark.json
+            app/report-500-page-benchmark.pdf
+          retention-days: 30
+          if-no-files-found: error
