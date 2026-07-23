@@ -54,6 +54,7 @@ jobs:
           python-version: '3.12'
       - name: Resolve immutable publication request
         env:
+          EVENT_BEFORE: ${{ github.event.before || '' }}
           INPUT_TIER: ${{ inputs.tier || '' }}
           INPUT_VERSION: ${{ inputs.version || '' }}
           INPUT_SOURCE_RELEASE_TAGS: ${{ inputs.source_release_tags || '' }}
@@ -63,6 +64,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import re
           from pathlib import Path
 
           if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
@@ -82,8 +84,13 @@ jobs:
 
           enabled = bool(request.get('enabled', False))
           source_sha = str(request.get('source_sha') or '')
-          if enabled and source_sha != os.environ['GITHUB_SHA']:
-              raise SystemExit(f"request source_sha {source_sha!r} does not match immutable workflow SHA {os.environ['GITHUB_SHA']}")
+          if enabled:
+              if not re.fullmatch(r'[0-9a-f]{40}', source_sha):
+                  raise SystemExit('enabled sample corpus requests require a full lowercase source SHA')
+              if os.environ['GITHUB_EVENT_NAME'] == 'push' and source_sha != os.environ['EVENT_BEFORE']:
+                  raise SystemExit(
+                      f"request source_sha {source_sha!r} does not match the pre-trigger app-main SHA {os.environ['EVENT_BEFORE']!r}"
+                  )
 
           values = {
               'REQUEST_ENABLED': 'true' if enabled else 'false',
@@ -220,7 +227,8 @@ jobs:
               '',
               '## Verification',
               '',
-              f"- Source commit: `{os.environ['GITHUB_SHA']}`",
+              f"- Source commit: `{os.environ['REQUEST_SOURCE_SHA']}`",
+              f"- Workflow commit: `{os.environ['GITHUB_SHA']}`",
               f"- Rights status: `{manifest['rightsStatus']}`",
               f"- License: `{manifest['license']}`",
               f"- Parts: `{evidence['part_count']}`",
@@ -240,7 +248,7 @@ jobs:
           TITLE="MEL Studio ${TIER} corpus v${VERSION}"
           gh release create "$TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --target "$GITHUB_SHA" \
+            --target "$REQUEST_SOURCE_SHA" \
             --title "$TITLE" \
             --notes-file sample-corpus-release-notes.md \
             --draft
@@ -262,6 +270,8 @@ jobs:
               'schema_version': 1,
               'release_id': release['id'],
               'tag': release['tag_name'],
+              'source_sha': os.environ['REQUEST_SOURCE_SHA'],
+              'workflow_sha': os.environ['GITHUB_SHA'],
               'target_commitish': release['target_commitish'],
               'draft_before_publish': release['draft'],
               'asset_names': actual,
