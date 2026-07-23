@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { MelDesktopApi } from '../shared/contracts'
 import type { CustomModelApi } from '../shared/custom-model-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
+import type { IntegrationApi } from '../shared/integration-contracts'
 import type { ReportTemplateApi } from '../shared/template-contracts'
 
 // A sandboxed Electron preload may not load arbitrary relative CommonJS modules.
@@ -74,6 +75,17 @@ const CUSTOM_MODEL_IPC = {
   import: 'mel:custom-model-import',
   remove: 'mel:custom-model-remove',
 } as const satisfies typeof import('../shared/custom-model-contracts').CUSTOM_MODEL_IPC
+
+const INTEGRATION_IPC = {
+  schedulesList: 'mel:integrations-schedules-list',
+  schedulesSave: 'mel:integrations-schedules-save',
+  schedulesRemove: 'mel:integrations-schedules-remove',
+  schedulesRunNow: 'mel:integrations-schedules-run-now',
+  schedulesPreview: 'mel:integrations-schedules-preview',
+  syncRun: 'mel:integrations-sync-run',
+  githubPublish: 'mel:integrations-github-publish',
+  wasmPostprocess: 'mel:integrations-wasm-postprocess',
+} as const satisfies typeof import('../shared/integration-contracts').INTEGRATION_IPC
 
 const api: MelDesktopApi = {
   systemInfo: () => ipcRenderer.invoke(IPC.systemInfo),
@@ -161,7 +173,27 @@ const customModels: CustomModelApi = {
   remove: modelId => ipcRenderer.invoke(CUSTOM_MODEL_IPC.remove, modelId),
 }
 
+const integrations: IntegrationApi = {
+  schedules: {
+    list: () => ipcRenderer.invoke(INTEGRATION_IPC.schedulesList),
+    save: request => ipcRenderer.invoke(INTEGRATION_IPC.schedulesSave, request),
+    remove: id => ipcRenderer.invoke(INTEGRATION_IPC.schedulesRemove, id),
+    runNow: id => ipcRenderer.invoke(INTEGRATION_IPC.schedulesRunNow, id),
+    preview: request => ipcRenderer.invoke(INTEGRATION_IPC.schedulesPreview, request),
+  },
+  sync: {
+    run: request => ipcRenderer.invoke(INTEGRATION_IPC.syncRun, request),
+  },
+  github: {
+    publish: request => ipcRenderer.invoke(INTEGRATION_IPC.githubPublish, request),
+  },
+  wasm: {
+    postprocess: request => ipcRenderer.invoke(INTEGRATION_IPC.wasmPostprocess, request),
+  },
+}
+
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))
 contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
 contextBridge.exposeInMainWorld('melTemplates', Object.freeze(templates))
 contextBridge.exposeInMainWorld('melCustomModels', Object.freeze(customModels))
+contextBridge.exposeInMainWorld('melIntegrations', Object.freeze(integrations))
