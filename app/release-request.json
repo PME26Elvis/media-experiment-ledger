@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "source_branch": "app-main",
+  "version": "auto",
+  "channel": "beta",
+  "draft": false,
+  "publish": true,
+  "release_notes": "First public validation release of the cross-platform Media Experiment Ledger Studio desktop application. This beta is intended for end-to-end package, workflow and usability evaluation before signed stable qualification.",
+  "features": [
+    "Cross-platform Electron and Vuetify desktop workspace for local media experiments",
+    "Durable image and video import, hashing, proxy generation and resumable jobs",
+    "Image and video Atlas evidence with editable report documents and static PDF export",
+    "YOLOX and NanoDet-Plus detection with verified built-in decoders and user-supplied ONNX manifests",
+    "Credential profiles, media automation budgets, recovery center and update workflows",
+    "Windows installer and portable, macOS arm64 and x64, Linux AppImage and deb packages",
+    "Collision-safe release versioning, exact source-SHA builds and packaged application launch evidence",
+    "Responsive product branding, release documentation and repository app-main entry"
+  ],
+  "quick_start_tag": "",
+  "full_research_tag": ""
+}

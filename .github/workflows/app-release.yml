@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: SemVer without leading v
-        required: true
+        description: SemVer without leading v, or auto
+        required: false
+        default: auto
         type: string
       channel:
         description: Release channel
@@ -14,11 +15,11 @@ on:
         type: choice
         options: [alpha, beta, stable]
       release_notes:
-        description: Optional Markdown release notes
+        description: Optional Markdown release summary
         required: false
         type: string
       features:
-        description: Optional comma/newline-separated feature list
+        description: Optional comma/newline-separated feature and fix list
         required: false
         type: string
       quick_start_tag:
@@ -30,7 +31,7 @@ on:
         required: false
         type: string
       draft:
-        description: Create/update as draft
+        description: Keep the completed Release as a private draft
         required: true
         default: true
         type: boolean
@@ -39,258 +40,25 @@ on:
         required: true
         default: false
         type: boolean
+  push:
+    branches: [app-main]
+    paths:
+      - app/release-request.json
 
 permissions:
   contents: write
 
-concurrency:
-  group: studio-release-${{ inputs.version }}
-  cancel-in-progress: false
-
 jobs:
-  preflight:
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.version.outputs.tag }}
-    env:
-      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-      MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-      MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
-      RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
-    steps:
-      - id: version
-        shell: bash
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import re
-          import os
-          version = os.environ['VERSION']
-          if not re.fullmatch(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?', version):
-              raise SystemExit(f'Invalid SemVer: {version}')
-          PY
-          echo "tag=studio-v${VERSION}" >> "$GITHUB_OUTPUT"
-      - name: Enforce stable signing credentials
-        if: inputs.channel == 'stable'
-        shell: bash
-        run: |
-          set -euo pipefail
-          required=(
-            WIN_CSC_LINK WIN_CSC_KEY_PASSWORD
-            MAC_CSC_LINK MAC_CSC_KEY_PASSWORD
-            APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID
-            RELEASE_GPG_PRIVATE_KEY RELEASE_GPG_PASSPHRASE
-          )
-          for name in "${required[@]}"; do
-            if [[ -z "${!name:-}" ]]; then
-              echo "Missing stable-release secret: ${name}" >&2
-              exit 1
-            fi
-          done
-
-  build:
-    needs: preflight
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - id: windows-x64
-            runner: windows-latest
-            family: windows
-            arch_flag: --x64
-          - id: linux-x64
-            runner: ubuntu-latest
-            family: linux
-            arch_flag: --x64
-          - id: macos-arm64
-            runner: macos-latest
-            family: macos
-            arch_flag: --arm64
-          - id: macos-x64
-            runner: macos-15-intel
-            family: macos
-            arch_flag: --x64
-    runs-on: ${{ matrix.runner }}
-    defaults:
-      run:
-        working-directory: app
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: app-main
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22.21.1'
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Set application version
-        run: npm version "${{ inputs.version }}" --no-git-tag-version --allow-same-version
-      - name: Install dependencies
-        run: npm install
-      - name: Install engine build dependencies
-        run: python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
-      - name: Validate application
-        run: |
-          npm run typecheck
-          npm test
-          python -m unittest discover -s engine/tests -p "test_*.py"
-        env:
-          PYTHONPATH: engine
-      - name: Build self-contained engine
-        run: python scripts/build_engine.py
-      - name: Build renderer and Electron processes
-        run: npm run build
-      - name: Generate SBOM and notices
-        run: node scripts/generate_release_evidence.mjs
-      - name: Build Windows packages
-        if: matrix.family == 'windows'
-        shell: pwsh
-        env:
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-        run: npx electron-builder --win nsis portable ${{ matrix.arch_flag }} --publish never
-      - name: Build Linux packages
-        if: matrix.family == 'linux'
-        shell: bash
-        run: npx electron-builder --linux AppImage deb ${{ matrix.arch_flag }} --publish never
-      - name: Build macOS packages
-        if: matrix.family == 'macos'
-        shell: bash
-        env:
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: npx electron-builder --mac dmg zip ${{ matrix.arch_flag }} --publish never
-      - name: Verify Windows stable signatures
-        if: matrix.family == 'windows' && inputs.channel == 'stable'
-        shell: pwsh
-        run: |
-          $files = Get-ChildItem release -Recurse -Filter *.exe
-          if ($files.Count -lt 2) { throw 'Expected NSIS and portable executables.' }
-          foreach ($file in $files) {
-            $signature = Get-AuthenticodeSignature $file.FullName
-            if ($signature.Status -ne 'Valid') {
-              throw "Invalid signature for $($file.Name): $($signature.Status)"
-            }
-          }
-      - name: Verify macOS stable signing and notarization
-        if: matrix.family == 'macos' && inputs.channel == 'stable'
-        shell: bash
-        run: |
-          set -euo pipefail
-          app_path="$(find release -type d -name '*.app' -print -quit)"
-          test -n "$app_path"
-          codesign --verify --deep --strict --verbose=2 "$app_path"
-          spctl --assess --type execute --verbose=2 "$app_path"
-      - name: Collect platform assets
-        run: python scripts/collect_platform_artifacts.py --platform-id "${{ matrix.id }}"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: studio-build-${{ matrix.id }}
-          path: app/artifact-out/*
-          if-no-files-found: error
-          retention-days: 14
-
-  finalize:
-    needs: [preflight, build]
-    runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ github.token }}
-      RELEASE_GPG_PRIVATE_KEY: ${{ secrets.RELEASE_GPG_PRIVATE_KEY }}
-      RELEASE_GPG_PASSPHRASE: ${{ secrets.RELEASE_GPG_PASSPHRASE }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: app-main
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: studio-build-*
-          path: staging
-          merge-multiple: true
-      - name: Render Release notes
-        run: |
-          python app/scripts/render_release_notes.py \
-            --version "${{ inputs.version }}" \
-            --channel "${{ inputs.channel }}" \
-            --notes "${{ inputs.release_notes }}" \
-            --features "${{ inputs.features }}" \
-            --quick-start-tag "${{ inputs.quick_start_tag }}" \
-            --full-research-tag "${{ inputs.full_research_tag }}" \
-            --output staging/RELEASE_NOTES.md
-      - name: Finalize checksums and manifest
-        run: |
-          python app/scripts/finalize_release_assets.py \
-            --root staging \
-            --version "${{ inputs.version }}" \
-            --channel "${{ inputs.channel }}" \
-            --git-sha "${{ github.sha }}" \
-            --quick-start-tag "${{ inputs.quick_start_tag }}" \
-            --full-research-tag "${{ inputs.full_research_tag }}"
-      - name: Sign checksum manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ -n "${RELEASE_GPG_PRIVATE_KEY:-}" ]]; then
-            printf '%s' "$RELEASE_GPG_PRIVATE_KEY" | gpg --batch --import
-            gpg --batch --yes --armor --detach-sign \
-              --pinentry-mode loopback \
-              --passphrase "$RELEASE_GPG_PASSPHRASE" \
-              --output staging/SHA256SUMS.asc \
-              staging/SHA256SUMS
-          elif [[ "${{ inputs.channel }}" == 'stable' ]]; then
-            echo 'Stable release requires GPG checksum signature.' >&2
-            exit 1
-          else
-            echo 'Prerelease checksum file is unsigned.'
-          fi
-      - name: Verify final asset set
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -s staging/SHA256SUMS
-          test -s staging/release-manifest.json
-          test -s staging/RELEASE_NOTES.md
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          manifest = json.loads(Path('staging/release-manifest.json').read_text())
-          names = {item['name'] for item in manifest['assets']}
-          required_fragments = ['.exe', '.dmg', '.zip', '.AppImage', '.deb']
-          for fragment in required_fragments:
-              if not any(fragment in name for name in names):
-                  raise SystemExit(f'Missing required artifact type: {fragment}')
-          print(json.dumps({'assets': manifest['asset_count'], 'bytes': manifest['total_bytes']}, indent=2))
-          PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: studio-release-${{ inputs.version }}
-          path: staging/*
-          if-no-files-found: error
-          retention-days: 30
-      - name: Create or update GitHub Release
-        if: inputs.publish
-        shell: bash
-        env:
-          TAG: ${{ needs.preflight.outputs.tag }}
-        run: |
-          set -euo pipefail
-          title="Media Experiment Ledger Studio ${{ inputs.version }}"
-          flags=()
-          if [[ "${{ inputs.draft }}" == 'true' ]]; then flags+=(--draft); fi
-          if [[ "${{ inputs.channel }}" != 'stable' ]]; then flags+=(--prerelease); fi
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" --title "$title" --notes-file staging/RELEASE_NOTES.md "${flags[@]}"
-          else
-            gh release create "$TAG" --target "${{ github.sha }}" --title "$title" --notes-file staging/RELEASE_NOTES.md "${flags[@]}"
-          fi
-          gh release upload "$TAG" staging/* --clobber
+  release:
+    uses: ./.github/workflows/app-release-core.yml
+    with:
+      source_ref: ${{ github.event_name == 'push' && github.sha || 'app-main' }}
+      version_override: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
+      channel_override: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || '' }}
+      release_notes_override: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes || '' }}
+      features_override: ${{ github.event_name == 'workflow_dispatch' && inputs.features || '' }}
+      quick_start_tag_override: ${{ github.event_name == 'workflow_dispatch' && inputs.quick_start_tag || '' }}
+      full_research_tag_override: ${{ github.event_name == 'workflow_dispatch' && inputs.full_research_tag || '' }}
+      draft_override: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.draft) || '' }}
+      publish_override: ${{ github.event_name == 'workflow_dispatch' && format('{0}', inputs.publish) || '' }}
+    secrets: inherit

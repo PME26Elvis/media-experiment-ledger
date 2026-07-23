@@ -1,6 +1,25 @@
 # Media Experiment Ledger Studio
 
-Cross-platform Electron desktop application for Atlas analysis, object detection and durable media automation. The implementation is integrated on `app-main`; normative requirements and release gates are defined by `../app-product-contract.json` and `../docs/app/`.
+**Atlas · Detection · Media Automation**
+
+Cross-platform local-first Electron desktop application for Atlas analysis, object detection and durable media automation. The implementation is integrated on [`app-main`](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main); normative requirements and release gates are defined by `../app-product-contract.json` and `../docs/app/`.
+
+## Download
+
+Studio builds use the `studio-v*` Release family:
+
+- [Browse Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v)
+- [Open the app-main source branch](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main/app)
+- [Read the desktop specification](../docs/app/README.md)
+
+| Platform | Packages |
+|---|---|
+| Windows x64 | NSIS installer and portable `.exe` |
+| macOS Apple Silicon | arm64 DMG and update ZIP |
+| macOS Intel | x64 DMG and update ZIP |
+| Linux x64 | AppImage and `.deb` |
+
+Beta packages may be unsigned and can show an operating-system publisher warning. Verify downloads with `SHA256SUMS`. Stable publication requires Windows signing, Apple signing/notarization, signed checksum evidence and real-hardware qualification.
 
 ## Development
 
@@ -26,40 +45,41 @@ npm audit --omit=dev --audit-level=high
 npm run typecheck
 npm test
 python scripts/run_python_tests.py
+npm run release:tools:test
 python scripts/build_engine.py
 npm run build
 npm run package
 python scripts/smoke_packaged_app.py
 ```
 
-`Desktop App CI` executes the full chain on Windows, macOS and Ubuntu. Run `29972465923` passed on all three platforms for implementation head `447ed656375c6fe934953a0991f2bf4fbcd88122`.
+`Desktop App CI` executes the complete build and packaged-launch chain on Windows, macOS and Ubuntu.
 
 ## Implemented executable scope
 
 - hardened Electron window, sandboxed renderer and system tray lifecycle;
 - Vue 3 + Vuetify 3 responsive application shell and five-locale navigation foundation;
-- self-contained sandbox-compatible preload with separate app, diagnostics, report-template and custom-model bridges;
 - SQLite settings, migrations, recovery records and durable job state;
-- adaptive managed-copy/external-reference media import, hashes, deduplication, proxies and video posters;
-- Agnes image/video orchestration with retries, budgets, circuit breakers, polling and restart recovery;
-- Generated Media verification, quarantine and optional named-corpus enrollment;
-- mixed image/video Atlas generation with 10/50/90 evidence strips and resumable manifests;
-- hybrid report editor, autosave, revisions, seven built-in templates and validated custom-template snapshots;
-- sandboxed PDF generation with preflight warnings and deterministic manifest;
-- YOLOX and NanoDet-Plus ONNX detection, model registry, CPU fallback and optional hardware providers;
-- declarative user-supplied model manifests restricted to built-in verified decoders;
-- Model Manager, Job Center, Sample Corpora, Settings, Update & Recovery and Support & Privacy surfaces;
-- PyInstaller self-contained engine and electron-builder platform package matrix;
-- release evidence generation, checksums, SBOM, notices and signing gates.
+- adaptive managed-copy/external-reference import, hashes, deduplication, proxies and video posters;
+- bounded image/video automation with retries, budgets, circuit breakers and restart recovery;
+- mixed image/video Atlas generation with evidence strips and resumable manifests;
+- hybrid report editor, autosave, revisions, built-in/custom templates and static PDF export;
+- YOLOX and NanoDet-Plus ONNX detection with CPU fallback and user-supplied model manifests;
+- Model Manager, Job Center, Sample Corpora, Settings, Updates, Recovery and diagnostics;
+- self-contained Python engine, package matrix, SBOM, notices, checksums and launch evidence.
 
-## Packaging targets
+## Release workflow
 
-- Windows x64 NSIS installer and portable executable;
-- macOS arm64 and x64 DMG/update ZIP;
-- Linux x64 AppImage and `.deb`.
+[`release-request.json`](release-request.json) is the canonical release request. Updating it on `app-main` triggers the reusable release core.
 
-Unsigned artifacts are restricted to labeled prereleases. Stable publication requires Windows code signing, Apple signing/notarization and release checksum/update signing credentials.
+- `version: "auto"` chooses the next unused `alpha.N` or `beta.N` version.
+- Existing `studio-v*` tags are never edited or clobbered.
+- Comma-, newline- or array-based feature lists become Markdown bullets.
+- All platform jobs build the same resolved source commit.
+- Publication first creates a private draft, uploads and verifies every asset, then publishes only when `draft` is false.
+- Taipei release date and UTC timestamps are both retained in release evidence.
+
+See [`docs/app/RELEASE_RUNBOOK.md`](../docs/app/RELEASE_RUNBOOK.md) for the complete release and qualification rules.
 
 ## Rights boundary
 
-Model weights and sample data are not licensed merely because the application source is Apache-2.0. The Model Manager accepts verified user-supplied artifacts; repository distribution remains blocked until artifact-level redistribution rights, provenance and hashes are approved.
+Model weights and sample data are not licensed merely because the application source is Apache-2.0. Repository distribution remains blocked until artifact-level redistribution rights, provenance and hashes are approved.
