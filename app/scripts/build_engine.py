@@ -33,6 +33,24 @@ def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str
     return subprocess.run(command, check=True, text=True, **kwargs)
 
 
+def installed_distribution_versions() -> dict[str, str]:
+    versions: dict[str, str] = {}
+    for name in ('onnxruntime', 'onnxruntime-directml', 'onnxruntime-gpu'):
+        try:
+            versions[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            continue
+    return versions
+
+
+def runtime_distribution_name() -> str:
+    versions = installed_distribution_versions()
+    for name in ('onnxruntime-directml', 'onnxruntime-gpu', 'onnxruntime'):
+        if name in versions:
+            return name
+    raise RuntimeError('No supported ONNX Runtime distribution is installed.')
+
+
 def build() -> Path:
     shutil.rmtree(DIST_ROOT, ignore_errors=True)
     shutil.rmtree(BUILD_ROOT, ignore_errors=True)
@@ -40,6 +58,7 @@ def build() -> Path:
     BUILD_ROOT.mkdir(parents=True, exist_ok=True)
 
     data_separator = ';' if os.name == 'nt' else ':'
+    runtime_distribution = runtime_distribution_name()
     command = [
         sys.executable,
         '-m',
@@ -70,7 +89,7 @@ def build() -> Path:
         '--collect-all',
         'imageio_ffmpeg',
         '--copy-metadata',
-        'onnxruntime',
+        runtime_distribution,
         '--copy-metadata',
         'httpx',
         '--add-data',
@@ -135,16 +154,6 @@ def smoke(executable: Path) -> dict[str, Any]:
         return providers
 
 
-def installed_distribution_versions() -> dict[str, str]:
-    versions: dict[str, str] = {}
-    for name in ('onnxruntime', 'onnxruntime-directml', 'onnxruntime-gpu'):
-        try:
-            versions[name] = importlib.metadata.version(name)
-        except importlib.metadata.PackageNotFoundError:
-            continue
-    return versions
-
-
 def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
     files = []
     for path in sorted(executable.parent.rglob('*')):
@@ -189,6 +198,7 @@ def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
         'bytes': manifest['total_bytes'],
         'sha256': manifest['entrypoint_sha256'],
         'providers': providers.get('available_providers'),
+        'runtime_distribution': runtime_distribution_name(),
     }, indent=2))
 
 
