@@ -1,9 +1,14 @@
 import { nextTick } from 'vue'
-import type { I18n } from 'vue-i18n'
 import type { Router } from 'vue-router'
 
 export const SMOKE_LOCALES = ['zh-TW', 'en', 'zh-CN', 'ja', 'ko'] as const
 export type SmokeLocale = typeof SMOKE_LOCALES[number]
+
+interface SmokeLocaleController {
+  global: {
+    locale: { value: string }
+  }
+}
 
 export interface RendererSmokeCheck {
   route: string
@@ -87,7 +92,7 @@ async function settle(): Promise<void> {
   await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
 }
 
-export function installSmokeAudit(router: Router, i18n: I18n): void {
+export function installSmokeAudit(router: Router, i18n: SmokeLocaleController): void {
   if (new URLSearchParams(window.location.search).get('mel-smoke') !== '1') return
 
   window.addEventListener('error', event => {
@@ -109,7 +114,7 @@ export function installSmokeAudit(router: Router, i18n: I18n): void {
         for (const route of api.routes()) {
           const errorStart = capturedErrors.length
           await router.push(route)
-          ;(i18n.global.locale as { value: string }).value = locale
+          i18n.global.locale.value = locale
           await settle()
           const documentWidth = document.documentElement.scrollWidth
           const viewportWidth = document.documentElement.clientWidth
