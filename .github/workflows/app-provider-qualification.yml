@@ -14,6 +14,8 @@ on:
       - 'app/engine/tests/test_detection_providers.py'
       - 'app/scripts/build_engine.py'
       - 'app/scripts/qualify_detection_provider.py'
+      - 'app/scripts/enforce_provider_evidence.py'
+      - 'app/scripts/tests/test_release_provider_evidence.py'
       - 'app/src/main/engine.ts'
       - 'app/src/main/ipc.ts'
       - 'app/src/renderer/views/DetectionView.vue'
@@ -74,45 +76,13 @@ jobs:
         continue-on-error: true
         run: python scripts/qualify_detection_provider.py --provider ${{ matrix.provider }} --required --output provider-${{ matrix.id }}.json > provider-${{ matrix.id }}.log 2>&1
       - name: Print and enforce provider evidence
-        shell: bash
-        env:
-          PROVIDER: ${{ matrix.provider }}
-          MATRIX_ID: ${{ matrix.id }}
-          QUALIFICATION_OUTCOME: ${{ steps.provider_qualification.outcome }}
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          names = {
-              'cpu': 'CPUExecutionProvider',
-              'directml': 'DmlExecutionProvider',
-              'coreml': 'CoreMLExecutionProvider',
-              'cuda': 'CUDAExecutionProvider',
-          }
-          evidence_path = Path(f"provider-{os.environ['MATRIX_ID']}.json")
-          if not evidence_path.is_file():
-              log_path = Path(f"provider-{os.environ['MATRIX_ID']}.log")
-              print(log_path.read_text(encoding='utf-8', errors='replace') if log_path.is_file() else 'provider log missing')
-              raise SystemExit('provider evidence was not written')
-          evidence = json.loads(evidence_path.read_text(encoding='utf-8'))
-          print(json.dumps(evidence, indent=2))
-          manifest = json.loads(Path('engine-bin/mel-engine/engine-build-manifest.json').read_text(encoding='utf-8'))
-          provider = names[os.environ['PROVIDER']]
-          available = manifest.get('provider_inventory', {}).get('available_providers', [])
-          failures = []
-          if os.environ['QUALIFICATION_OUTCOME'] != 'success':
-              failures.append(f"qualification command outcome={os.environ['QUALIFICATION_OUTCOME']}")
-          if provider not in available:
-              failures.append(f'packaged engine missing qualified provider {provider}: {available}')
-          if not evidence.get('passed'):
-              failures.append(f"provider evidence failed: {evidence.get('error') or evidence.get('comparison')}")
-          if evidence.get('target', {}).get('assigned_node_count', 0) <= 0:
-              failures.append(f"provider did not execute graph nodes: {evidence.get('target')}")
-          if failures:
-              raise SystemExit('\n'.join(failures))
-          PY
+        run: >-
+          python scripts/enforce_provider_evidence.py
+          --provider ${{ matrix.provider }}
+          --qualification-outcome ${{ steps.provider_qualification.outcome }}
+          --evidence provider-${{ matrix.id }}.json
+          --manifest engine-bin/mel-engine/engine-build-manifest.json
+          --command-log provider-${{ matrix.id }}.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
