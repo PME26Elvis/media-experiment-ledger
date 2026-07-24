@@ -75,6 +75,9 @@ jobs:
           NEW_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
           APPIMAGE="$(find release -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$NEW_DEB" && test -n "$APPIMAGE"
+          NEW_DEB="$(realpath "$NEW_DEB")"
+          APPIMAGE="$(realpath "$APPIMAGE")"
+          test -f "$NEW_DEB" && test -f "$APPIMAGE"
           echo "NEW_DEB=$NEW_DEB" >> "$GITHUB_ENV"
           echo "APPIMAGE=$APPIMAGE" >> "$GITHUB_ENV"
       - name: Install RC.2 deb upgrade
