@@ -74,7 +74,7 @@ class ProviderInventoryTests(unittest.TestCase):
         self.assertEqual(options['MLComputeUnits'], 'ALL')
         self.assertEqual(options['RequireStaticInputShapes'], '0')
         self.assertEqual(options['EnableOnSubgraphs'], '0')
-        self.assertTrue(options['ModelCacheDirectory'].endswith('.mel-provider-cache/coreml'))
+        self.assertEqual(Path(options['ModelCacheDirectory']).parts[-2:], ('.mel-provider-cache', 'coreml'))
 
     def test_cuda_plan_exposes_device_and_safe_copy_options(self) -> None:
         options = provider_options('CUDAExecutionProvider', device_id=2)
