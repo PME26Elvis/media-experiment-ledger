@@ -29,6 +29,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.21.1'
@@ -37,8 +39,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: npm ci --loglevel verbose
-      - run: python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+      - run: npm ci --loglevel error
+      - run: python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
       - run: python scripts/build_engine.py
       - name: Build and install baseline NSIS package
         shell: pwsh
@@ -116,6 +118,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.21.1'
@@ -126,10 +130,10 @@ jobs:
           python-version: '3.12'
       - name: Install runtime dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-          npm ci --loglevel verbose
-          python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+          npm ci --loglevel error
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
           python scripts/build_engine.py
       - name: Build and install baseline deb
         env:
@@ -153,6 +157,7 @@ jobs:
       - name: Build RC.2, upgrade deb and qualify AppImage
         env:
           DEBIAN_FRONTEND: noninteractive
+          APPIMAGE_EXTRACT_AND_RUN: '1'
         run: |
           rm -rf release
           npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
@@ -161,11 +166,14 @@ jobs:
           NEW_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
           APPIMAGE="$(find release -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$NEW_DEB" && test -n "$APPIMAGE"
+          NEW_DEB="$(realpath "$NEW_DEB")"
+          APPIMAGE="$(realpath "$APPIMAGE")"
+          test -f "$NEW_DEB" && test -f "$APPIMAGE"
           sudo apt-get install -y "$NEW_DEB"
           python scripts/smoke_packaged_app.py --executable "$INSTALLED_EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-upgrade-smoke.json
           test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
           chmod +x "$APPIMAGE"
-          APPIMAGE_EXTRACT_AND_RUN=1 python scripts/smoke_packaged_app.py --executable "$APPIMAGE" --user-data "$RUNNER_TEMP/mel-appimage-user-data" --output linux-appimage-smoke.json
+          python scripts/smoke_packaged_app.py --executable "$APPIMAGE" --user-data "$RUNNER_TEMP/mel-appimage-user-data" --output linux-appimage-smoke.json
       - name: Remove deb and verify user-data retention
         run: |
           sudo dpkg -r "$PACKAGE"
@@ -212,6 +220,8 @@ jobs:
         working-directory: app
     steps:
       - uses: actions/checkout@v4
+        with:
+          show-progress: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.21.1'
@@ -220,8 +230,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: npm ci --loglevel verbose
-      - run: python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+      - run: npm ci --loglevel error
+      - run: python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
       - run: python scripts/build_engine.py
       - name: Build, mount and install baseline DMG
         env:
