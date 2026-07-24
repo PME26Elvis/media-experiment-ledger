@@ -6,14 +6,14 @@ This directory is the normative human-readable specification set and implementat
 
 - Public product: **Media Experiment Ledger Studio**
 - Descriptor: **Atlas · Detection · Media Automation**
-- Product status: `release_candidate_qualified_stable_external_evidence_pending`
+- Product status: `release_candidate_published_stable_external_evidence_pending`
 - Implementation status: `merged_to_app-main`
 - Contract baseline: `2026-07-23.1`
 - Machine contract: [`../../app-product-contract.json`](../../app-product-contract.json)
 - Long-lived product branch: `app-main`
 - Initial implementation PR: [#30](https://github.com/PME26Elvis/media-experiment-ledger/pull/30), merged normally
-- Latest lifecycle candidate: [`studio-v1.0.0-rc.2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
-- Latest provider-qualified request: `1.0.0-rc.3`, merged after the complete four-platform dry run
+- Lifecycle candidate: [`studio-v1.0.0-rc.2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
+- Latest provider-qualified candidate: [`studio-v1.0.0-rc.3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
 - Immutable Quick Start corpus: [`studio-sample-corpus-quick-start-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-sample-corpus-quick-start-v2)
 - Stable external qualification register: [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
 - Blocking product questions: **0**
