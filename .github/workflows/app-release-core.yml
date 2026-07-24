@@ -84,6 +84,7 @@ jobs:
         with:
           ref: ${{ inputs.source_ref }}
           fetch-depth: 0
+          show-progress: false
       - name: Resolve immutable source commit
         id: source
         shell: bash
@@ -176,6 +177,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.preflight.outputs.source_sha }}
+          show-progress: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22.21.1'
@@ -186,21 +188,23 @@ jobs:
           python-version: '3.12'
       - name: Install Linux display runtime
         if: matrix.family == 'linux'
-        run: sudo apt-get update && sudo apt-get install -y xvfb
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq xvfb
       - name: Install locked JavaScript dependencies
-        run: npm ci --loglevel verbose
+        run: npm ci --loglevel error
       - name: Set resolved application version
         run: npm version "${{ needs.preflight.outputs.version }}" --no-git-tag-version --allow-same-version
       - name: Production dependency audit
         run: npm audit --omit=dev --audit-level=high
       - name: Install engine build dependencies
-        run: python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
-      - name: Validate application and release tooling
-        run: |
-          npm run typecheck
-          npm test
-          python scripts/run_python_tests.py
-          python -m unittest discover -s scripts/tests -p "test_release_*.py"
+        run: python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - name: Typecheck application
+        run: npm run typecheck
+      - name: JavaScript tests
+        run: npm test
+      - name: Python engine tests
+        run: python scripts/run_python_tests.py
+      - name: Release tooling tests
+        run: python -m unittest discover -s scripts/tests -p "test_release_*.py"
       - name: Build self-contained engine
         run: python scripts/build_engine.py
       - name: Build renderer and Electron processes
@@ -285,6 +289,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.preflight.outputs.source_sha }}
+          show-progress: false
       - uses: actions/download-artifact@v4
         with:
           name: studio-release-plan
