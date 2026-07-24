@@ -1,0 +1,306 @@
+name: Stable Install Lifecycle Qualification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - '.github/workflows/app-install-qualification.yml'
+      - 'app/scripts/smoke_packaged_app.py'
+      - 'app/scripts/find_installed_linux_executable.py'
+      - 'app/package.json'
+      - 'app/package-lock.json'
+      - 'app/src/**'
+      - 'app/engine/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stable-install-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-lifecycle:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --loglevel error
+      - run: python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - run: python scripts/build_engine.py
+      - name: Build and install baseline NSIS package
+        shell: pwsh
+        run: |
+          npm version 0.9.9 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --win nsis --x64 --publish never
+          $oldInstaller = (Get-ChildItem release -Filter '*setup.exe' | Select-Object -First 1).FullName
+          if (-not $oldInstaller) { throw 'Baseline NSIS installer not found.' }
+          Copy-Item $oldInstaller "$env:RUNNER_TEMP\mel-baseline-setup.exe"
+          $installDir = "$env:RUNNER_TEMP\mel-install"
+          $process = Start-Process -FilePath "$env:RUNNER_TEMP\mel-baseline-setup.exe" -ArgumentList '/S', "/D=$installDir" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Baseline installer failed: $($process.ExitCode)" }
+          $exe = Join-Path $installDir 'Media Experiment Ledger Studio.exe'
+          if (-not (Test-Path $exe)) { throw "Installed executable missing: $exe" }
+          $userData = "$env:RUNNER_TEMP\mel-user-data"
+          python scripts/smoke_packaged_app.py --executable "$exe" --user-data "$userData" --output windows-baseline-smoke.json
+          New-Item -ItemType Directory -Force -Path $userData | Out-Null
+          '{"schemaVersion":1,"createdBy":"baseline"}' | Set-Content -Encoding UTF8 (Join-Path $userData 'stable-user-data-sentinel.json')
+      - name: Build RC.2, upgrade in place and qualify portable package
+        shell: pwsh
+        run: |
+          Remove-Item release -Recurse -Force -ErrorAction SilentlyContinue
+          npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --win nsis portable --x64 --publish never
+          $newInstaller = (Get-ChildItem release -Filter '*setup.exe' | Select-Object -First 1).FullName
+          $portable = (Get-ChildItem release -Filter '*portable.exe' | Select-Object -First 1).FullName
+          if (-not $newInstaller -or -not $portable) { throw 'RC.2 NSIS or portable artifact missing.' }
+          $installDir = "$env:RUNNER_TEMP\mel-install"
+          $process = Start-Process -FilePath $newInstaller -ArgumentList '/S', "/D=$installDir" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Upgrade installer failed: $($process.ExitCode)" }
+          $exe = Join-Path $installDir 'Media Experiment Ledger Studio.exe'
+          $userData = "$env:RUNNER_TEMP\mel-user-data"
+          python scripts/smoke_packaged_app.py --executable "$exe" --user-data "$userData" --output windows-upgrade-smoke.json
+          if (-not (Test-Path (Join-Path $userData 'stable-user-data-sentinel.json'))) { throw 'User data was not retained across upgrade.' }
+          $env:PORTABLE_EXECUTABLE_FILE = $portable
+          python scripts/smoke_packaged_app.py --executable "$portable" --user-data "$env:RUNNER_TEMP\mel-portable-user-data" --output windows-portable-smoke.json
+      - name: Uninstall application and verify user-data retention
+        shell: pwsh
+        run: |
+          $installDir = "$env:RUNNER_TEMP\mel-install"
+          $userData = "$env:RUNNER_TEMP\mel-user-data"
+          $uninstaller = Get-ChildItem $installDir -Filter 'Uninstall*.exe' | Select-Object -First 1
+          if (-not $uninstaller) { throw 'NSIS uninstaller not found.' }
+          $process = Start-Process -FilePath $uninstaller.FullName -ArgumentList '/S' -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Uninstaller failed: $($process.ExitCode)" }
+          Start-Sleep -Seconds 3
+          if (Test-Path (Join-Path $installDir 'Media Experiment Ledger Studio.exe')) { throw 'Application executable remained after uninstall.' }
+          if (-not (Test-Path (Join-Path $userData 'stable-user-data-sentinel.json'))) { throw 'Uninstall removed user data.' }
+          [ordered]@{
+            schemaVersion = 1
+            platform = 'windows'
+            baselineInstalled = $true
+            upgradedInPlace = $true
+            portableQualified = $true
+            uninstalled = $true
+            userDataRetained = $true
+          } | ConvertTo-Json | Set-Content -Encoding UTF8 windows-install-lifecycle.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-install-windows-x64
+          path: |
+            app/windows-*-smoke.json
+            app/windows-install-lifecycle.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  linux-lifecycle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb
+          npm ci --loglevel error
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+          python scripts/build_engine.py
+      - name: Build and install baseline deb
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          npm version 0.9.9 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --linux deb --x64 --publish never
+          OLD_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "$OLD_DEB"
+          cp "$OLD_DEB" "$RUNNER_TEMP/mel-baseline.deb"
+          sudo apt-get install -y "$RUNNER_TEMP/mel-baseline.deb"
+          PACKAGE="$(dpkg-deb -f "$RUNNER_TEMP/mel-baseline.deb" Package)"
+          EXE="$(python scripts/find_installed_linux_executable.py --package "$PACKAGE")"
+          test -x "$EXE"
+          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+          echo "INSTALLED_EXE=$EXE" >> "$GITHUB_ENV"
+          python scripts/smoke_packaged_app.py --executable "$EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-baseline-smoke.json
+          mkdir -p "$RUNNER_TEMP/mel-user-data"
+          printf '%s\n' '{"schemaVersion":1,"createdBy":"baseline"}' > "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - name: Build RC.2, upgrade deb and qualify AppImage
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          APPIMAGE_EXTRACT_AND_RUN: '1'
+        run: |
+          rm -rf release
+          npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --linux deb AppImage --x64 --publish never
+          NEW_DEB="$(find release -maxdepth 1 -name '*.deb' -print -quit)"
+          APPIMAGE="$(find release -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$NEW_DEB" && test -n "$APPIMAGE"
+          NEW_DEB="$(realpath "$NEW_DEB")"
+          APPIMAGE="$(realpath "$APPIMAGE")"
+          test -f "$NEW_DEB" && test -f "$APPIMAGE"
+          sudo apt-get install -y "$NEW_DEB"
+          python scripts/smoke_packaged_app.py --executable "$INSTALLED_EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output linux-upgrade-smoke.json
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+          chmod +x "$APPIMAGE"
+          python scripts/smoke_packaged_app.py --executable "$APPIMAGE" --user-data "$RUNNER_TEMP/mel-appimage-user-data" --output linux-appimage-smoke.json
+      - name: Remove deb and verify user-data retention
+        run: |
+          sudo dpkg -r "$PACKAGE"
+          test ! -e "$INSTALLED_EXE"
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          Path('linux-install-lifecycle.json').write_text(json.dumps({
+              'schemaVersion': 1,
+              'platform': 'linux',
+              'baselineInstalled': True,
+              'upgradedInPlace': True,
+              'appImageQualified': True,
+              'removed': True,
+              'userDataRetained': True,
+          }, indent=2) + '\n', encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-install-linux-x64
+          path: |
+            app/linux-*-smoke.json
+            app/linux-install-lifecycle.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  macos-lifecycle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: arm64
+            runner: macos-latest
+            arch_flag: --arm64
+          - id: x64
+            runner: macos-15-intel
+            arch_flag: --x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci --loglevel error
+      - run: python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - run: python scripts/build_engine.py
+      - name: Build, mount and install baseline DMG
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          npm version 0.9.9 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --mac dmg ${{ matrix.arch_flag }} --publish never
+          OLD_DMG="$(find release -maxdepth 1 -name '*.dmg' -print -quit)"
+          test -n "$OLD_DMG"
+          cp "$OLD_DMG" "$RUNNER_TEMP/mel-baseline.dmg"
+          MOUNT="$RUNNER_TEMP/mel-mount-old"
+          APP_DIR="$RUNNER_TEMP/Applications"
+          mkdir -p "$MOUNT" "$APP_DIR"
+          hdiutil attach "$RUNNER_TEMP/mel-baseline.dmg" -nobrowse -readonly -mountpoint "$MOUNT"
+          cp -R "$MOUNT/Media Experiment Ledger Studio.app" "$APP_DIR/"
+          hdiutil detach "$MOUNT"
+          EXE="$APP_DIR/Media Experiment Ledger Studio.app/Contents/MacOS/Media Experiment Ledger Studio"
+          test -x "$EXE"
+          echo "INSTALLED_EXE=$EXE" >> "$GITHUB_ENV"
+          python scripts/smoke_packaged_app.py --executable "$EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output macos-baseline-smoke.json
+          mkdir -p "$RUNNER_TEMP/mel-user-data"
+          printf '%s\n' '{"schemaVersion":1,"createdBy":"baseline"}' > "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - name: Build RC.2 DMG, replace app bundle and verify upgrade
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: |
+          rm -rf release
+          npm version 1.0.0-rc.2 --no-git-tag-version --allow-same-version
+          npm run build
+          npx electron-builder --mac dmg zip ${{ matrix.arch_flag }} --publish never
+          NEW_DMG="$(find release -maxdepth 1 -name '*.dmg' -print -quit)"
+          test -n "$NEW_DMG"
+          MOUNT="$RUNNER_TEMP/mel-mount-new"
+          APP_DIR="$RUNNER_TEMP/Applications"
+          mkdir -p "$MOUNT"
+          hdiutil attach "$NEW_DMG" -nobrowse -readonly -mountpoint "$MOUNT"
+          rm -rf "$APP_DIR/Media Experiment Ledger Studio.app"
+          cp -R "$MOUNT/Media Experiment Ledger Studio.app" "$APP_DIR/"
+          hdiutil detach "$MOUNT"
+          EXE="$APP_DIR/Media Experiment Ledger Studio.app/Contents/MacOS/Media Experiment Ledger Studio"
+          python scripts/smoke_packaged_app.py --executable "$EXE" --user-data "$RUNNER_TEMP/mel-user-data" --output macos-upgrade-smoke.json
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+      - name: Remove app bundle and verify user-data retention
+        env:
+          MATRIX_ARCH: ${{ matrix.id }}
+        run: |
+          rm -rf "$RUNNER_TEMP/Applications/Media Experiment Ledger Studio.app"
+          test ! -e "$INSTALLED_EXE"
+          test -f "$RUNNER_TEMP/mel-user-data/stable-user-data-sentinel.json"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          Path('macos-install-lifecycle.json').write_text(json.dumps({
+              'schemaVersion': 1,
+              'platform': 'macos',
+              'arch': os.environ.get('MATRIX_ARCH', 'unknown'),
+              'baselineInstalled': True,
+              'upgradedInPlace': True,
+              'removed': True,
+              'userDataRetained': True,
+          }, indent=2) + '\n', encoding='utf-8')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-install-macos-${{ matrix.id }}
+          path: |
+            app/macos-*-smoke.json
+            app/macos-install-lifecycle.json
+          if-no-files-found: warn
+          retention-days: 30
