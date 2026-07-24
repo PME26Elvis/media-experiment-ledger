@@ -8,8 +8,9 @@ Cross-platform local-first Electron desktop application for Atlas analysis, obje
 
 Studio builds use the `studio-v*` Release family:
 
-- [Browse Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v)
+- [Download the latest provider-qualified RC.3](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
 - [Download lifecycle-qualified RC.2](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
+- [Browse all Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v)
 - [Open the app-main source branch](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main/app)
 - [Read the desktop specification and evidence index](../docs/app/README.md)
 - [Track stable 1.0.0 external qualification](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
