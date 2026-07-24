@@ -37,18 +37,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - id: windows-directml
+          - id: windows-directml-inventory
             runner: windows-latest
             provider: directml
+            mode: inventory
           - id: macos-arm64-coreml
             runner: macos-latest
             provider: coreml
+            mode: execution
           - id: macos-x64-coreml
             runner: macos-15-intel
             provider: coreml
+            mode: execution
           - id: linux-cpu
             runner: ubuntu-latest
             provider: cpu
+            mode: execution
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     defaults:
@@ -79,6 +83,7 @@ jobs:
         run: >-
           python scripts/enforce_provider_evidence.py
           --provider ${{ matrix.provider }}
+          --mode ${{ matrix.mode }}
           --qualification-outcome ${{ steps.provider_qualification.outcome }}
           --evidence provider-${{ matrix.id }}.json
           --manifest engine-bin/mel-engine/engine-build-manifest.json
@@ -94,6 +99,47 @@ jobs:
             app/engine-bin/mel-engine/engine-build-manifest.json
             app/python-test.log
           if-no-files-found: warn
+          retention-days: 30
+
+  qualify-directml-hardware:
+    if: vars.MEL_ENABLE_DIRECTML_QUALIFICATION == 'true'
+    runs-on: [self-hosted, windows, x64, directml]
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install DirectML provider runtime
+        run: |
+          python -m pip install --upgrade pip --quiet
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - name: Build and inventory self-contained DirectML engine
+        run: python scripts/build_engine.py
+      - name: Prove DirectML graph-node execution against CPU
+        id: provider_qualification
+        run: python scripts/qualify_detection_provider.py --provider directml --required --output provider-windows-directml-hardware.json
+      - name: Enforce DirectML hardware evidence
+        run: >-
+          python scripts/enforce_provider_evidence.py
+          --provider directml
+          --mode execution
+          --qualification-outcome ${{ steps.provider_qualification.outcome }}
+          --evidence provider-windows-directml-hardware.json
+          --manifest engine-bin/mel-engine/engine-build-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-provider-windows-directml-hardware
+          path: |
+            app/provider-windows-directml-hardware.json
+            app/engine-bin/mel-engine/engine-build-manifest.json
+          if-no-files-found: error
           retention-days: 30
 
   qualify-cuda-hardware:
