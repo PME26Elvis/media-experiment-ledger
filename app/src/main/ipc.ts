@@ -2,7 +2,7 @@ import { app, dialog, ipcMain, shell } from 'electron'
 import { z } from 'zod'
 import { IPC, type CreateJobRequest, type ReportDocument, type StudioSettings } from '../shared/contracts'
 import { StudioDatabase } from './database'
-import { engineReady } from './engine'
+import { engineProviderInventory, engineReady } from './engine'
 import { JobManager } from './job-manager'
 import { ModelManager } from './model-manager'
 import { RecoveryManager } from './recovery-manager'
@@ -60,6 +60,7 @@ export function registerIpc(
     documentsPath: app.getPath('documents'),
     downloadsPath: app.getPath('downloads'),
     engineReady: await engineReady(),
+    engineProviders: await engineProviderInventory(),
     schemaVersion: db.schemaVersion(),
     updateMode: process.platform === 'linux' ? 'manual' : 'automatic',
   }))

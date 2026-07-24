@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.metadata
 import json
 import os
 import platform
@@ -9,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = APP_ROOT.parent
@@ -31,6 +33,24 @@ def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str
     return subprocess.run(command, check=True, text=True, **kwargs)
 
 
+def installed_distribution_versions() -> dict[str, str]:
+    versions: dict[str, str] = {}
+    for name in ('onnxruntime', 'onnxruntime-directml', 'onnxruntime-gpu'):
+        try:
+            versions[name] = importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            continue
+    return versions
+
+
+def runtime_distribution_name() -> str:
+    versions = installed_distribution_versions()
+    for name in ('onnxruntime-directml', 'onnxruntime-gpu', 'onnxruntime'):
+        if name in versions:
+            return name
+    raise RuntimeError('No supported ONNX Runtime distribution is installed.')
+
+
 def build() -> Path:
     shutil.rmtree(DIST_ROOT, ignore_errors=True)
     shutil.rmtree(BUILD_ROOT, ignore_errors=True)
@@ -38,6 +58,7 @@ def build() -> Path:
     BUILD_ROOT.mkdir(parents=True, exist_ok=True)
 
     data_separator = ';' if os.name == 'nt' else ':'
+    runtime_distribution = runtime_distribution_name()
     command = [
         sys.executable,
         '-m',
@@ -68,7 +89,7 @@ def build() -> Path:
         '--collect-all',
         'imageio_ffmpeg',
         '--copy-metadata',
-        'onnxruntime',
+        runtime_distribution,
         '--copy-metadata',
         'httpx',
         '--add-data',
@@ -82,44 +103,58 @@ def build() -> Path:
     return executable
 
 
-def smoke(executable: Path) -> None:
+def invoke(executable: Path, request: dict[str, Any]) -> dict[str, Any]:
+    completed = run(
+        [str(executable)],
+        cwd=executable.parent,
+        input=json.dumps(request) + '\n',
+        capture_output=True,
+        timeout=120,
+    )
+    events = [json.loads(line) for line in completed.stdout.splitlines() if line.strip()]
+    results = [event for event in events if event.get('type') == 'result']
+    errors = [event for event in events if event.get('type') == 'error']
+    if errors or not results:
+        raise RuntimeError(
+            f'Engine request failed. request={request!r} stdout={completed.stdout!r} stderr={completed.stderr!r}',
+        )
+    return results[-1].get('data', {})
+
+
+def smoke(executable: Path) -> dict[str, Any]:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         inputs = root / 'inputs'
         output = root / 'project'
         inputs.mkdir()
-        request = json.dumps({
+        scan = invoke(executable, {
             'operation': 'scan',
             'job_id': 'engine-build-smoke',
             'image_path': str(inputs),
             'video_path': '',
             'output_path': str(output),
             'import_mode': 'reference',
-        }) + '\n'
-        completed = run(
-            [str(executable)],
-            cwd=executable.parent,
-            input=request,
-            capture_output=True,
-            timeout=120,
-        )
-        events = [json.loads(line) for line in completed.stdout.splitlines() if line.strip()]
-        results = [event for event in events if event.get('type') == 'result']
-        errors = [event for event in events if event.get('type') == 'error']
-        data = results[-1].get('data', {}) if results else {}
+        })
         if (
-            errors
-            or not results
-            or data.get('indexed_count') != 0
-            or data.get('error_count') != 0
+            scan.get('indexed_count') != 0
+            or scan.get('error_count') != 0
             or not (output / 'media-index.json').is_file()
         ):
-            raise RuntimeError(
-                f'Engine smoke failed. stdout={completed.stdout!r} stderr={completed.stderr!r}',
-            )
+            raise RuntimeError(f'Engine scan smoke failed: {scan!r}')
+
+        providers = invoke(executable, {
+            'operation': 'providers',
+            'job_id': 'engine-provider-smoke',
+        })
+        available = providers.get('available_providers')
+        if not isinstance(available, list) or 'CPUExecutionProvider' not in available:
+            raise RuntimeError(f'Packaged engine provider inventory is invalid: {providers!r}')
+        if os.name == 'nt' and 'DmlExecutionProvider' not in available:
+            raise RuntimeError(f'Windows engine is missing DirectML: {providers!r}')
+        return providers
 
 
-def write_manifest(executable: Path) -> None:
+def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
     files = []
     for path in sorted(executable.parent.rglob('*')):
         if path.is_file():
@@ -129,7 +164,7 @@ def write_manifest(executable: Path) -> None:
                 'sha256': sha256(path),
             })
     manifest = {
-        'schema_version': 1,
+        'schema_version': 2,
         'engine_version': '0.1.0',
         'python_version': platform.python_version(),
         'platform': platform.system().lower(),
@@ -138,6 +173,8 @@ def write_manifest(executable: Path) -> None:
         'entrypoint_sha256': sha256(executable),
         'file_count': len(files),
         'total_bytes': sum(item['size_bytes'] for item in files),
+        'provider_inventory': providers,
+        'build_distributions': installed_distribution_versions(),
         'capabilities': [
             'scan',
             'image-atlas',
@@ -147,6 +184,7 @@ def write_manifest(executable: Path) -> None:
             'yolox-detection',
             'nanodet-detection',
             'sample-download',
+            'provider-inventory',
         ],
         'files': files,
     }
@@ -159,13 +197,15 @@ def write_manifest(executable: Path) -> None:
         'files': manifest['file_count'],
         'bytes': manifest['total_bytes'],
         'sha256': manifest['entrypoint_sha256'],
+        'providers': providers.get('available_providers'),
+        'runtime_distribution': runtime_distribution_name(),
     }, indent=2))
 
 
 def main() -> int:
     executable = build()
-    smoke(executable)
-    write_manifest(executable)
+    providers = smoke(executable)
+    write_manifest(executable, providers)
     return 0
 
 

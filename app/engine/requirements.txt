@@ -1,6 +1,7 @@
 Pillow>=11.0,<13
 numpy>=2.0,<3
-onnxruntime>=1.22,<2
+onnxruntime-directml>=1.22,<2; sys_platform == "win32"
+onnxruntime>=1.22,<2; sys_platform != "win32"
 httpx>=0.28,<1
 imageio>=2.37,<3
 imageio-ffmpeg>=0.6,<1

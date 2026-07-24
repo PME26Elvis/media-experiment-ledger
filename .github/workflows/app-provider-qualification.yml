@@ -1,0 +1,173 @@
+name: Stable Provider Qualification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - '.github/workflows/app-provider-qualification.yml'
+      - 'app/engine/requirements.txt'
+      - 'app/engine/mel_engine/providers.py'
+      - 'app/engine/mel_engine/detection.py'
+      - 'app/engine/mel_engine/__main__.py'
+      - 'app/engine/tests/test_providers.py'
+      - 'app/engine/tests/test_detection_providers.py'
+      - 'app/scripts/build_engine.py'
+      - 'app/scripts/qualify_detection_provider.py'
+      - 'app/scripts/enforce_provider_evidence.py'
+      - 'app/scripts/tests/test_release_provider_evidence.py'
+      - 'app/src/main/engine.ts'
+      - 'app/src/main/ipc.ts'
+      - 'app/src/renderer/views/DetectionView.vue'
+      - 'object-detection/model-lock.json'
+      - 'object-detection/coco-80.json'
+      - 'tools/yolo_core.py'
+      - '.gitattributes'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stable-provider-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualify-hosted:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: windows-directml-inventory
+            runner: windows-latest
+            provider: directml
+            mode: inventory
+          - id: macos-arm64-coreml
+            runner: macos-latest
+            provider: coreml
+            mode: execution
+          - id: macos-x64-coreml
+            runner: macos-15-intel
+            provider: coreml
+            mode: execution
+          - id: linux-cpu
+            runner: ubuntu-latest
+            provider: cpu
+            mode: execution
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            app/engine/requirements.txt
+            app/engine/requirements-build.txt
+      - name: Install platform engine dependencies
+        run: python -m pip install --upgrade pip --quiet && python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - name: Run engine unit tests
+        run: python scripts/run_python_tests.py
+      - name: Build and inventory self-contained engine
+        run: python scripts/build_engine.py > engine-build-${{ matrix.id }}.log 2>&1
+      - name: Qualify provider against pinned CPU baseline
+        id: provider_qualification
+        continue-on-error: true
+        run: python scripts/qualify_detection_provider.py --provider ${{ matrix.provider }} --required --output provider-${{ matrix.id }}.json > provider-${{ matrix.id }}.log 2>&1
+      - name: Print and enforce provider evidence
+        run: >-
+          python scripts/enforce_provider_evidence.py
+          --provider ${{ matrix.provider }}
+          --mode ${{ matrix.mode }}
+          --qualification-outcome ${{ steps.provider_qualification.outcome }}
+          --evidence provider-${{ matrix.id }}.json
+          --manifest engine-bin/mel-engine/engine-build-manifest.json
+          --command-log provider-${{ matrix.id }}.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-provider-${{ matrix.id }}
+          path: |
+            app/provider-${{ matrix.id }}.json
+            app/provider-${{ matrix.id }}.log
+            app/engine-build-${{ matrix.id }}.log
+            app/engine-bin/mel-engine/engine-build-manifest.json
+            app/python-test.log
+          if-no-files-found: warn
+          retention-days: 30
+
+  qualify-directml-hardware:
+    if: vars.MEL_ENABLE_DIRECTML_QUALIFICATION == 'true'
+    runs-on: [self-hosted, windows, x64, directml]
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install DirectML provider runtime
+        run: |
+          python -m pip install --upgrade pip --quiet
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+      - name: Build and inventory self-contained DirectML engine
+        run: python scripts/build_engine.py
+      - name: Prove DirectML graph-node execution against CPU
+        id: provider_qualification
+        run: python scripts/qualify_detection_provider.py --provider directml --required --output provider-windows-directml-hardware.json
+      - name: Enforce DirectML hardware evidence
+        run: >-
+          python scripts/enforce_provider_evidence.py
+          --provider directml
+          --mode execution
+          --qualification-outcome ${{ steps.provider_qualification.outcome }}
+          --evidence provider-windows-directml-hardware.json
+          --manifest engine-bin/mel-engine/engine-build-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-provider-windows-directml-hardware
+          path: |
+            app/provider-windows-directml-hardware.json
+            app/engine-bin/mel-engine/engine-build-manifest.json
+          if-no-files-found: error
+          retention-days: 30
+
+  qualify-cuda-hardware:
+    if: vars.MEL_ENABLE_CUDA_QUALIFICATION == 'true'
+    runs-on: [self-hosted, linux, x64, cuda]
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CUDA provider runtime
+        run: |
+          python -m pip install --upgrade pip --quiet
+          python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
+          python -m pip uninstall -y onnxruntime
+          python -m pip install --quiet 'onnxruntime-gpu>=1.22,<2'
+      - name: Prove CUDA provider node execution against CPU
+        run: python scripts/qualify_detection_provider.py --provider cuda --required --output provider-linux-cuda.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stable-provider-linux-cuda-hardware
+          path: app/provider-linux-cuda.json
+          if-no-files-found: error
+          retention-days: 30
