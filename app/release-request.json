@@ -1,23 +1,24 @@
 {
   "schema_version": 1,
-  "request_revision": 5,
+  "request_revision": 6,
   "source_branch": "app-main",
-  "version": "1.0.0-rc.1",
+  "version": "1.0.0-rc.2",
   "channel": "beta",
   "draft": false,
   "publish": true,
-  "release_notes": "First stable-candidate release of Media Experiment Ledger Studio. RC.1 promotes localization and renderer quality from navigation-level support to an enforceable packaged product contract. Every supported route is exercised in Traditional Chinese, English, Simplified Chinese, Japanese and Korean at mobile and desktop viewports while preserving user-authored prompts, paths, report content and diagnostic payloads.",
+  "release_notes": "Media Experiment Ledger Studio 1.0.0-rc.2 qualifies the complete desktop package lifecycle instead of stopping at build and launch smoke. Every supported package is exercised from a generated 0.9.9 baseline through an in-place RC.2 upgrade, followed by removal and explicit verification that user data remains intact. This release also links the immutable Quick Start sample corpus v2.",
   "features": [
-    "Five-locale product copy across the complete desktop route set",
-    "Exact-match localization boundary that never translates arbitrary user content",
-    "Route-specific language markers verified in packaged Windows, macOS and Linux applications",
-    "130 packaged route, locale and viewport checks on every supported operating system",
-    "Overflow, accessible-name, leaked-key and renderer-error release gates",
-    "Safe locale switching after asynchronous route initialization",
-    "All stable integration, recovery, report, detection, Atlas and automation foundations from beta.2",
-    "Four-platform release matrix with Windows installer and portable, macOS arm64 and x64, Linux AppImage and deb",
-    "SBOM, checksums, notices, source SHA, engine smoke and consolidated release evidence"
+    "Windows x64 silent NSIS baseline install and in-place RC.2 upgrade",
+    "Windows x64 portable package launch qualification",
+    "Linux x64 deb install, upgrade and removal lifecycle",
+    "Linux x64 AppImage independent launch qualification",
+    "macOS arm64 DMG installation, bundle replacement and removal lifecycle",
+    "macOS Intel x64 DMG installation, bundle replacement and removal lifecycle",
+    "Persistent user-data sentinel verification across upgrade and uninstall on every platform",
+    "Complete packaged renderer, preload, SQLite and self-contained engine smoke after installation",
+    "Immutable Quick Start sample corpus v2 integration",
+    "Four-platform packages with SBOM, checksums, notices, source SHA and consolidated release evidence"
   ],
-  "quick_start_tag": "",
+  "quick_start_tag": "studio-sample-corpus-quick-start-v2",
   "full_research_tag": ""
 }
