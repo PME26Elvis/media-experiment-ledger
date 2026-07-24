@@ -6,52 +6,64 @@ This directory is the normative human-readable specification set and implementat
 
 - Public product: **Media Experiment Ledger Studio**
 - Descriptor: **Atlas · Detection · Media Automation**
-- Product status: `implementation_merged_release_qualification_pending`
+- Product status: `release_candidate_qualified_stable_external_evidence_pending`
 - Implementation status: `merged_to_app-main`
 - Contract baseline: `2026-07-23.1`
 - Machine contract: [`../../app-product-contract.json`](../../app-product-contract.json)
 - Long-lived product branch: `app-main`
-- Implementation PR: [#30](https://github.com/PME26Elvis/media-experiment-ledger/pull/30), merged normally
-- Merge commit: `9838b1c5e56d9523087f9739deebd1804746f0d8`
-- Validated implementation head: `447ed656375c6fe934953a0991f2bf4fbcd88122`
-- Desktop App CI: run `29972465923`, Windows/macOS/Ubuntu all successful
+- Initial implementation PR: [#30](https://github.com/PME26Elvis/media-experiment-ledger/pull/30), merged normally
+- Latest lifecycle candidate: [`studio-v1.0.0-rc.2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
+- Latest provider-qualified request: `1.0.0-rc.3`, merged after the complete four-platform dry run
+- Immutable Quick Start corpus: [`studio-sample-corpus-quick-start-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-sample-corpus-quick-start-v2)
+- Stable external qualification register: [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
 - Blocking product questions: **0**
-- Next phase: operator-controlled release qualification and signed prerelease/stable release evidence
 
-## Verified implementation evidence
+The application is implemented and distributable as an explicitly unsigned prerelease. Stable `1.0.0` remains blocked by credentials, rights, real hardware and manual evidence that repository code cannot truthfully manufacture.
 
-The merged application passed the full validation chain on Windows, macOS and Ubuntu:
+## Verified implementation and release evidence
 
-1. locked `npm ci` installation;
-2. production dependency audit;
-3. TypeScript and Vue typecheck;
-4. JavaScript component/domain tests and coverage gates;
-5. Python engine tests;
-6. PyInstaller self-contained engine build and engine protocol smoke;
-7. Electron renderer/main/preload production build;
-8. unpacked Electron package creation;
-9. real packaged application launch;
-10. sandboxed renderer, isolated preload bridges, SQLite integrity and engine availability checks;
-11. platform evidence artifact upload.
+The merged application and release candidates have passed:
 
-Evidence artifacts from run `29972465923`:
+1. locked `npm ci` installation and production dependency audit;
+2. TypeScript/Vue typecheck, JavaScript tests and Python engine tests;
+3. self-contained PyInstaller engine build and protocol smoke;
+4. renderer/main/preload production build;
+5. real packaged application launch on Windows, Linux and macOS;
+6. sandbox, preload bridge, SQLite and engine readiness checks;
+7. 130 route, locale and viewport checks across five locales;
+8. exact public asset allowlist, SBOM, notices, checksums, manifests and consolidated evidence;
+9. pull-request release dry runs that build all four platform targets without creating tags or Releases.
 
-- `app-build-evidence-windows-latest`
-- `app-build-evidence-macos-latest`
-- `app-build-evidence-ubuntu-latest`
+### RC.2 install lifecycle
+
+- Windows x64: silent NSIS baseline install, `0.9.9` → `1.0.0-rc.2` in-place upgrade, portable launch and silent uninstall.
+- Linux x64: baseline `.deb` install, RC.2 upgrade, AppImage launch and package removal.
+- macOS arm64 and Intel x64: baseline DMG installation, RC.2 bundle replacement and removal.
+- Every platform verifies that persistent user data survives upgrade and removal.
+
+### RC.3 provider truth
+
+- The packaged engine reports its actual ONNX Runtime provider inventory through the typed engine protocol.
+- Detection Studio disables unavailable providers and defaults safely to CPU.
+- An explicit accelerator request cannot silently claim CPU fallback as accelerator success.
+- Hosted macOS arm64 and Intel x64 runners prove real CoreML graph-node execution against a deterministic CPU baseline.
+- Hosted Windows proves the packaged DirectML runtime inventory and records truthful CPU fallback where no usable DirectML device exists.
+- Opt-in self-hosted DirectML and CUDA jobs remain fail-closed and require assigned graph nodes greater than zero.
 
 ## Release qualification boundaries
 
-The implementation is merged, but a signed stable `1.0.0` release still requires evidence that cannot be manufactured by ordinary repository code alone:
+Stable `1.0.0` still requires the unchecked evidence in [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49), including:
 
-- Windows signing certificate;
-- Apple Developer ID signing and notarization credentials;
-- GPG and Ed25519 release-signing keys;
-- real DirectML, CUDA and CoreML hardware execution evidence;
-- Full Research corpus redistribution/privacy attestations;
-- final manual large-corpus benchmark and release workflow runs.
+- Windows Authenticode signing;
+- Apple Developer ID signing, notarization, stapling and Gatekeeper verification;
+- GPG checksum signing and Ed25519 offline-update verification;
+- signed online and offline update-path qualification;
+- real DirectML and CUDA hardware execution evidence;
+- a rights-cleared immutable Full Research corpus;
+- published 10,000-image / 1,000-video scale evidence;
+- final accessibility, visual, controlled real-provider and operator acceptance evidence.
 
-These remain release-blocking acceptance items. They do not revert the application to an “unimplemented” state.
+These are release-blocking acceptance items. They do not revert the executable product to an “unimplemented” state, and prereleases must name the missing evidence rather than implying stable qualification.
 
 ## Controlling v1 principle
 
@@ -87,6 +99,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 | [`LICENSING_AND_DISTRIBUTION_POLICY.md`](LICENSING_AND_DISTRIBUTION_POLICY.md) | Apache-2.0 app source and separate model/data/font/template rights | Accepted |
 | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) | Historical decisions; no blocking product questions remain | Resolved register |
 | [`ROUND_03_REFERENCES.md`](ROUND_03_REFERENCES.md) | Official references for builder/updater, safeStorage, Python runtime, libsodium, ONNX providers and test stack | Supporting |
+| [Issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49) | External stable-release evidence checklist | Active release gate |
 
 ## Numbered baseline specifications
 
@@ -111,22 +124,17 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 ### Application stack
 
 - Electron + Vite.
-- Vue 3 + Vuetify 3.
-- Composition API and `<script setup lang="ts">`.
-- TypeScript strict.
-- Pinia for UI/session state.
-- TanStack Vue Query for bounded asynchronous state over typed IPC.
-- SQLite as authoritative project data.
+- Vue 3 + Vuetify 3 with Composition API and `<script setup lang="ts">`.
+- TypeScript strict, Pinia, TanStack Vue Query and SQLite.
 - `electron-builder` + `electron-updater`.
 
 ### Runtime and security
 
 - Self-contained PyInstaller Python engine; no user Python installation.
 - Versioned child-process protocol; no public local server.
-- Sandboxed renderer and self-contained typed preload.
-- Four isolated bridges: main app, diagnostics, report templates and custom models.
+- Sandboxed renderer and closed typed preload bridges.
 - OS/session/expert-env/encrypted-vault credential modes.
-- CPU universal fallback with optional DirectML, CUDA and CoreML provider selection.
+- CPU universal path with truthful DirectML, CUDA and CoreML provider selection.
 
 ### Functional surfaces
 
