@@ -1,0 +1,175 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import type { ModelRecord, SystemInfo } from '../../shared/contracts'
+import PageHeader from '../components/PageHeader.vue'
+import PathField from '../components/PathField.vue'
+
+type ProviderKey = 'cpu' | 'directml' | 'cuda' | 'coreml'
+type ProviderSupport = Record<ProviderKey, { provider: string; available: boolean }>
+type ProviderAwareSystemInfo = SystemInfo & {
+  engineProviders?: {
+    runtime_version: string
+    runtime_device: string
+    available_providers: string[]
+    provider_support: Partial<ProviderSupport>
+    distributions: Record<string, string>
+  }
+}
+
+const input = ref('')
+const output = ref('')
+const modelId = ref('')
+const provider = ref<ProviderKey>('cpu')
+const allowProviderFallback = ref(true)
+const threshold = ref(0.35)
+const nmsThreshold = ref(0.45)
+const loading = ref(false)
+const models = ref<ModelRecord[]>([])
+const providerInventory = ref<ProviderAwareSystemInfo['engineProviders']>()
+
+const installed = computed(() => models.value.filter(model => model.installed))
+const selected = computed(() => installed.value.find(model => model.id === modelId.value))
+const providerOptions = computed(() => {
+  const labels: Record<ProviderKey, string> = {
+    cpu: 'CPU',
+    directml: 'DirectML',
+    cuda: 'CUDA',
+    coreml: 'CoreML',
+  }
+  return (Object.keys(labels) as ProviderKey[]).map(value => {
+    const support = providerInventory.value?.provider_support?.[value]
+    const available = value === 'cpu' || support?.available === true
+    return {
+      title: `${labels[value]}${available ? '' : ' · unavailable'}`,
+      value,
+      props: { disabled: !available },
+    }
+  })
+})
+const selectedProviderAvailable = computed(() =>
+  provider.value === 'cpu' || providerInventory.value?.provider_support?.[provider.value]?.available === true)
+const providerPolicyText = computed(() => {
+  if (provider.value === 'cpu') return 'CPU is the only configured execution provider.'
+  return allowProviderFallback.value
+    ? 'The accelerator is first priority; unsupported graph nodes may run on CPU.'
+    : 'Strict mode disables implicit CPU execution and fails if the accelerator cannot run the graph.'
+})
+
+onMounted(async () => {
+  const [builtIn, custom, systemInfo] = await Promise.all([
+    window.mel.models.list(),
+    window.melCustomModels.list(),
+    window.mel.systemInfo() as Promise<ProviderAwareSystemInfo>,
+  ])
+  models.value = [...builtIn, ...custom]
+  providerInventory.value = systemInfo.engineProviders
+  modelId.value = installed.value[0]?.id ?? ''
+  if (!selectedProviderAvailable.value) provider.value = 'cpu'
+})
+
+async function run() {
+  if (!selected.value?.localPath || !selectedProviderAvailable.value) return
+  loading.value = true
+  try {
+    await window.mel.jobs.create({
+      kind: 'detection',
+      title: `Detect with ${selected.value.family} ${selected.value.variant}`,
+      config: {
+        input_path: input.value,
+        output_path: output.value,
+        model_id: selected.value.id,
+        model_path: selected.value.localPath,
+        model_sha256: selected.value.sha256,
+        adapter: selected.value.adapter,
+        input_width: selected.value.inputWidth,
+        input_height: selected.value.inputHeight,
+        labels: selected.value.labels,
+        execution_provider: provider.value,
+        allow_provider_fallback: allowProviderFallback.value,
+        device_id: 0,
+        score_threshold: threshold.value,
+        nms_iou_threshold: nmsThreshold.value,
+        max_detections: 300,
+      },
+    })
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="page-wrap">
+    <PageHeader
+      eyebrow="Detection Studio"
+      title="Multi-model inference with durable checkpoints"
+      subtitle="Run built-in registry slots or hash-pinned user-supplied ONNX manifests through the same verified YOLOX and NanoDet decoders."
+      icon="mdi-vector-square"
+      color="accent"
+    />
+    <v-alert v-if="!installed.length" type="warning" variant="tonal" class="mb-5" title="Install a model first">
+      Open Model Manager and import a verified ONNX artifact or declarative user model manifest.
+    </v-alert>
+    <v-card class="glass pa-6">
+      <PathField v-model="input" label="Image corpus" />
+      <PathField v-model="output" label="Detection output directory" />
+      <v-row>
+        <v-col cols="12" md="3">
+          <v-select
+            v-model="modelId"
+            label="Installed model"
+            :items="installed.map(model => ({ title: `${model.family} ${model.variant}${model.id.startsWith('user-') ? ' · user' : ''}`, value: model.id }))"
+            prepend-inner-icon="mdi-cube-outline"
+          />
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-select
+            v-model="provider"
+            label="Execution provider"
+            :items="providerOptions"
+            prepend-inner-icon="mdi-expansion-card-variant"
+          />
+        </v-col>
+        <v-col cols="12" md="2">
+          <v-slider v-model="threshold" label="Score" min="0.05" max="0.95" step="0.05" thumb-label color="accent" />
+        </v-col>
+        <v-col cols="12" md="2">
+          <v-slider v-model="nmsThreshold" label="NMS IoU" min="0.1" max="0.9" step="0.05" thumb-label color="secondary" />
+        </v-col>
+        <v-col cols="12" md="2" class="d-flex align-center">
+          <v-switch
+            v-model="allowProviderFallback"
+            label="CPU fallback"
+            color="secondary"
+            inset
+            hide-details
+            :disabled="provider === 'cpu'"
+          />
+        </v-col>
+      </v-row>
+      <v-alert v-if="providerInventory" color="secondary" variant="tonal" density="compact" class="mb-4">
+        ONNX Runtime {{ providerInventory.runtime_version }} · {{ providerInventory.runtime_device }} ·
+        {{ providerInventory.available_providers.join(', ') }}
+      </v-alert>
+      <v-alert v-else color="warning" variant="tonal" density="compact" class="mb-4">
+        Provider inventory is unavailable. Detection remains limited to the verified CPU path.
+      </v-alert>
+      <v-alert color="info" variant="tonal" density="compact" class="mb-4">
+        {{ providerPolicyText }}
+      </v-alert>
+      <v-alert v-if="selected" color="info" variant="tonal" density="compact" class="mb-4">
+        {{ selected.adapter }} · {{ selected.inputWidth }}×{{ selected.inputHeight }} · {{ selected.sha256?.slice(0, 16) }}…
+        <span v-if="selected.id.startsWith('user-')"> · user-supplied-only</span>
+      </v-alert>
+      <v-btn
+        color="accent"
+        prepend-icon="mdi-crosshairs-gps"
+        :loading="loading"
+        :disabled="!input || !output || !selected || !selectedProviderAvailable"
+        @click="run"
+      >
+        Start detection
+      </v-btn>
+    </v-card>
+  </div>
+</template>

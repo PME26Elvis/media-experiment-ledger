@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "request_revision": 7,
+  "source_branch": "app-main",
+  "version": "1.0.0-rc.3",
+  "channel": "beta",
+  "draft": false,
+  "publish": true,
+  "release_notes": "Media Experiment Ledger Studio 1.0.0-rc.3 makes Detection Studio provider behavior explicit and evidence-driven. The packaged engine now reports its actual ONNX Runtime provider inventory, the UI disables unavailable choices, and inference never silently claims accelerator execution. Hosted CI proves CPU and real CoreML graph-node execution while recording DirectML runtime availability and truthful CPU fallback on GPU-less Windows runners. Real DirectML and CUDA claims remain fail-closed behind opt-in self-hosted hardware gates.",
+  "features": [
+    "Packaged ONNX Runtime provider inventory exposed through the typed engine protocol",
+    "Detection Studio disables unavailable providers and defaults safely to CPU",
+    "No implicit CPU fallback when an accelerator was explicitly requested",
+    "Real CoreML graph-node execution qualification on macOS arm64",
+    "Real CoreML graph-node execution qualification on macOS Intel x64",
+    "Windows DirectML runtime inventory with explicit CPU-fallback evidence on hosted runners",
+    "Opt-in fail-closed self-hosted DirectML hardware qualification",
+    "Opt-in fail-closed self-hosted CUDA hardware qualification",
+    "Deterministic accelerator-versus-CPU tensor comparison with profiling-based node assignment",
+    "All RC.2 install lifecycle, localization, Quick Start corpus and release evidence foundations"
+  ],
+  "quick_start_tag": "studio-sample-corpus-quick-start-v2",
+  "full_research_tag": ""
+}

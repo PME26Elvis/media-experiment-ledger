@@ -1,0 +1,97 @@
+name: Desktop App CI
+on:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - 'app/**'
+      - 'app-product-contract.json'
+      - '.github/workflows/app-ci.yml'
+      - '.github/workflows/app-release*.yml'
+  push:
+    branches: [app-main, app-v1-implementation]
+    paths:
+      - 'app/**'
+      - 'app-product-contract.json'
+      - '.github/workflows/app-ci.yml'
+      - '.github/workflows/app-release*.yml'
+permissions:
+  contents: read
+concurrency:
+  group: desktop-app-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.1'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Install Linux display runtime
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+      - name: Validate package manifest JSON
+        run: node -e "JSON.parse(require('node:fs').readFileSync('package.json','utf8'))"
+      - name: Install locked JavaScript dependencies
+        run: npm ci --loglevel verbose
+      - name: Dependency audit
+        run: npm audit --omit=dev --audit-level=high
+      - name: Typecheck
+        run: node scripts/run-and-log.mjs typecheck.log npm run typecheck
+      - name: JavaScript tests
+        run: node scripts/run-and-log.mjs test.log npm test
+      - name: Install engine dependencies
+        run: python -m pip install -r engine/requirements.txt -r engine/requirements-build.txt
+      - name: Python engine tests
+        run: python scripts/run_python_tests.py
+      - name: Release workflow tool tests
+        run: python -m unittest discover -s scripts/tests -p "test_release_*.py"
+      - name: Build and smoke self-contained engine
+        id: engine
+        run: python scripts/build_engine.py
+      - name: Build Electron application
+        run: npm run build
+      - name: Package unpacked application
+        run: npx electron-builder --dir --publish never
+      - name: Launch packaged application smoke
+        id: packaged_smoke
+        run: python scripts/smoke_packaged_app.py
+      - name: Upload build and launch evidence
+        if: ${{ success() && steps.engine.outcome == 'success' && steps.packaged_smoke.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-build-evidence-${{ matrix.os }}
+          path: |
+            app/engine-bin/mel-engine/engine-build-manifest.json
+            app/packaged-smoke-evidence.json
+            app/package-lock.json
+            app/python-test.log
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: app-ci-failure-${{ matrix.os }}
+          path: |
+            app/typecheck.log
+            app/test.log
+            app/python-test.log
+            app/coverage
+            app/dist
+            app/.engine-build
+            app/engine-bin/mel-engine/engine-build-manifest.json
+            app/packaged-smoke-evidence.json
+            app/package-lock.json
+            ~/.npm/_logs
+          retention-days: 7
