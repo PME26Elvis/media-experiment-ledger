@@ -16,16 +16,68 @@ class ProviderEvidenceEnforcementTests(unittest.TestCase):
         failures = MODULE.enforce(
             provider_key='directml',
             qualification_outcome='success',
-            evidence={'passed': True, 'target': {'assigned_node_count': 17}},
+            evidence={
+                'provider': 'DmlExecutionProvider',
+                'available': True,
+                'status': 'executed',
+                'passed': True,
+                'comparison': {'passed': True},
+                'target': {'assigned_node_count': 17},
+            },
             manifest={'provider_inventory': {'available_providers': ['DmlExecutionProvider', 'CPUExecutionProvider']}},
         )
         self.assertEqual(failures, [])
 
-    def test_rejects_fallback_only_or_failed_evidence(self) -> None:
+    def test_inventory_mode_accepts_truthful_cpu_fallback_probe(self) -> None:
+        failures = MODULE.enforce(
+            provider_key='directml',
+            qualification_outcome='failure',
+            mode='inventory',
+            evidence={
+                'provider': 'DmlExecutionProvider',
+                'available': True,
+                'status': 'executed',
+                'passed': False,
+                'comparison': {'passed': True},
+                'target': {
+                    'assigned_node_count': 0,
+                    'session_providers': ['CPUExecutionProvider'],
+                },
+            },
+            manifest={'provider_inventory': {'available_providers': ['DmlExecutionProvider', 'CPUExecutionProvider']}},
+        )
+        self.assertEqual(failures, [])
+
+    def test_inventory_mode_rejects_missing_runtime_or_broken_probe(self) -> None:
+        failures = MODULE.enforce(
+            provider_key='directml',
+            qualification_outcome='failure',
+            mode='inventory',
+            evidence={
+                'provider': 'DmlExecutionProvider',
+                'available': False,
+                'status': 'error',
+                'passed': False,
+                'error': {'message': 'failed'},
+            },
+            manifest={'provider_inventory': {'available_providers': ['CPUExecutionProvider']}},
+        )
+        self.assertTrue(any('missing qualified provider' in item for item in failures))
+        self.assertTrue(any('did not expose' in item for item in failures))
+        self.assertTrue(any('did not execute a comparison' in item for item in failures))
+
+    def test_execution_mode_rejects_fallback_only_or_failed_evidence(self) -> None:
         failures = MODULE.enforce(
             provider_key='coreml',
             qualification_outcome='failure',
-            evidence={'passed': False, 'target': {'assigned_node_count': 0}, 'error': {'message': 'failed'}},
+            evidence={
+                'provider': 'CoreMLExecutionProvider',
+                'available': False,
+                'status': 'error',
+                'passed': False,
+                'target': {'assigned_node_count': 0},
+                'error': {'message': 'failed'},
+            },
             manifest={'provider_inventory': {'available_providers': ['CPUExecutionProvider']}},
         )
         self.assertGreaterEqual(len(failures), 4)
