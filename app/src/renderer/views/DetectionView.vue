@@ -20,6 +20,7 @@ const input = ref('')
 const output = ref('')
 const modelId = ref('')
 const provider = ref<ProviderKey>('cpu')
+const allowProviderFallback = ref(true)
 const threshold = ref(0.35)
 const nmsThreshold = ref(0.45)
 const loading = ref(false)
@@ -47,6 +48,12 @@ const providerOptions = computed(() => {
 })
 const selectedProviderAvailable = computed(() =>
   provider.value === 'cpu' || providerInventory.value?.provider_support?.[provider.value]?.available === true)
+const providerPolicyText = computed(() => {
+  if (provider.value === 'cpu') return 'CPU is the only configured execution provider.'
+  return allowProviderFallback.value
+    ? 'The accelerator is first priority; unsupported graph nodes may run on CPU.'
+    : 'Strict mode disables implicit CPU execution and fails if the accelerator cannot run the graph.'
+})
 
 onMounted(async () => {
   const [builtIn, custom, systemInfo] = await Promise.all([
@@ -78,7 +85,8 @@ async function run() {
         input_height: selected.value.inputHeight,
         labels: selected.value.labels,
         execution_provider: provider.value,
-        allow_provider_fallback: false,
+        allow_provider_fallback: allowProviderFallback.value,
+        device_id: 0,
         score_threshold: threshold.value,
         nms_iou_threshold: nmsThreshold.value,
         max_detections: 300,
@@ -106,7 +114,7 @@ async function run() {
       <PathField v-model="input" label="Image corpus" />
       <PathField v-model="output" label="Detection output directory" />
       <v-row>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="3">
           <v-select
             v-model="modelId"
             label="Installed model"
@@ -114,7 +122,7 @@ async function run() {
             prepend-inner-icon="mdi-cube-outline"
           />
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="3">
           <v-select
             v-model="provider"
             label="Execution provider"
@@ -128,6 +136,16 @@ async function run() {
         <v-col cols="12" md="2">
           <v-slider v-model="nmsThreshold" label="NMS IoU" min="0.1" max="0.9" step="0.05" thumb-label color="secondary" />
         </v-col>
+        <v-col cols="12" md="2" class="d-flex align-center">
+          <v-switch
+            v-model="allowProviderFallback"
+            label="CPU fallback"
+            color="secondary"
+            inset
+            hide-details
+            :disabled="provider === 'cpu'"
+          />
+        </v-col>
       </v-row>
       <v-alert v-if="providerInventory" color="secondary" variant="tonal" density="compact" class="mb-4">
         ONNX Runtime {{ providerInventory.runtime_version }} · {{ providerInventory.runtime_device }} ·
@@ -135,6 +153,9 @@ async function run() {
       </v-alert>
       <v-alert v-else color="warning" variant="tonal" density="compact" class="mb-4">
         Provider inventory is unavailable. Detection remains limited to the verified CPU path.
+      </v-alert>
+      <v-alert color="info" variant="tonal" density="compact" class="mb-4">
+        {{ providerPolicyText }}
       </v-alert>
       <v-alert v-if="selected" color="info" variant="tonal" density="compact" class="mb-4">
         {{ selected.adapter }} · {{ selected.inputWidth }}×{{ selected.inputHeight }} · {{ selected.sha256?.slice(0, 16) }}…

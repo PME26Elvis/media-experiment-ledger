@@ -99,6 +99,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 | [`LICENSING_AND_DISTRIBUTION_POLICY.md`](LICENSING_AND_DISTRIBUTION_POLICY.md) | Apache-2.0 app source and separate model/data/font/template rights | Accepted |
 | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) | Historical decisions; no blocking product questions remain | Resolved register |
 | [`ROUND_03_REFERENCES.md`](ROUND_03_REFERENCES.md) | Official references for builder/updater, safeStorage, Python runtime, libsodium, ONNX providers and test stack | Supporting |
+| [`HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md`](HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md) | Mainstream provider-pattern audit, software feasibility verdicts and phased feature roadmap | Active engineering plan |
 | [Issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49) | External stable-release evidence checklist | Active release gate |
 
 ## Numbered baseline specifications

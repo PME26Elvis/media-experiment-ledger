@@ -120,7 +120,7 @@ jobs:
           python -m pip install --upgrade pip --quiet
           python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
       - name: Build and inventory self-contained DirectML engine
-        run: python scripts/build_engine.py
+        run: python scripts/build_engine.py > engine-build-windows-directml.log 2>&1
       - name: Prove DirectML graph-node execution against CPU
         id: provider_qualification
         run: python scripts/qualify_detection_provider.py --provider directml --required --output provider-windows-directml-hardware.json
@@ -138,6 +138,7 @@ jobs:
           name: stable-provider-windows-directml-hardware
           path: |
             app/provider-windows-directml-hardware.json
+            app/engine-build-windows-directml.log
             app/engine-bin/mel-engine/engine-build-manifest.json
           if-no-files-found: error
           retention-days: 30
@@ -145,10 +146,12 @@ jobs:
   qualify-cuda-hardware:
     if: vars.MEL_ENABLE_CUDA_QUALIFICATION == 'true'
     runs-on: [self-hosted, linux, x64, cuda]
-    timeout-minutes: 90
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: app
+    env:
+      CUDA_DEVICE_ID: ${{ vars.MEL_CUDA_DEVICE_ID || '0' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,18 +159,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install CUDA provider runtime
+      - name: Install CUDA provider runtime and build dependencies
         run: |
           python -m pip install --upgrade pip --quiet
           python -m pip install --quiet -r engine/requirements.txt -r engine/requirements-build.txt
-          python -m pip uninstall -y onnxruntime
-          python -m pip install --quiet 'onnxruntime-gpu>=1.22,<2'
-      - name: Prove CUDA provider node execution against CPU
-        run: python scripts/qualify_detection_provider.py --provider cuda --required --output provider-linux-cuda.json
+          python -m pip uninstall -y onnxruntime onnxruntime-directml onnxruntime-gpu
+          python -m pip install --quiet 'onnxruntime-gpu[cuda,cudnn]>=1.22,<2'
+      - name: Run engine unit tests in the CUDA dependency environment
+        run: python scripts/run_python_tests.py
+      - name: Build and inventory self-contained CUDA engine
+        run: python scripts/build_engine.py > engine-build-linux-cuda.log 2>&1
+      - name: Prove CUDA graph-node execution against CPU
+        id: provider_qualification
+        run: >-
+          python scripts/qualify_detection_provider.py
+          --provider cuda
+          --device-id "$CUDA_DEVICE_ID"
+          --required
+          --output provider-linux-cuda.json
+      - name: Enforce CUDA execution and packaged-provider evidence
+        run: >-
+          python scripts/enforce_provider_evidence.py
+          --provider cuda
+          --mode execution
+          --qualification-outcome ${{ steps.provider_qualification.outcome }}
+          --evidence provider-linux-cuda.json
+          --manifest engine-bin/mel-engine/engine-build-manifest.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: stable-provider-linux-cuda-hardware
-          path: app/provider-linux-cuda.json
+          path: |
+            app/provider-linux-cuda.json
+            app/engine-build-linux-cuda.log
+            app/engine-bin/mel-engine/engine-build-manifest.json
+            app/python-test.log
           if-no-files-found: error
           retention-days: 30

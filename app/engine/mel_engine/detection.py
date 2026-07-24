@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image
 
 from .common import IMAGE_EXTENSIONS, emit, iter_media, json_fingerprint, read_json, sha256, write_json
+from .providers import create_session_options, prepare_runtime, provider_name, provider_plan
 
 
 def _load_vendor_modules():
@@ -27,19 +28,18 @@ def _load_vendor_modules():
     return yolo_core, nanodet_core, labels_path
 
 
-def select_providers(requested: str, available: list[str]) -> tuple[list[str], bool]:
-    provider_map = {
-        'cpu': 'CPUExecutionProvider',
-        'cuda': 'CUDAExecutionProvider',
-        'directml': 'DmlExecutionProvider',
-        'coreml': 'CoreMLExecutionProvider',
-    }
-    desired = provider_map.get(requested.lower(), 'CPUExecutionProvider')
-    if desired in available:
-        return [desired], False
-    if 'CPUExecutionProvider' not in available:
-        raise RuntimeError(f'Neither requested provider {desired} nor CPU fallback is available: {available}')
-    return ['CPUExecutionProvider'], desired != 'CPUExecutionProvider'
+def select_providers(
+    requested: str,
+    available: list[str],
+    *,
+    allow_cpu_fallback: bool = False,
+) -> tuple[list[str], bool]:
+    plan = provider_plan(
+        requested,
+        available,
+        allow_cpu_fallback=allow_cpu_fallback,
+    )
+    return list(plan['provider_names']), bool(plan['provider_fallback'])
 
 
 def _nanodet_lock(width: int, height: int) -> dict[str, Any]:
@@ -78,20 +78,29 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         import onnxruntime as ort
     except ImportError as error:
         raise RuntimeError('onnxruntime is required for detector inference') from error
+
     requested_provider = str(request.get('execution_provider', 'cpu')).lower()
-    providers, provider_fallback = select_providers(requested_provider, ort.get_available_providers())
-    allow_provider_fallback = bool(request.get('allow_provider_fallback', False))
-    if provider_fallback and not allow_provider_fallback:
-        raise RuntimeError(
-            f'Requested execution provider {requested_provider!r} is unavailable. '
-            'Choose an available provider or explicitly enable CPU fallback.',
-        )
-    options = ort.SessionOptions()
-    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    if providers[0] == 'DmlExecutionProvider':
-        options.enable_mem_pattern = False
-        options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-    session = ort.InferenceSession(str(model_path), options, providers=providers)
+    requested_provider_name = provider_name(requested_provider)
+    prepare_runtime(ort, requested_provider_name)
+    allow_provider_fallback = bool(request.get('allow_provider_fallback', True))
+    device_id = int(request.get('device_id', 0))
+    plan = provider_plan(
+        requested_provider,
+        list(ort.get_available_providers()),
+        allow_cpu_fallback=allow_provider_fallback,
+        model_path=model_path,
+        device_id=device_id,
+    )
+    options = create_session_options(
+        ort,
+        primary_provider=str(plan['active_provider']),
+        allow_cpu_fallback=allow_provider_fallback,
+    )
+    session = ort.InferenceSession(
+        str(model_path),
+        sess_options=options,
+        providers=plan['providers'],
+    )
     input_meta = session.get_inputs()[0]
     output_names = [item.name for item in session.get_outputs()]
 
@@ -105,8 +114,9 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
     confidence = float(request.get('score_threshold', 0.35))
     nms_iou = float(request.get('nms_iou_threshold', 0.45))
     max_detections = int(request.get('max_detections', 300))
+    provider_fallback = bool(plan['provider_fallback'])
     fingerprint = json_fingerprint({
-        'schema': 3,
+        'schema': 4,
         'model_sha256': actual_model_sha,
         'adapter': adapter,
         'input_width': input_width,
@@ -115,8 +125,11 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         'nms_iou': nms_iou,
         'max_detections': max_detections,
         'requested_provider': requested_provider,
-        'providers': session.get_providers(),
+        'configured_providers': plan['provider_names'],
+        'provider_options': plan['provider_options'],
         'provider_fallback': provider_fallback,
+        'allow_provider_fallback': allow_provider_fallback,
+        'device_id': device_id,
     })
     checkpoint_path = output_dir / '.mel-detection-checkpoint.json'
     checkpoint = read_json(checkpoint_path, {})
@@ -162,7 +175,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         render = yolo_core.render_annotated(source_image, detections, annotated_path)
         sidecar_path = sidecars_dir / f'{item_id}.json'
         result = {
-            'schema_version': 3,
+            'schema_version': 4,
             'item_id': item_id,
             'source_path': str(path),
             'source_sha256': source_sha,
@@ -170,8 +183,12 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
             'model_sha256': actual_model_sha,
             'adapter': adapter,
             'requested_provider': requested_provider,
+            'configured_providers': plan['provider_names'],
             'execution_providers': session.get_providers(),
+            'provider_options': plan['provider_options'],
             'provider_fallback': provider_fallback,
+            'allow_provider_fallback': allow_provider_fallback,
+            'device_id': device_id,
             'thresholds': {'confidence': confidence, 'nms_iou': nms_iou, 'max_detections': max_detections},
             'detections': [detection.as_dict() for detection in detections],
             'detection_count': len(detections),
@@ -184,16 +201,19 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         emit('progress', stage='inference', progress=index / max(len(files), 1) * 100, completed=index, total=len(files))
 
     manifest = {
-        'schema_version': 3,
+        'schema_version': 4,
         'job_fingerprint': fingerprint,
         'model_id': request.get('model_id'),
         'model_path': str(model_path),
         'model_sha256': actual_model_sha,
         'adapter': adapter,
         'requested_provider': requested_provider,
+        'configured_providers': plan['provider_names'],
         'execution_providers': session.get_providers(),
+        'provider_options': plan['provider_options'],
         'provider_fallback': provider_fallback,
         'allow_provider_fallback': allow_provider_fallback,
+        'device_id': device_id,
         'input_count': len(files),
         'detected_item_count': sum(1 for item in results if item.get('detection_count', 0) > 0),
         'box_count': sum(int(item.get('detection_count', 0)) for item in results),

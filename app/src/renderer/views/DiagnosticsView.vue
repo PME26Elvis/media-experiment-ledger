@@ -121,7 +121,7 @@ onMounted(async () => {
         <div><div class="text-overline text-primary">Payload preview</div><div class="text-h6 font-weight-bold">Exact redacted structure</div></div>
         <v-btn variant="tonal" prepend-icon="mdi-refresh" :loading="busy === 'refresh'" @click="perform('refresh', refresh, 'Preview refreshed.')">Refresh</v-btn>
       </div>
-      <pre class="diagnostics-preview" tabindex="0">{{ previewJson }}</pre>
+      <pre class="diagnostics-preview" tabindex="0" aria-label="Exact redacted diagnostics payload preview">{{ previewJson }}</pre>
     </v-card>
 
     <v-snackbar v-model="snackbar" :color="messageType" :timeout="6500">{{ message }}</v-snackbar>

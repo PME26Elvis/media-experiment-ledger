@@ -18,17 +18,18 @@ from PIL import Image, ImageDraw
 APP_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = APP_ROOT.parent
 TOOLS_ROOT = REPO_ROOT / 'tools'
-if str(TOOLS_ROOT) not in sys.path:
-    sys.path.insert(0, str(TOOLS_ROOT))
+ENGINE_ROOT = APP_ROOT / 'engine'
+for root in (TOOLS_ROOT, ENGINE_ROOT):
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
 
 import yolo_core  # type: ignore  # noqa: E402
-
-PROVIDERS = {
-    'cpu': 'CPUExecutionProvider',
-    'directml': 'DmlExecutionProvider',
-    'coreml': 'CoreMLExecutionProvider',
-    'cuda': 'CUDAExecutionProvider',
-}
+from mel_engine.providers import (  # noqa: E402
+    PROVIDER_MAP,
+    create_session_options,
+    prepare_runtime,
+    provider_plan,
+)
 
 
 def sha256(path: Path) -> str:
@@ -68,34 +69,6 @@ def test_image(width: int, height: int) -> Image.Image:
     return image
 
 
-def provider_options(provider: str) -> list[Any]:
-    if provider == 'CoreMLExecutionProvider':
-        return [
-            (
-                provider,
-                {
-                    'ModelFormat': 'MLProgram',
-                    'MLComputeUnits': 'ALL',
-                    'RequireStaticInputShapes': '0',
-                    'EnableOnSubgraphs': '0',
-                },
-            ),
-            'CPUExecutionProvider',
-        ]
-    return [provider, 'CPUExecutionProvider'] if provider != 'CPUExecutionProvider' else [provider]
-
-
-def session_options(ort: Any, profile_prefix: Path, provider: str) -> Any:
-    options = ort.SessionOptions()
-    options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-    options.enable_profiling = True
-    options.profile_file_prefix = str(profile_prefix)
-    if provider == 'DmlExecutionProvider':
-        options.enable_mem_pattern = False
-        options.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-    return options
-
-
 def profile_provider_counts(path: Path) -> dict[str, int]:
     payload = json.loads(path.read_text(encoding='utf-8'))
     counts: dict[str, int] = {}
@@ -106,12 +79,34 @@ def profile_provider_counts(path: Path) -> dict[str, int]:
     return dict(sorted(counts.items()))
 
 
-def infer(ort: Any, model_path: Path, tensor: np.ndarray, provider: str, root: Path) -> tuple[np.ndarray, float, list[str], dict[str, int]]:
-    options = session_options(ort, root / f'{provider}-profile', provider)
+def infer(
+    ort: Any,
+    model_path: Path,
+    tensor: np.ndarray,
+    provider_key: str,
+    root: Path,
+    *,
+    device_id: int,
+) -> tuple[np.ndarray, float, list[str], dict[str, int], dict[str, Any]]:
+    requested_provider = PROVIDER_MAP[provider_key]
+    prepare_runtime(ort, requested_provider)
+    plan = provider_plan(
+        provider_key,
+        list(ort.get_available_providers()),
+        allow_cpu_fallback=True,
+        model_path=model_path,
+        device_id=device_id,
+    )
+    options = create_session_options(
+        ort,
+        primary_provider=str(plan['active_provider']),
+        allow_cpu_fallback=True,
+        profile_prefix=root / f'{provider_key}-profile',
+    )
     session = ort.InferenceSession(
         str(model_path),
         sess_options=options,
-        providers=provider_options(provider),
+        providers=plan['providers'],
     )
     input_name = session.get_inputs()[0].name
     output_names = [item.name for item in session.get_outputs()]
@@ -119,7 +114,18 @@ def infer(ort: Any, model_path: Path, tensor: np.ndarray, provider: str, root: P
     outputs = session.run(output_names, {input_name: tensor})
     elapsed_ms = (time.perf_counter() - started) * 1000
     profile_path = Path(session.end_profiling())
-    return np.asarray(outputs[0]), elapsed_ms, session.get_providers(), profile_provider_counts(profile_path)
+    serializable_plan = {
+        key: value
+        for key, value in plan.items()
+        if key != 'providers'
+    }
+    return (
+        np.asarray(outputs[0]),
+        elapsed_ms,
+        session.get_providers(),
+        profile_provider_counts(profile_path),
+        serializable_plan,
+    )
 
 
 def comparison(cpu: np.ndarray, target: np.ndarray) -> dict[str, Any]:
@@ -153,7 +159,8 @@ def comparison(cpu: np.ndarray, target: np.ndarray) -> dict[str, Any]:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description='Qualify an ONNX Runtime execution provider against the CPU baseline.')
-    parser.add_argument('--provider', choices=sorted(PROVIDERS), required=True)
+    parser.add_argument('--provider', choices=sorted(PROVIDER_MAP), required=True)
+    parser.add_argument('--device-id', type=int, default=0)
     parser.add_argument('--required', action='store_true')
     parser.add_argument('--output', type=Path, required=True)
     return parser.parse_args()
@@ -164,9 +171,10 @@ def main() -> int:
     output_path = args.output.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     evidence: dict[str, Any] = {
-        'schema_version': 1,
+        'schema_version': 2,
         'requested_provider': args.provider,
-        'provider': PROVIDERS[args.provider],
+        'provider': PROVIDER_MAP[args.provider],
+        'device_id': args.device_id,
         'required': args.required,
         'platform': platform.system().lower(),
         'machine': platform.machine().lower(),
@@ -177,8 +185,9 @@ def main() -> int:
     try:
         import onnxruntime as ort
 
+        provider = PROVIDER_MAP[args.provider]
+        prepare_runtime(ort, provider)
         available = list(ort.get_available_providers())
-        provider = PROVIDERS[args.provider]
         evidence.update({
             'runtime_version': ort.__version__,
             'runtime_device': ort.get_device(),
@@ -200,11 +209,21 @@ def main() -> int:
                     test_image(int(lock['input_width']), int(lock['input_height'])),
                     (int(lock['input_height']), int(lock['input_width'])),
                 )
-                cpu_output, cpu_ms, cpu_session_providers, cpu_profile = infer(
-                    ort, model_path, prepared.tensor, 'CPUExecutionProvider', root,
+                cpu_output, cpu_ms, cpu_session_providers, cpu_profile, cpu_plan = infer(
+                    ort,
+                    model_path,
+                    prepared.tensor,
+                    'cpu',
+                    root,
+                    device_id=0,
                 )
-                target_output, target_ms, target_session_providers, target_profile = infer(
-                    ort, model_path, prepared.tensor, provider, root,
+                target_output, target_ms, target_session_providers, target_profile, target_plan = infer(
+                    ort,
+                    model_path,
+                    prepared.tensor,
+                    args.provider,
+                    root,
+                    device_id=args.device_id,
                 )
                 comparison_result = comparison(cpu_output, target_output)
                 assigned_nodes = int(target_profile.get(provider, 0))
@@ -216,12 +235,14 @@ def main() -> int:
                         'elapsed_ms': round(cpu_ms, 3),
                         'session_providers': cpu_session_providers,
                         'profile_provider_nodes': cpu_profile,
+                        'provider_plan': cpu_plan,
                     },
                     'target': {
                         'elapsed_ms': round(target_ms, 3),
                         'session_providers': target_session_providers,
                         'profile_provider_nodes': target_profile,
                         'assigned_node_count': assigned_nodes,
+                        'provider_plan': target_plan,
                     },
                     'comparison': comparison_result,
                 })

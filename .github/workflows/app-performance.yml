@@ -33,11 +33,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: app-v1-implementation
+          ref: app-main
+          show-progress: false
       - uses: actions/setup-python@v5
-        with: { python-version: '3.12' }
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: app/engine/requirements.txt
       - name: Install engine dependencies
-        run: python -m pip install -r app/engine/requirements.txt
+        run: python -m pip install --quiet -r app/engine/requirements.txt
       - name: Run full synthetic corpus benchmark
         env:
           PYTHONPATH: app/engine

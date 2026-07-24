@@ -40,7 +40,11 @@ class EngineTests(unittest.TestCase):
             self.assertEqual(len(result['assets'][0]['proxies']), 4)
 
     def test_execution_provider_falls_back_to_cpu(self):
-        providers, fallback = select_providers('cuda', ['CPUExecutionProvider'])
+        providers, fallback = select_providers(
+            'cuda',
+            ['CPUExecutionProvider'],
+            allow_cpu_fallback=True,
+        )
         self.assertEqual(providers, ['CPUExecutionProvider'])
         self.assertTrue(fallback)
 

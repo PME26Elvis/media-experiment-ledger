@@ -8,25 +8,34 @@ from mel_engine.scan import PROXY_EDGES, run_scan
 
 
 class ImportPipelineTests(unittest.TestCase):
-    def test_managed_copy_creates_content_addressed_media_and_proxy_pyramid(self):
+    def test_managed_copy_serializes_duplicate_content_writers(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / 'source'
             project = root / 'project'
             source.mkdir()
-            Image.new('RGB', (960, 540), 'navy').save(source / 'one.png')
-            Image.new('RGB', (960, 540), 'navy').save(source / 'duplicate.png')
+            duplicate_count = 8
+            for index in range(duplicate_count):
+                Image.new('RGB', (960, 540), 'navy').save(source / f'duplicate-{index:02d}.png')
 
             result = run_scan({
                 'image_path': str(source),
                 'output_path': str(project),
                 'import_mode': 'copy',
-                'workers': 2,
+                'workers': 8,
             })
-            self.assertEqual(result['indexed_count'], 2)
+            self.assertEqual(result['indexed_count'], duplicate_count)
+            self.assertEqual(result['error_count'], 0)
             self.assertEqual(result['unique_content_count'], 1)
-            self.assertEqual(result['duplicate_content_count'], 1)
+            self.assertEqual(result['duplicate_content_count'], duplicate_count - 1)
             self.assertTrue((project / 'portable-project.json').is_file())
+            stored_paths = {record['stored_path'] for record in result['assets']}
+            proxy_paths = {
+                tuple(proxy['path'] for proxy in record['proxies'])
+                for record in result['assets']
+            }
+            self.assertEqual(len(stored_paths), 1)
+            self.assertEqual(len(proxy_paths), 1)
             for record in result['assets']:
                 self.assertEqual(record['storage_mode'], 'copy')
                 self.assertTrue(Path(record['stored_path']).is_file())

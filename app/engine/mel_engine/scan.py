@@ -5,6 +5,7 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any
 from uuid import uuid4
 
@@ -15,6 +16,17 @@ from .common import IMAGE_EXTENSIONS, emit, iter_media, read_json, sha256, write
 
 PROXY_EDGES = (160, 320, 640, 1280)
 DEFAULT_COPY_THRESHOLD_BYTES = 5 * 1024 * 1024 * 1024
+_CONTENT_LOCKS: dict[str, Lock] = {}
+_CONTENT_LOCKS_GUARD = Lock()
+
+
+def content_lock(digest: str) -> Lock:
+    with _CONTENT_LOCKS_GUARD:
+        lock = _CONTENT_LOCKS.get(digest)
+        if lock is None:
+            lock = Lock()
+            _CONTENT_LOCKS[digest] = lock
+        return lock
 
 
 def image_metadata(path: Path) -> dict[str, Any]:
@@ -139,13 +151,17 @@ def process_media(path: Path, output: Path, effective_mode: str, previous: dict[
     else:
         preview_source, metadata = video_poster(path)
 
-    proxies = [
-        save_proxy(preview_source, output / 'proxies' / digest[:2] / digest / f'{edge}.jpg', edge)
-        for edge in PROXY_EDGES
-    ]
-    stored_path = str(path)
-    if effective_mode == 'copy':
-        stored_path = str(materialize(path, output / 'managed-media' / 'blobs', digest))
+    # Duplicate inputs intentionally share a content-addressed blob and proxy pyramid.
+    # Serialize writers per digest so Windows never observes a target while another
+    # thread is replacing or hashing the same file.
+    with content_lock(digest):
+        proxies = [
+            save_proxy(preview_source, output / 'proxies' / digest[:2] / digest / f'{edge}.jpg', edge)
+            for edge in PROXY_EDGES
+        ]
+        stored_path = str(path)
+        if effective_mode == 'copy':
+            stored_path = str(materialize(path, output / 'managed-media' / 'blobs', digest))
     return {
         'source_path': str(path),
         'stored_path': stored_path,
