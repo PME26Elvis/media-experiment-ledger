@@ -89,7 +89,7 @@ class ReleasePlanTests(unittest.TestCase):
             )
 
     def test_channel_and_prerelease_suffix_must_match(self) -> None:
-        with self.assertRaisesRegex(ValueError, 'matching -beta'):
+        with self.assertRaisesRegex(ValueError, 'beta distribution accepts'):
             resolve_version(
                 '0.1.0',
                 channel='beta',
