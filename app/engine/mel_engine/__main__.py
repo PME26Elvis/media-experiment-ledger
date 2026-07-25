@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Any
 
@@ -40,16 +41,28 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
     raise ValueError(f'Unsupported operation: {operation}')
 
 
-def main() -> int:
+def process_line(line: str) -> bool:
+    if not line.strip():
+        return True
     try:
-        request = json.loads(sys.stdin.readline())
+        request = json.loads(line)
         emit('progress', stage='validated', progress=0, completed=0, total=0)
         result = dispatch(request)
         emit('result', data=result)
-        return 0
+        return True
     except Exception as error:
         emit('error', message=f'{type(error).__name__}: {error}')
-        return 1
+        return False
+
+
+def main() -> int:
+    persistent = os.environ.get('MEL_ENGINE_PERSISTENT') == '1'
+    if persistent:
+        for line in sys.stdin:
+            process_line(line)
+        return 0
+    line = sys.stdin.readline()
+    return 0 if process_line(line) else 1
 
 
 if __name__ == '__main__':
