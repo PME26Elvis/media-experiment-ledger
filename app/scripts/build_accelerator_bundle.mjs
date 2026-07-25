@@ -1,7 +1,20 @@
 #!/usr/bin/env node
 import { createHash, generateKeyPairSync, sign, verify } from 'node:crypto'
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
-import { basename, join, relative, resolve, sep } from 'node:path'
+import {
+  chmodSync,
+  copyFileSync,
+  cpSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  realpathSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
+import { basename, dirname, join, relative, resolve, sep } from 'node:path'
 import process from 'node:process'
 
 function argumentsMap(argv) {
@@ -25,6 +38,31 @@ function required(values, key) {
 
 function sha256(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex')
+}
+
+function materializeSymlinks(root) {
+  const visit = directory => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = join(directory, entry.name)
+      const details = lstatSync(path)
+      if (details.isSymbolicLink()) {
+        const target = realpathSync(path)
+        const targetDetails = statSync(target)
+        rmSync(path, { recursive: true, force: true })
+        if (targetDetails.isDirectory()) {
+          cpSync(target, path, { recursive: true, force: true, dereference: true })
+          visit(path)
+        } else if (targetDetails.isFile()) {
+          mkdirSync(dirname(path), { recursive: true })
+          copyFileSync(target, path)
+          chmodSync(path, targetDetails.mode)
+        } else {
+          throw new Error(`Unsupported symbolic-link target in accelerator engine: ${target}`)
+        }
+      } else if (details.isDirectory()) visit(path)
+    }
+  }
+  visit(root)
 }
 
 function walk(root) {
@@ -104,10 +142,11 @@ if (!['directml', 'cuda', 'coreml'].includes(profile)) throw new Error(`Unsuppor
 if (!existsSync(engineRoot) || !statSync(engineRoot).isDirectory()) throw new Error(`Engine root does not exist: ${engineRoot}`)
 mkdirSync(outputRoot, { recursive: true })
 const bundleEngineRoot = join(outputRoot, 'engine')
-// PyInstaller uses platform-native symlinks for some Unix libraries. The transport
-// format intentionally contains only regular files, so materialize those links
-// while copying and keep the application-side installer fail-closed on symlinks.
 cpSync(engineRoot, bundleEngineRoot, { recursive: true, errorOnExist: false, force: true, dereference: true })
+// PyInstaller's macOS and Linux layouts may retain relative symlinks even when
+// the initial recursive copy requests dereferencing. Replace every remaining
+// link with an ordinary file/directory before hashing or transport.
+materializeSymlinks(bundleEngineRoot)
 
 const buildManifestPath = join(bundleEngineRoot, 'engine-build-manifest.json')
 if (!existsSync(buildManifestPath)) throw new Error('engine-build-manifest.json is required in the engine root')
