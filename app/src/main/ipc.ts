@@ -1,6 +1,8 @@
 import { app, dialog, ipcMain, shell } from 'electron'
 import { z } from 'zod'
 import { IPC, type CreateJobRequest, type ReportDocument, type StudioSettings } from '../shared/contracts'
+import { AcceleratorBundleManager } from './accelerator-bundle-manager'
+import { registerAcceleratorBundleIpc } from './accelerator-bundle-ipc'
 import { StudioDatabase } from './database'
 import { engineProviderInventory, engineReady } from './engine'
 import { registerHardwareIpc } from './hardware-ipc'
@@ -56,6 +58,7 @@ export function registerIpc(
 ): void {
   registerHardwareIpc(app.getPath('userData'))
   registerResourceSchedulerIpc(jobs)
+  registerAcceleratorBundleIpc(new AcceleratorBundleManager(app.getPath('userData'), process.resourcesPath, app.getVersion(), jobs))
   ipcMain.handle(IPC.systemInfo, async () => ({
     platform: process.platform,
     arch: process.arch,
@@ -119,28 +122,21 @@ export function registerIpc(
   ipcMain.handle(IPC.reportsList, () => reports.list())
   ipcMain.handle(IPC.reportsCreate, (_event, title?: string) => reports.create(title))
   ipcMain.handle(IPC.reportsGet, (_event, id: string) => reports.get(uuidSchema.parse(id)))
-  ipcMain.handle(IPC.reportsSave, (_event, document: ReportDocument, checkpoint?: boolean) =>
-    reports.save(document, Boolean(checkpoint)))
+  ipcMain.handle(IPC.reportsSave, (_event, document: ReportDocument, checkpoint?: boolean) => reports.save(document, Boolean(checkpoint)))
   ipcMain.handle(IPC.reportsDelete, (_event, id: string) => reports.delete(uuidSchema.parse(id)))
   ipcMain.handle(IPC.reportsImportAtlas, (_event, path: string) => reports.importAtlas(pathSchema.parse(path)))
-  ipcMain.handle(IPC.reportsExportPdf, (_event, id: string, outputDirectory: string) =>
-    reports.exportPdf(uuidSchema.parse(id), pathSchema.parse(outputDirectory)))
+  ipcMain.handle(IPC.reportsExportPdf, (_event, id: string, outputDirectory: string) => reports.exportPdf(uuidSchema.parse(id), pathSchema.parse(outputDirectory)))
   ipcMain.handle(IPC.reportsRevisions, (_event, id: string) => reports.revisions(uuidSchema.parse(id)))
-  ipcMain.handle(IPC.reportsRestore, (_event, id: string, revisionPath: string) =>
-    reports.restore(uuidSchema.parse(id), pathSchema.parse(revisionPath)))
+  ipcMain.handle(IPC.reportsRestore, (_event, id: string, revisionPath: string) => reports.restore(uuidSchema.parse(id), pathSchema.parse(revisionPath)))
 
   ipcMain.handle(IPC.recoveryList, () => recovery.list())
-  ipcMain.handle(IPC.recoveryCreate, (_event, reason: string) =>
-    recovery.create(z.string().min(1).max(300).parse(reason)))
+  ipcMain.handle(IPC.recoveryCreate, (_event, reason: string) => recovery.create(z.string().min(1).max(300).parse(reason)))
   ipcMain.handle(IPC.recoveryIntegrity, () => db.integrityCheck())
   ipcMain.handle(IPC.recoveryRemove, (_event, id: string) => recovery.remove(z.string().min(1).max(160).parse(id)))
   ipcMain.handle(IPC.recoveryRestore, async (_event, id: string) => {
     await jobs.pauseAll()
     const result = recovery.scheduleRestore(z.string().min(1).max(160).parse(id))
-    setImmediate(() => {
-      app.relaunch()
-      app.exit(0)
-    })
+    setImmediate(() => { app.relaunch(); app.exit(0) })
     return result
   })
 
@@ -148,7 +144,6 @@ export function registerIpc(
   ipcMain.handle(IPC.updaterCheck, () => updater.check())
   ipcMain.handle(IPC.updaterDownload, () => updater.download())
   ipcMain.handle(IPC.updaterInstall, () => updater.install())
-  ipcMain.handle(IPC.updaterImportOffline, (_event, manifestPath: string, packagePath: string) =>
-    updater.importOffline(pathSchema.parse(manifestPath), pathSchema.parse(packagePath)))
+  ipcMain.handle(IPC.updaterImportOffline, (_event, manifestPath: string, packagePath: string) => updater.importOffline(pathSchema.parse(manifestPath), pathSchema.parse(packagePath)))
   ipcMain.handle(IPC.updaterOpenOffline, () => updater.openOffline())
 }
