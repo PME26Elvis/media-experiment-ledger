@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import type { AcceleratorBundleApi } from '../shared/accelerator-bundle-contracts'
 import type { MelDesktopApi } from '../shared/contracts'
 import type { CustomModelApi } from '../shared/custom-model-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
@@ -28,6 +29,10 @@ const HARDWARE_IPC = {
 const RESOURCE_SCHEDULER_IPC = {
   snapshot: 'mel:resource-scheduler-snapshot', preferencesGet: 'mel:resource-scheduler-preferences-get', preferencesSet: 'mel:resource-scheduler-preferences-set',
 } as const satisfies typeof import('../shared/resource-scheduler-contracts').RESOURCE_SCHEDULER_IPC
+
+const ACCELERATOR_BUNDLE_IPC = {
+  snapshot: 'mel:accelerator-bundles-snapshot', install: 'mel:accelerator-bundles-install', activate: 'mel:accelerator-bundles-activate', rollback: 'mel:accelerator-bundles-rollback', quarantine: 'mel:accelerator-bundles-quarantine', remove: 'mel:accelerator-bundles-remove',
+} as const satisfies typeof import('../shared/accelerator-bundle-contracts').ACCELERATOR_BUNDLE_IPC
 
 const DIAGNOSTICS_IPC = {
   preview: 'mel:diagnostics-preview', createBundle: 'mel:diagnostics-create-bundle', consentGet: 'mel:telemetry-consent-get', consentSet: 'mel:telemetry-consent-set', send: 'mel:telemetry-send',
@@ -76,6 +81,15 @@ const resourceScheduler: ResourceSchedulerApi = {
   },
 }
 
+const acceleratorBundles: AcceleratorBundleApi = {
+  snapshot: refresh => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.snapshot, refresh),
+  install: manifestPath => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.install, manifestPath),
+  activate: (bundleId, version) => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.activate, bundleId, version),
+  rollback: () => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.rollback),
+  quarantine: (bundleId, version, reason) => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.quarantine, bundleId, version, reason),
+  remove: (bundleId, version) => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.remove, bundleId, version),
+}
+
 const diagnostics: DiagnosticsApi = {
   preview: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.preview), createBundle: outputDirectory => ipcRenderer.invoke(DIAGNOSTICS_IPC.createBundle, outputDirectory),
   consent: { get: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentGet), set: (enabled, endpoint) => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentSet, enabled, endpoint) },
@@ -100,6 +114,7 @@ const integrations: IntegrationApi = {
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))
 contextBridge.exposeInMainWorld('melHardware', Object.freeze(hardware))
 contextBridge.exposeInMainWorld('melResourceScheduler', Object.freeze(resourceScheduler))
+contextBridge.exposeInMainWorld('melAcceleratorBundles', Object.freeze(acceleratorBundles))
 contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
 contextBridge.exposeInMainWorld('melTemplates', Object.freeze(templates))
 contextBridge.exposeInMainWorld('melCustomModels', Object.freeze(customModels))
