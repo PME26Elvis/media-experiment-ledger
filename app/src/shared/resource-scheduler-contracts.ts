@@ -48,11 +48,19 @@ export interface QueueDecision {
   }
 }
 
+export interface WarmEngineWorkerState {
+  key: string
+  busy: boolean
+  createdAt: string
+  lastUsedAt: string
+}
+
 export interface ResourceSchedulerSnapshot {
   schemaVersion: 1
   capturedAt: string
   preferences: ResourceSchedulerPreferences
   reservations: ResourceReservation[]
+  warmWorkers: WarmEngineWorkerState[]
   queued: Array<{
     jobId: string
     title: string
