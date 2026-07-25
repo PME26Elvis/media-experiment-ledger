@@ -11,4 +11,6 @@ import { i18n } from './i18n'
 import { installSmokeAudit } from './smoke-audit'
 
 installSmokeAudit(router, i18n)
-createApp(App).use(createPinia()).use(VueQueryPlugin).use(router).use(i18n).use(vuetify).mount('#app')
+const application = createApp(App)
+application.config.globalProperties.window = globalThis.window
+application.use(createPinia()).use(VueQueryPlugin).use(router).use(i18n).use(vuetify).mount('#app')
