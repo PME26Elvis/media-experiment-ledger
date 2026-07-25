@@ -8,11 +8,14 @@ Cross-platform local-first Electron desktop application for Atlas analysis, obje
 
 Studio builds use the `studio-v*` Release family:
 
-- [Download the latest provider-qualified RC.3](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
+- [Download Hardware Runtime Center RC.4](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.4)
+- Resource-aware scheduler RC.5 is requested by the current `app-main` delivery PR
+- [Download provider-qualified RC.3](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
 - [Download lifecycle-qualified RC.2](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
 - [Browse all Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v)
 - [Open the app-main source branch](https://github.com/PME26Elvis/media-experiment-ledger/tree/app-main/app)
 - [Read the desktop specification and evidence index](../docs/app/README.md)
+- [Read the H1/H2 runtime delivery record](../docs/app/HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md)
 - [Track stable 1.0.0 external qualification](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
 
 | Platform | Packages |
@@ -22,7 +25,7 @@ Studio builds use the `studio-v*` Release family:
 | macOS Intel | x64 DMG and update ZIP |
 | Linux x64 | AppImage and `.deb` |
 
-RC.2 proves the install, in-place upgrade, independent portable/AppImage launch, removal and user-data-retention lifecycle. RC.3 adds truthful packaged provider inventory, real CoreML execution evidence and fail-closed DirectML/CUDA hardware gates.
+RC.2 proves the install, in-place upgrade, independent portable/AppImage launch, removal and user-data-retention lifecycle. RC.3 adds truthful packaged provider inventory, real CoreML execution evidence and fail-closed DirectML/CUDA hardware gates. RC.4 adds the Hardware Runtime Center, generated provider self-tests and persisted production provider policy. RC.5 adds resource-aware admission, memory safety reserves, bounded warm Detection workers and actionable OOM recovery.
 
 Prerelease packages may be unsigned and can show an operating-system publisher warning. Verify downloads with `SHA256SUMS`. Stable publication remains blocked until Windows signing, Apple signing/notarization, signed update evidence, real DirectML/CUDA hardware qualification, Full Research corpus rights and the remaining manual evidence in issue #49 are complete.
 
@@ -41,7 +44,7 @@ python -m pip install -r engine/requirements.txt -r engine/requirements-build.tx
 npm run dev
 ```
 
-The renderer has no direct Node.js access. Privileged operations use closed typed preload bridges, durable jobs persist in SQLite/WAL, and media work runs through the isolated JSON-lines Python engine protocol.
+The renderer has no direct Node.js access. Privileged operations use closed typed preload bridges, durable jobs persist in SQLite/WAL, and media work runs through the isolated JSON-lines Python engine protocol. Detection may use a bounded persistent worker keyed by model/provider/device so compatible ONNX Runtime sessions can remain warm until configured idle eviction.
 
 ## Validation
 
@@ -69,6 +72,8 @@ python scripts/smoke_packaged_app.py
 - mixed image/video Atlas generation with evidence strips and resumable manifests;
 - hybrid report editor, autosave, revisions, built-in/custom templates and static PDF export;
 - YOLOX and NanoDet-Plus ONNX detection with packaged provider inventory and explicit fallback semantics;
+- Hardware Runtime Center with Electron adapter evidence, packaged ORT inventory and profiling-based self-tests;
+- resource-aware Job Scheduler with CPU/provider-device admission, memory budgets, safety reserves and warm Detection workers;
 - Model Manager, Job Center, Sample Corpora, Settings, Updates, Recovery and diagnostics;
 - self-contained Python engine, six package types, SBOM, notices, checksums and consolidated launch evidence.
 

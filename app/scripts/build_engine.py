@@ -103,6 +103,17 @@ def build() -> Path:
     return executable
 
 
+def parse_events(completed: subprocess.CompletedProcess[str], requests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    events = [json.loads(line) for line in completed.stdout.splitlines() if line.strip()]
+    results = [event for event in events if event.get('type') == 'result']
+    errors = [event for event in events if event.get('type') == 'error']
+    if errors or len(results) != len(requests):
+        raise RuntimeError(
+            f'Engine request sequence failed. requests={requests!r} stdout={completed.stdout!r} stderr={completed.stderr!r}',
+        )
+    return [event.get('data', {}) for event in results]
+
+
 def invoke(executable: Path, request: dict[str, Any]) -> dict[str, Any]:
     completed = run(
         [str(executable)],
@@ -111,14 +122,20 @@ def invoke(executable: Path, request: dict[str, Any]) -> dict[str, Any]:
         capture_output=True,
         timeout=120,
     )
-    events = [json.loads(line) for line in completed.stdout.splitlines() if line.strip()]
-    results = [event for event in events if event.get('type') == 'result']
-    errors = [event for event in events if event.get('type') == 'error']
-    if errors or not results:
-        raise RuntimeError(
-            f'Engine request failed. request={request!r} stdout={completed.stdout!r} stderr={completed.stderr!r}',
-        )
-    return results[-1].get('data', {})
+    return parse_events(completed, [request])[-1]
+
+
+def invoke_persistent_sequence(executable: Path, requests: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    environment = {**os.environ, 'MEL_ENGINE_PERSISTENT': '1'}
+    completed = run(
+        [str(executable)],
+        cwd=executable.parent,
+        env=environment,
+        input=''.join(f'{json.dumps(request)}\n' for request in requests),
+        capture_output=True,
+        timeout=180,
+    )
+    return parse_events(completed, requests)
 
 
 def smoke(executable: Path) -> dict[str, Any]:
@@ -151,6 +168,16 @@ def smoke(executable: Path) -> dict[str, Any]:
             raise RuntimeError(f'Packaged engine provider inventory is invalid: {providers!r}')
         if os.name == 'nt' and 'DmlExecutionProvider' not in available:
             raise RuntimeError(f'Windows engine is missing DirectML: {providers!r}')
+
+        persistent_results = invoke_persistent_sequence(executable, [
+            {'operation': 'providers', 'job_id': 'persistent-provider-1'},
+            {'operation': 'providers', 'job_id': 'persistent-provider-2'},
+        ])
+        if len(persistent_results) != 2 or any(
+            'CPUExecutionProvider' not in (result.get('available_providers') or [])
+            for result in persistent_results
+        ):
+            raise RuntimeError(f'Frozen persistent engine protocol is invalid: {persistent_results!r}')
         return providers
 
 
@@ -164,7 +191,7 @@ def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
                 'sha256': sha256(path),
             })
     manifest = {
-        'schema_version': 2,
+        'schema_version': 3,
         'engine_version': '0.1.0',
         'python_version': platform.python_version(),
         'platform': platform.system().lower(),
@@ -185,7 +212,15 @@ def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
             'nanodet-detection',
             'sample-download',
             'provider-inventory',
+            'hardware-diagnostics',
+            'provider-self-test',
+            'persistent-json-lines',
+            'bounded-detection-session-cache',
         ],
+        'persistent_protocol_smoke': {
+            'verified': True,
+            'sequential_request_count': 2,
+        },
         'files': files,
     }
     manifest_path = executable.parent / 'engine-build-manifest.json'
@@ -199,6 +234,7 @@ def write_manifest(executable: Path, providers: dict[str, Any]) -> None:
         'sha256': manifest['entrypoint_sha256'],
         'providers': providers.get('available_providers'),
         'runtime_distribution': runtime_distribution_name(),
+        'persistent_protocol_smoke': manifest['persistent_protocol_smoke'],
     }, indent=2))
 
 

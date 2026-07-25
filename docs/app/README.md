@@ -6,16 +6,19 @@ This directory is the normative human-readable specification set and implementat
 
 - Public product: **Media Experiment Ledger Studio**
 - Descriptor: **Atlas · Detection · Media Automation**
-- Product status: `release_candidate_published_stable_external_evidence_pending`
-- Implementation status: `merged_to_app-main`
+- Product status: `hardware_runtime_center_published_resource_scheduler_release_candidate`
+- Implementation status: `H1_merged_H2_qualification_pending`
 - Contract baseline: `2026-07-23.1`
 - Machine contract: [`../../app-product-contract.json`](../../app-product-contract.json)
 - Long-lived product branch: `app-main`
 - Initial implementation PR: [#30](https://github.com/PME26Elvis/media-experiment-ledger/pull/30), merged normally
 - Lifecycle candidate: [`studio-v1.0.0-rc.2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
-- Latest provider-qualified candidate: [`studio-v1.0.0-rc.3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
+- Provider-qualified candidate: [`studio-v1.0.0-rc.3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
+- Hardware Runtime Center candidate: [`studio-v1.0.0-rc.4`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.4)
+- Resource scheduler candidate: `studio-v1.0.0-rc.5` requested by PR #55
 - Immutable Quick Start corpus: [`studio-sample-corpus-quick-start-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-sample-corpus-quick-start-v2)
 - Stable external qualification register: [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
+- Hardware/runtime expansion register: [issue #53](https://github.com/PME26Elvis/media-experiment-ledger/issues/53)
 - Blocking product questions: **0**
 
 The application is implemented and distributable as an explicitly unsigned prerelease. Stable `1.0.0` remains blocked by credentials, rights, real hardware and manual evidence that repository code cannot truthfully manufacture.
@@ -30,7 +33,7 @@ The merged application and release candidates have passed:
 4. renderer/main/preload production build;
 5. real packaged application launch on Windows, Linux and macOS;
 6. sandbox, preload bridge, SQLite and engine readiness checks;
-7. 130 route, locale and viewport checks across five locales;
+7. route, locale and viewport checks across five locales;
 8. exact public asset allowlist, SBOM, notices, checksums, manifests and consolidated evidence;
 9. pull-request release dry runs that build all four platform targets without creating tags or Releases.
 
@@ -49,6 +52,17 @@ The merged application and release candidates have passed:
 - Hosted macOS arm64 and Intel x64 runners prove real CoreML graph-node execution against a deterministic CPU baseline.
 - Hosted Windows proves the packaged DirectML runtime inventory and records truthful CPU fallback where no usable DirectML device exists.
 - Opt-in self-hosted DirectML and CUDA jobs remain fail-closed and require assigned graph nodes greater than zero.
+
+### RC.4 Hardware Runtime Center
+
+- Electron adapter/driver evidence is displayed separately from the packaged ONNX Runtime provider inventory.
+- A generated local ONNX graph proves registration, session creation, assigned nodes, fallback, cold latency and warm latency.
+- Provider, device ID, CPU fallback and CoreML compute units use the same persisted production policy consumed by Detection Studio.
+- Provider caches can be inspected/cleared and redacted SHA-256 hardware evidence can be exported.
+
+### RC.5 resource-aware scheduling
+
+The implementation and acceptance model are documented in [`HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md`](HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md). It replaces the fixed global concurrency limit with provider/device admission, declared memory budgets, safety reserves, queue reasons, bounded persistent Detection workers, idle eviction and actionable OOM recovery.
 
 ## Release qualification boundaries
 
@@ -100,6 +114,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 | [`OPEN_QUESTIONS.md`](OPEN_QUESTIONS.md) | Historical decisions; no blocking product questions remain | Resolved register |
 | [`ROUND_03_REFERENCES.md`](ROUND_03_REFERENCES.md) | Official references for builder/updater, safeStorage, Python runtime, libsodium, ONNX providers and test stack | Supporting |
 | [`HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md`](HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md) | Mainstream provider-pattern audit, software feasibility verdicts and phased feature roadmap | Active engineering plan |
+| [`HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md`](HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md) | Delivered H1/H2 architecture, controls, lifecycle and acceptance evidence | Implemented delivery record |
 | [Issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49) | External stable-release evidence checklist | Active release gate |
 
 ## Numbered baseline specifications
@@ -136,6 +151,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 - Sandboxed renderer and closed typed preload bridges.
 - OS/session/expert-env/encrypted-vault credential modes.
 - CPU universal path with truthful DirectML, CUDA and CoreML provider selection.
+- Hardware Runtime Center with explicit execution evidence and resource-aware admission controls.
 
 ### Functional surfaces
 
@@ -143,6 +159,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 - Agnes image/video Automation.
 - Atlas Studio and mixed-media evidence.
 - Detection Studio and Model Manager.
+- Hardware Runtime Center and resource-aware scheduler.
 - Job Center.
 - Report Library, custom templates and PDF export.
 - Settings and credential profiles.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
@@ -9,6 +10,9 @@ from PIL import Image
 
 from .common import IMAGE_EXTENSIONS, emit, iter_media, json_fingerprint, read_json, sha256, write_json
 from .providers import create_session_options, prepare_runtime, provider_name, provider_plan
+
+_SESSION_CACHE: OrderedDict[str, tuple[Any, dict[str, Any], Any, list[str]]] = OrderedDict()
+_MAX_SESSION_CACHE = 2
 
 
 def _load_vendor_modules():
@@ -57,6 +61,57 @@ def _nanodet_lock(width: int, height: int) -> dict[str, Any]:
     }
 
 
+def _session_for(
+    ort: Any,
+    model_path: Path,
+    model_sha256: str,
+    requested_provider: str,
+    allow_provider_fallback: bool,
+    device_id: int,
+    coreml_compute_units: str,
+) -> tuple[Any, dict[str, Any], Any, list[str], bool]:
+    cache_key = json_fingerprint({
+        'schema': 1,
+        'model_sha256': model_sha256,
+        'requested_provider': requested_provider,
+        'allow_provider_fallback': allow_provider_fallback,
+        'device_id': device_id,
+        'coreml_compute_units': coreml_compute_units,
+    })
+    cached = _SESSION_CACHE.pop(cache_key, None)
+    if cached is not None:
+        _SESSION_CACHE[cache_key] = cached
+        session, plan, input_meta, output_names = cached
+        return session, plan, input_meta, output_names, True
+
+    requested_provider_name = provider_name(requested_provider)
+    prepare_runtime(ort, requested_provider_name)
+    plan = provider_plan(
+        requested_provider,
+        list(ort.get_available_providers()),
+        allow_cpu_fallback=allow_provider_fallback,
+        model_path=model_path,
+        device_id=device_id,
+        coreml_compute_units=coreml_compute_units,
+    )
+    options = create_session_options(
+        ort,
+        primary_provider=str(plan['active_provider']),
+        allow_cpu_fallback=allow_provider_fallback,
+    )
+    session = ort.InferenceSession(
+        str(model_path),
+        sess_options=options,
+        providers=plan['providers'],
+    )
+    input_meta = session.get_inputs()[0]
+    output_names = [item.name for item in session.get_outputs()]
+    _SESSION_CACHE[cache_key] = (session, plan, input_meta, output_names)
+    while len(_SESSION_CACHE) > _MAX_SESSION_CACHE:
+        _SESSION_CACHE.popitem(last=False)
+    return session, plan, input_meta, output_names, False
+
+
 def run_detection(request: dict[str, Any]) -> dict[str, Any]:
     model_path = Path(str(request.get('model_path') or '')).expanduser().resolve()
     if not model_path.is_file():
@@ -80,31 +135,18 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         raise RuntimeError('onnxruntime is required for detector inference') from error
 
     requested_provider = str(request.get('execution_provider', 'cpu')).lower()
-    requested_provider_name = provider_name(requested_provider)
-    prepare_runtime(ort, requested_provider_name)
     allow_provider_fallback = bool(request.get('allow_provider_fallback', True))
     device_id = int(request.get('device_id', 0))
     coreml_compute_units = str(request.get('coreml_compute_units') or 'ALL').upper()
-    plan = provider_plan(
-        requested_provider,
-        list(ort.get_available_providers()),
-        allow_cpu_fallback=allow_provider_fallback,
-        model_path=model_path,
-        device_id=device_id,
-        coreml_compute_units=coreml_compute_units,
-    )
-    options = create_session_options(
+    session, plan, input_meta, output_names, session_reused = _session_for(
         ort,
-        primary_provider=str(plan['active_provider']),
-        allow_cpu_fallback=allow_provider_fallback,
+        model_path,
+        actual_model_sha,
+        requested_provider,
+        allow_provider_fallback,
+        device_id,
+        coreml_compute_units,
     )
-    session = ort.InferenceSession(
-        str(model_path),
-        sess_options=options,
-        providers=plan['providers'],
-    )
-    input_meta = session.get_inputs()[0]
-    output_names = [item.name for item in session.get_outputs()]
 
     files = [path for path in iter_media([str(request.get('input_path', ''))]) if path.suffix.lower() in IMAGE_EXTENSIONS]
     output_dir = Path(str(request.get('output_path') or '.')).resolve()
@@ -118,7 +160,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
     max_detections = int(request.get('max_detections', 300))
     provider_fallback = bool(plan['provider_fallback'])
     fingerprint = json_fingerprint({
-        'schema': 5,
+        'schema': 6,
         'model_sha256': actual_model_sha,
         'adapter': adapter,
         'input_width': input_width,
@@ -178,7 +220,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         render = yolo_core.render_annotated(source_image, detections, annotated_path)
         sidecar_path = sidecars_dir / f'{item_id}.json'
         result = {
-            'schema_version': 5,
+            'schema_version': 6,
             'item_id': item_id,
             'source_path': str(path),
             'source_sha256': source_sha,
@@ -193,6 +235,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
             'allow_provider_fallback': allow_provider_fallback,
             'device_id': device_id,
             'coreml_compute_units': coreml_compute_units,
+            'session_reused': session_reused,
             'thresholds': {'confidence': confidence, 'nms_iou': nms_iou, 'max_detections': max_detections},
             'detections': [detection.as_dict() for detection in detections],
             'detection_count': len(detections),
@@ -205,7 +248,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         emit('progress', stage='inference', progress=index / max(len(files), 1) * 100, completed=index, total=len(files))
 
     manifest = {
-        'schema_version': 5,
+        'schema_version': 6,
         'job_fingerprint': fingerprint,
         'model_id': request.get('model_id'),
         'model_path': str(model_path),
@@ -219,6 +262,7 @@ def run_detection(request: dict[str, Any]) -> dict[str, Any]:
         'allow_provider_fallback': allow_provider_fallback,
         'device_id': device_id,
         'coreml_compute_units': coreml_compute_units,
+        'session_reused': session_reused,
         'input_count': len(files),
         'detected_item_count': sum(1 for item in results if item.get('detection_count', 0) > 0),
         'box_count': sum(int(item.get('detection_count', 0)) for item in results),

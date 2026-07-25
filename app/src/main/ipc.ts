@@ -8,6 +8,7 @@ import { JobManager } from './job-manager'
 import { ModelManager } from './model-manager'
 import { RecoveryManager } from './recovery-manager'
 import { ReportManager } from './report-manager'
+import { registerResourceSchedulerIpc } from './resource-scheduler-ipc'
 import { SampleCorpusManager } from './sample-corpus-manager'
 import { SecretStore } from './secret-store'
 import { UpdateManager } from './update-manager'
@@ -54,6 +55,7 @@ export function registerIpc(
   updater: UpdateManager,
 ): void {
   registerHardwareIpc(app.getPath('userData'))
+  registerResourceSchedulerIpc(jobs)
   ipcMain.handle(IPC.systemInfo, async () => ({
     platform: process.platform,
     arch: process.arch,
