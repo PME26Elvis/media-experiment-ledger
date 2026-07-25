@@ -8,7 +8,7 @@ from typing import Any
 from .atlas import run_atlas
 from .automation import run_automation
 from .common import emit
-from .detection import run_detection
+from .detection import run_detection, run_detection_benchmark
 from .download import run_sample_download
 from .generated_collection import finalize_generated_collection
 from .hardware import clear_provider_cache, hardware_diagnostics, run_provider_self_test
@@ -24,6 +24,8 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
         return run_atlas(request)
     if operation == 'detection':
         return run_detection(request)
+    if operation == 'detection-benchmark':
+        return run_detection_benchmark(request)
     if operation == 'automation':
         return finalize_generated_collection(request, run_automation(request))
     if operation == 'sample-download':
