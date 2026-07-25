@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto'
 import { app } from 'electron'
 import { access } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
 
@@ -25,19 +27,73 @@ export interface EngineProviderInventory {
   distributions: Record<string, string>
 }
 
+interface ActiveBundlePointer {
+  schemaVersion: 1
+  bundleId: string
+  version: string
+  entrypoint: string
+  engineSha256: string
+}
+
 let providerInventoryPromise: Promise<EngineProviderInventory | undefined> | undefined
+let activeEngineCache: { pointerMtime: number; executable?: string } | undefined
 
 export function engineSourceRoot(): string {
   return join(app.getAppPath(), 'engine')
 }
 
-export function packagedEngineExecutable(): string {
+export function basePackagedEngineExecutable(): string {
   return join(
     process.resourcesPath,
     'engine-bin',
     'mel-engine',
     process.platform === 'win32' ? 'mel-engine.exe' : 'mel-engine',
   )
+}
+
+function sha256(path: string): string {
+  return createHash('sha256').update(readFileSync(path)).digest('hex')
+}
+
+function safeBundleEntrypoint(root: string, entrypoint: string): string | undefined {
+  const target = resolve(root, entrypoint)
+  const relation = relative(resolve(root), target)
+  if (relation === '..' || relation.startsWith(`..${sep}`) || isAbsolute(relation)) return undefined
+  return target
+}
+
+function activeBundleEngineExecutable(): string | undefined {
+  if (!app.isPackaged) return undefined
+  const userData = app.getPath('userData')
+  const pointerPath = join(userData, 'accelerator-bundles', 'active.json')
+  if (!existsSync(pointerPath)) {
+    activeEngineCache = undefined
+    return undefined
+  }
+  const pointerMtime = Number(readFileSync(pointerPath).byteLength) + Number(process.env.MEL_ACTIVE_BUNDLE_REVISION ?? 0)
+  if (activeEngineCache?.pointerMtime === pointerMtime) return activeEngineCache.executable
+  try {
+    const pointer = JSON.parse(readFileSync(pointerPath, 'utf8')) as ActiveBundlePointer
+    if (pointer.schemaVersion !== 1 || !/^[a-z0-9][a-z0-9._-]{2,79}$/u.test(pointer.bundleId) || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(pointer.version)) throw new Error('Invalid active bundle pointer.')
+    const root = join(userData, 'accelerator-bundles', 'installed', pointer.bundleId, pointer.version)
+    const executable = safeBundleEntrypoint(root, pointer.entrypoint)
+    if (!executable || !existsSync(executable)) throw new Error('Active bundle engine is missing.')
+    if (!/^[0-9a-f]{64}$/iu.test(pointer.engineSha256) || sha256(executable) !== pointer.engineSha256.toLowerCase()) throw new Error('Active bundle engine failed integrity verification.')
+    activeEngineCache = { pointerMtime, executable }
+    return executable
+  } catch {
+    activeEngineCache = { pointerMtime, executable: undefined }
+    return undefined
+  }
+}
+
+export function packagedEngineExecutable(): string {
+  return activeBundleEngineExecutable() ?? basePackagedEngineExecutable()
+}
+
+export function resetEngineProviderInventory(): void {
+  providerInventoryPromise = undefined
+  activeEngineCache = undefined
 }
 
 export async function engineReady(): Promise<boolean> {
@@ -54,7 +110,7 @@ export async function engineReady(): Promise<boolean> {
 }
 
 export async function engineProviderInventory(refresh = false): Promise<EngineProviderInventory | undefined> {
-  if (refresh) providerInventoryPromise = undefined
+  if (refresh) resetEngineProviderInventory()
   providerInventoryPromise ??= (async () => {
     if (!await engineReady()) return undefined
     const controller = new AbortController()
@@ -85,7 +141,7 @@ export function runEngine(
   signal: AbortSignal,
   environment: Record<string, string> = {},
 ): Promise<Record<string, unknown>> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolvePromise, reject) => {
     const executable = app.isPackaged
       ? packagedEngineExecutable()
       : developmentPython()
@@ -128,7 +184,7 @@ export function runEngine(
     })
     child.on('error', error => finish(() => reject(error)))
     child.on('exit', (code) => {
-      if (code === 0) finish(() => resolve(finalResult ?? {}))
+      if (code === 0) finish(() => resolvePromise(finalResult ?? {}))
       else finish(() => reject(new Error(`Engine exited with code ${code}`)))
     })
     signal.addEventListener('abort', () => {
