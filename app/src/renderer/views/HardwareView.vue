@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type {
   HardwarePreferences,
   HardwareProviderKey,
@@ -8,6 +9,7 @@ import type {
 } from '../../shared/hardware-contracts'
 import PageHeader from '../components/PageHeader.vue'
 
+const { t } = useI18n()
 const snapshot = ref<HardwareSnapshot>()
 const preferences = ref<HardwarePreferences>({
   provider: 'cpu',
@@ -127,8 +129,8 @@ onMounted(async () => {
   <div class="page-wrap">
     <PageHeader
       eyebrow="Hardware Runtime Center"
-      title="Know what will execute before starting a corpus"
-      subtitle="Inspect the desktop GPU stack and packaged ONNX Runtime, select an explicit device policy, prove node assignment with a generated graph, and export redacted evidence."
+      :title="t('hardware.title')"
+      :subtitle="t('hardware.subtitle')"
       icon="mdi-expansion-card-variant"
       color="secondary"
     />
