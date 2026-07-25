@@ -4,7 +4,7 @@ const en = {
   app: { name: 'Media Experiment Ledger Studio', tagline: 'Atlas · Detection · Media Automation' },
   nav: {
     workspace: 'Workspace', import: 'Media Import', samples: 'Sample Corpora', automation: 'Automation',
-    atlas: 'Atlas Studio', detection: 'Detection Studio', jobs: 'Job Center', models: 'Models',
+    atlas: 'Atlas Studio', detection: 'Detection Studio', hardware: 'Hardware Runtime', jobs: 'Job Center', models: 'Models',
     reports: 'Reports', integrations: 'Integrations', updates: 'Updates', diagnostics: 'Support & Privacy', settings: 'Settings',
   },
   common: {
@@ -33,7 +33,7 @@ const zhTW = {
   app: { name: 'Media Experiment Ledger Studio', tagline: 'Atlas · Detection · Media Automation' },
   nav: {
     workspace: '工作區', import: '媒體匯入', samples: '範例資料集', automation: '自動化',
-    atlas: 'Atlas Studio', detection: 'Detection Studio', jobs: '工作中心', models: '模型管理',
+    atlas: 'Atlas Studio', detection: 'Detection Studio', hardware: '硬體執行中心', jobs: '工作中心', models: '模型管理',
     reports: '報告庫', integrations: '整合中心', updates: '更新中心', diagnostics: '支援與隱私', settings: '設定',
   },
   common: {
@@ -60,7 +60,7 @@ const zhTW = {
 
 const zhCN = {
   app: zhTW.app,
-  nav: { ...zhTW.nav, workspace: '工作区', import: '媒体导入', samples: '示例数据集', jobs: '任务中心', models: '模型管理', reports: '报告库', integrations: '集成中心', diagnostics: '支持与隐私', settings: '设置' },
+  nav: { ...zhTW.nav, workspace: '工作区', import: '媒体导入', samples: '示例数据集', hardware: '硬件运行中心', jobs: '任务中心', models: '模型管理', reports: '报告库', integrations: '集成中心', diagnostics: '支持与隐私', settings: '设置' },
   common: { ...zhTW.common, reveal: '打开文件夹', loading: '加载中…', empty: '当前没有内容', menu: '打开导航', compact: '精简侧栏', expand: '展开侧栏' },
   integrations: {
     ...zhTW.integrations,
@@ -76,7 +76,7 @@ const zhCN = {
 
 const ja = {
   app: en.app,
-  nav: { workspace: 'ワークスペース', import: 'メディア取込', samples: 'サンプルコーパス', automation: '自動化', atlas: 'Atlas Studio', detection: 'Detection Studio', jobs: 'ジョブ', models: 'モデル', reports: 'レポート', integrations: '連携センター', updates: '更新', diagnostics: 'サポートとプライバシー', settings: '設定' },
+  nav: { workspace: 'ワークスペース', import: 'メディア取込', samples: 'サンプルコーパス', automation: '自動化', atlas: 'Atlas Studio', detection: 'Detection Studio', hardware: 'ハードウェア実行', jobs: 'ジョブ', models: 'モデル', reports: 'レポート', integrations: '連携センター', updates: '更新', diagnostics: 'サポートとプライバシー', settings: '設定' },
   common: { ...en.common, browse: '参照', reveal: 'フォルダーを開く', run: '実行', save: '保存', loading: '読み込み中…', empty: 'まだ項目がありません', retry: '再試行', menu: 'ナビゲーションを開く', compact: 'コンパクト表示', expand: 'ナビゲーションを展開' },
   integrations: {
     eyebrow: 'スケジュール・同期・公開', title: '連携センター', subtitle: 'ローカルプロジェクトをユーザー単位のOSスケジュール、競合安全なフォルダー、変更禁止のGitHub Release、制限付きWASMアダプターへ接続します。',
@@ -89,7 +89,7 @@ const ja = {
 
 const ko = {
   app: en.app,
-  nav: { workspace: '작업 공간', import: '미디어 가져오기', samples: '샘플 코퍼스', automation: '자동화', atlas: 'Atlas Studio', detection: 'Detection Studio', jobs: '작업 센터', models: '모델', reports: '보고서', integrations: '통합 센터', updates: '업데이트', diagnostics: '지원 및 개인정보', settings: '설정' },
+  nav: { workspace: '작업 공간', import: '미디어 가져오기', samples: '샘플 코퍼스', automation: '자동화', atlas: 'Atlas Studio', detection: 'Detection Studio', hardware: '하드웨어 런타임', jobs: '작업 센터', models: '모델', reports: '보고서', integrations: '통합 센터', updates: '업데이트', diagnostics: '지원 및 개인정보', settings: '설정' },
   common: { ...en.common, browse: '찾아보기', reveal: '폴더 열기', run: '실행', save: '저장', loading: '불러오는 중…', empty: '아직 항목이 없습니다', retry: '다시 시도', menu: '탐색 열기', compact: '간단히', expand: '탐색 확장' },
   integrations: {
     eyebrow: '예약, 동기화 및 게시', title: '통합 센터', subtitle: '로컬 프로젝트를 사용자 단위 OS 예약, 충돌 안전 폴더, 변경 불가 GitHub Release 및 제한된 WASM 어댑터에 연결합니다.',
