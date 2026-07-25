@@ -36,7 +36,7 @@ interface ActiveBundlePointer {
 }
 
 let providerInventoryPromise: Promise<EngineProviderInventory | undefined> | undefined
-let activeEngineCache: { pointerMtime: number; executable?: string } | undefined
+let activeEngineCache: { pointerFingerprint: string; executable?: string } | undefined
 
 export function engineSourceRoot(): string {
   return join(app.getAppPath(), 'engine')
@@ -70,19 +70,20 @@ function activeBundleEngineExecutable(): string | undefined {
     activeEngineCache = undefined
     return undefined
   }
-  const pointerMtime = Number(readFileSync(pointerPath).byteLength) + Number(process.env.MEL_ACTIVE_BUNDLE_REVISION ?? 0)
-  if (activeEngineCache?.pointerMtime === pointerMtime) return activeEngineCache.executable
+  const pointerBytes = readFileSync(pointerPath)
+  const pointerFingerprint = createHash('sha256').update(pointerBytes).digest('hex')
+  if (activeEngineCache?.pointerFingerprint === pointerFingerprint) return activeEngineCache.executable
   try {
-    const pointer = JSON.parse(readFileSync(pointerPath, 'utf8')) as ActiveBundlePointer
+    const pointer = JSON.parse(pointerBytes.toString('utf8')) as ActiveBundlePointer
     if (pointer.schemaVersion !== 1 || !/^[a-z0-9][a-z0-9._-]{2,79}$/u.test(pointer.bundleId) || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(pointer.version)) throw new Error('Invalid active bundle pointer.')
     const root = join(userData, 'accelerator-bundles', 'installed', pointer.bundleId, pointer.version)
     const executable = safeBundleEntrypoint(root, pointer.entrypoint)
     if (!executable || !existsSync(executable)) throw new Error('Active bundle engine is missing.')
     if (!/^[0-9a-f]{64}$/iu.test(pointer.engineSha256) || sha256(executable) !== pointer.engineSha256.toLowerCase()) throw new Error('Active bundle engine failed integrity verification.')
-    activeEngineCache = { pointerMtime, executable }
+    activeEngineCache = { pointerFingerprint, executable }
     return executable
   } catch {
-    activeEngineCache = { pointerMtime, executable: undefined }
+    activeEngineCache = { pointerFingerprint, executable: undefined }
     return undefined
   }
 }
