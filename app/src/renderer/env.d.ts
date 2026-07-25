@@ -9,6 +9,12 @@ import type { ResourceSchedulerApi } from '../shared/resource-scheduler-contract
 import type { ReportTemplateApi } from '../shared/template-contracts'
 import type { RendererSmokeApi } from './smoke-audit'
 
+declare module '@vue/runtime-core' {
+  interface ComponentCustomProperties {
+    window: Window
+  }
+}
+
 declare global {
   interface Window {
     mel: MelDesktopApi
