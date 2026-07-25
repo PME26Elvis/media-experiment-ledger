@@ -49,7 +49,7 @@ class ProviderInventoryTests(unittest.TestCase):
         ):
             inventory = provider_inventory()
 
-        self.assertEqual(inventory['schema_version'], 2)
+        self.assertEqual(inventory['schema_version'], 3)
         self.assertEqual(inventory['runtime_version'], '1.99.0')
         self.assertTrue(inventory['provider_support']['cpu']['available'])
         self.assertTrue(inventory['provider_support']['directml']['available'])
