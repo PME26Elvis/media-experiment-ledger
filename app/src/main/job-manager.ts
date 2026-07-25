@@ -4,7 +4,7 @@ import type { CreateJobRequest, JobRecord } from '../shared/contracts'
 import type { ResourceSchedulerPreferences, ResourceSchedulerSnapshot } from '../shared/resource-scheduler-contracts'
 import { StudioDatabase } from './database'
 import { detectionWorkerKey, EngineWorkerPool } from './engine-worker-pool'
-import { runEngine, type EngineEvent } from './engine'
+import { resetEngineProviderInventory, runEngine, type EngineEvent } from './engine'
 import { classifyOutOfMemory, ResourceScheduler, schedulerPreferencesPath } from './resource-scheduler'
 import { SecretStore } from './secret-store'
 
@@ -42,6 +42,12 @@ export class JobManager {
 
   updateResourcePreferences(patch: Partial<ResourceSchedulerPreferences>): ResourceSchedulerPreferences {
     return this.resources.updatePreferences(patch)
+  }
+
+  resetEngineRuntime(): void {
+    if (this.activeCount() > 0) throw new Error('Pause or finish active and queued jobs before switching the engine runtime.')
+    this.workers.destroyAll()
+    resetEngineProviderInventory()
   }
 
   create(request: CreateJobRequest): JobRecord {
@@ -196,7 +202,7 @@ export class JobManager {
   }
 
   async pauseAll(): Promise<void> {
-    for (const job of this.list().filter(item => item.status === 'running' || item.status === 'queued')) {
+    for (const job of this.list().filter(item => jobIsActive(item))) {
       this.control(job.id, 'pause')
     }
     const deadline = Date.now() + 15_000
@@ -230,4 +236,8 @@ export class JobManager {
   private save(job: JobRecord): void {
     this.db.upsertJob({ ...job, updatedAt: new Date().toISOString() })
   }
+}
+
+function jobIsActive(job: JobRecord): boolean {
+  return job.status === 'running' || job.status === 'queued'
 }
