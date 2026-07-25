@@ -24,9 +24,8 @@ export const DEFAULT_RESOURCE_SCHEDULER_PREFERENCES: ResourceSchedulerPreference
 }
 
 function finiteInteger(value: unknown, fallback: number, minimum: number, maximum: number): number {
-  return typeof value === 'number' && Number.isFinite(value)
-    ? Math.max(minimum, Math.min(maximum, Math.trunc(value)))
-    : fallback
+  const candidate = typeof value === 'number' && Number.isFinite(value) ? Math.trunc(value) : fallback
+  return Math.max(minimum, Math.min(maximum, candidate))
 }
 
 function normalizePolicy(value: unknown, fallback: DeviceResourcePolicy): DeviceResourcePolicy {
