@@ -3,6 +3,7 @@ import AtlasView from './views/AtlasView.vue'
 import AutomationView from './views/AutomationView.vue'
 import DetectionView from './views/DetectionView.vue'
 import DiagnosticsView from './views/DiagnosticsView.vue'
+import HardwareView from './views/HardwareView.vue'
 import ImportView from './views/ImportView.vue'
 import IntegrationsView from './views/IntegrationsView.vue'
 import JobsView from './views/JobsView.vue'
@@ -23,6 +24,7 @@ export const router = createRouter({
     { path: '/automation', name: 'automation', component: AutomationView },
     { path: '/atlas', name: 'atlas', component: AtlasView },
     { path: '/detection', name: 'detection', component: DetectionView },
+    { path: '/hardware', name: 'hardware', component: HardwareView },
     { path: '/jobs', name: 'jobs', component: JobsView },
     { path: '/models', name: 'models', component: ModelsView },
     { path: '/reports', name: 'reports', component: ReportsView },
