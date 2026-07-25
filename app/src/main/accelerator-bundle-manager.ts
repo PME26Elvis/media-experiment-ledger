@@ -108,10 +108,7 @@ function sha256Text(value: string): string {
 function parseVersion(value: string): ParsedVersion {
   const match = value.trim().match(/^(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?/u)
   if (!match) return { core: [0], prerelease: [] }
-  return {
-    core: match[1].split('.').map(part => Number(part)),
-    prerelease: match[2]?.split('.') ?? [],
-  }
+  return { core: match[1].split('.').map(part => Number(part)), prerelease: match[2]?.split('.') ?? [] }
 }
 
 function compareIdentifier(left: string, right: string): number {
@@ -176,7 +173,7 @@ export function canonicalAcceleratorBundlePayload(manifest: AcceleratorBundleMan
   })
 }
 
-function safeInside(root: string, relativePath: string): string {
+export function safeBundlePath(root: string, relativePath: string): string {
   const target = resolve(root, relativePath)
   const relation = relative(resolve(root), target)
   if (relation === '..' || relation.startsWith(`..${sep}`) || isAbsolute(relation)) throw new Error(`Bundle path escapes its root: ${relativePath}`)
@@ -244,13 +241,7 @@ export class AcceleratorBundleManager {
       active: active ? { bundleId: active.bundleId, version: active.version, profile: active.profile, activatedAt: active.activatedAt } : undefined,
       installed,
       quarantined,
-      host: {
-        platform: process.platform,
-        arch: process.arch,
-        appVersion: this.appVersion,
-        osVersion: release(),
-        nvidiaDriver: this.nvidiaDriver(),
-      },
+      host: { platform: process.platform, arch: process.arch, appVersion: this.appVersion, osVersion: release(), nvidiaDriver: this.nvidiaDriver() },
       warnings,
     }
   }
@@ -294,10 +285,8 @@ export class AcceleratorBundleManager {
     this.validateCompatibility(record.manifest)
     this.runProviderInventory(record.manifest, target)
     const previous = this.activePointer()
-    const history = previous
-      ? [...previous.history, { bundleId: previous.bundleId, version: previous.version, profile: previous.profile }]
-      : []
-    const pointer: ActivePointer = {
+    const history = previous ? [...previous.history, { bundleId: previous.bundleId, version: previous.version, profile: previous.profile }] : []
+    this.writeActivePointer({
       schemaVersion: 1,
       bundleId,
       version,
@@ -306,8 +295,7 @@ export class AcceleratorBundleManager {
       engineSha256: record.manifest.engine.sha256.toLowerCase(),
       activatedAt: new Date().toISOString(),
       history: history.slice(-10),
-    }
-    this.writeActivePointer(pointer)
+    })
     this.jobs.resetEngineRuntime()
     return this.snapshot()
   }
@@ -365,19 +353,18 @@ export class AcceleratorBundleManager {
 
   private verifyAndCopyFiles(manifest: AcceleratorBundleManifest, sourceRoot: string, stage: string, rawManifest: string): AcceleratorBundleVerification {
     for (const file of manifest.files) {
-      const source = safeInside(sourceRoot, file.path)
+      const source = safeBundlePath(sourceRoot, file.path)
       if (!existsSync(source)) throw new Error(`Bundle file is missing: ${file.path}`)
       const sourceStat = lstatSync(source)
       if (sourceStat.isSymbolicLink() || !sourceStat.isFile()) throw new Error(`Bundle inventory entry is not a regular file: ${file.path}`)
       if (sourceStat.size !== file.sizeBytes) throw new Error(`Bundle file size mismatch: ${file.path}`)
       if (sha256File(source) !== file.sha256.toLowerCase()) throw new Error(`Bundle file SHA-256 mismatch: ${file.path}`)
-      const destination = safeInside(stage, file.path)
+      const destination = safeBundlePath(stage, file.path)
       mkdirSync(dirname(destination), { recursive: true })
       copyFileSync(source, destination)
       chmodSync(destination, sourceStat.mode)
     }
-    const entrypoint = safeInside(stage, manifest.engine.entrypoint)
-    if (sha256File(entrypoint) !== manifest.engine.sha256.toLowerCase()) throw new Error('Engine entrypoint hash does not match the manifest.')
+    this.verifyInstalledPayload(manifest, stage)
     writeFileSync(join(stage, 'accelerator-bundle-manifest.json'), rawManifest, 'utf8')
     return {
       schemaVersion: 1,
@@ -390,9 +377,22 @@ export class AcceleratorBundleManager {
     }
   }
 
+  private verifyInstalledPayload(manifest: AcceleratorBundleManifest, root: string): string {
+    for (const file of manifest.files) {
+      const target = safeBundlePath(root, file.path)
+      if (!existsSync(target)) throw new Error(`Installed bundle file is missing: ${file.path}`)
+      const installedStat = lstatSync(target)
+      if (installedStat.isSymbolicLink() || !installedStat.isFile()) throw new Error(`Installed bundle entry is not a regular file: ${file.path}`)
+      if (installedStat.size !== file.sizeBytes) throw new Error(`Installed bundle file size mismatch: ${file.path}`)
+      if (sha256File(target) !== file.sha256.toLowerCase()) throw new Error(`Installed bundle file SHA-256 mismatch: ${file.path}`)
+    }
+    const entrypoint = safeBundlePath(root, manifest.engine.entrypoint)
+    if (sha256File(entrypoint) !== manifest.engine.sha256.toLowerCase()) throw new Error('Installed engine entrypoint hash does not match the signed manifest.')
+    return entrypoint
+  }
+
   private runProviderInventory(manifest: AcceleratorBundleManifest, root: string): Record<string, unknown> {
-    const entrypoint = safeInside(root, manifest.engine.entrypoint)
-    if (!existsSync(entrypoint) || sha256File(entrypoint) !== manifest.engine.sha256.toLowerCase()) throw new Error('Installed engine entrypoint failed integrity verification.')
+    const entrypoint = this.verifyInstalledPayload(manifest, root)
     const completed = spawnSync(entrypoint, [], {
       cwd: dirname(entrypoint),
       input: `${JSON.stringify({ operation: 'providers', job_id: 'bundle-install-self-test' })}\n`,
@@ -443,11 +443,8 @@ export class AcceleratorBundleManager {
     const keyPath = this.trustKeyPath()
     if (!keyPath) throw new Error('No trusted accelerator bundle Ed25519 public key is installed.')
     let valid = false
-    try {
-      valid = verify(null, Buffer.from(expected, 'utf8'), readFileSync(keyPath), Buffer.from(manifest.signature, 'base64'))
-    } catch (error) {
-      throw new Error(`Accelerator bundle trust key could not verify the manifest: ${error instanceof Error ? error.message : String(error)}`)
-    }
+    try { valid = verify(null, Buffer.from(expected, 'utf8'), readFileSync(keyPath), Buffer.from(manifest.signature, 'base64')) }
+    catch (error) { throw new Error(`Accelerator bundle trust key could not verify the manifest: ${error instanceof Error ? error.message : String(error)}`) }
     if (!valid) throw new Error('Accelerator bundle Ed25519 signature verification failed.')
   }
 
@@ -526,9 +523,7 @@ export class AcceleratorBundleManager {
 
   private removeAbandonedStaging(): void {
     if (!existsSync(this.stagingRoot)) return
-    for (const entry of readdirSync(this.stagingRoot, { withFileTypes: true })) {
-      if (entry.isDirectory()) rmSync(join(this.stagingRoot, entry.name), { recursive: true, force: true })
-    }
+    for (const entry of readdirSync(this.stagingRoot, { withFileTypes: true })) if (entry.isDirectory()) rmSync(join(this.stagingRoot, entry.name), { recursive: true, force: true })
   }
 
   private assertMaintenanceWindow(): void {
