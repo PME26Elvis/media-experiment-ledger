@@ -6,8 +6,8 @@ This directory is the normative human-readable specification set and implementat
 
 - Public product: **Media Experiment Ledger Studio**
 - Descriptor: **Atlas · Detection · Media Automation**
-- Product status: `hardware_runtime_center_published_resource_scheduler_release_candidate`
-- Implementation status: `H1_merged_H2_qualification_pending`
+- Product status: `rc_5_published_optional_accelerator_bundles_qualification`
+- Implementation status: `H1_H2_merged_H3_PR_56`
 - Contract baseline: `2026-07-23.1`
 - Machine contract: [`../../app-product-contract.json`](../../app-product-contract.json)
 - Long-lived product branch: `app-main`
@@ -15,7 +15,8 @@ This directory is the normative human-readable specification set and implementat
 - Lifecycle candidate: [`studio-v1.0.0-rc.2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.2)
 - Provider-qualified candidate: [`studio-v1.0.0-rc.3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.3)
 - Hardware Runtime Center candidate: [`studio-v1.0.0-rc.4`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.4)
-- Resource scheduler candidate: `studio-v1.0.0-rc.5` requested by PR #55
+- Resource scheduler candidate: [`studio-v1.0.0-rc.5`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-v1.0.0-rc.5)
+- Optional accelerator bundle candidate: `studio-v1.0.0-rc.6` requested by PR #56
 - Immutable Quick Start corpus: [`studio-sample-corpus-quick-start-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/studio-sample-corpus-quick-start-v2)
 - Stable external qualification register: [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49)
 - Hardware/runtime expansion register: [issue #53](https://github.com/PME26Elvis/media-experiment-ledger/issues/53)
@@ -64,6 +65,10 @@ The merged application and release candidates have passed:
 
 The implementation and acceptance model are documented in [`HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md`](HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md). It replaces the fixed global concurrency limit with provider/device admission, declared memory budgets, safety reserves, queue reasons, bounded persistent Detection workers, idle eviction and actionable OOM recovery.
 
+### RC.6 optional accelerator engine bundles
+
+The implementation and trust model are documented in [`OPTIONAL_ACCELERATOR_ENGINE_BUNDLES.md`](OPTIONAL_ACCELERATOR_ENGINE_BUNDLES.md). The universal CPU engine remains embedded. Optional DirectML, CoreML and CUDA engines require canonical Ed25519 manifests, complete SHA-256 inventories, host/runtime compatibility, post-copy provider self-tests, atomic activation, rollback and quarantine. Pull-request artifacts use explicitly non-publishable ephemeral keys; production bundle publication remains fail-closed until the accelerator signing secret is provisioned.
+
 ## Release qualification boundaries
 
 Stable `1.0.0` still requires the unchecked evidence in [issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49), including:
@@ -73,6 +78,7 @@ Stable `1.0.0` still requires the unchecked evidence in [issue #49](https://gith
 - GPG checksum signing and Ed25519 offline-update verification;
 - signed online and offline update-path qualification;
 - real DirectML and CUDA hardware execution evidence;
+- a production accelerator-bundle signing key and signed publication evidence;
 - a rights-cleared immutable Full Research corpus;
 - published 10,000-image / 1,000-video scale evidence;
 - final accessibility, visual, controlled real-provider and operator acceptance evidence.
@@ -115,6 +121,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 | [`ROUND_03_REFERENCES.md`](ROUND_03_REFERENCES.md) | Official references for builder/updater, safeStorage, Python runtime, libsodium, ONNX providers and test stack | Supporting |
 | [`HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md`](HARDWARE_FEASIBILITY_AND_EXPANSION_PLAN.md) | Mainstream provider-pattern audit, software feasibility verdicts and phased feature roadmap | Active engineering plan |
 | [`HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md`](HARDWARE_RUNTIME_AND_RESOURCE_SCHEDULER.md) | Delivered H1/H2 architecture, controls, lifecycle and acceptance evidence | Implemented delivery record |
+| [`OPTIONAL_ACCELERATOR_ENGINE_BUNDLES.md`](OPTIONAL_ACCELERATOR_ENGINE_BUNDLES.md) | H3 trust model, installation, activation, rollback, quarantine, evidence and publication | Implemented; production key pending |
 | [Issue #49](https://github.com/PME26Elvis/media-experiment-ledger/issues/49) | External stable-release evidence checklist | Active release gate |
 
 ## Numbered baseline specifications
@@ -147,11 +154,12 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 ### Runtime and security
 
 - Self-contained PyInstaller Python engine; no user Python installation.
-- Versioned child-process protocol; no public local server.
+- Versioned one-shot and persistent child-process protocols; no public local server.
 - Sandboxed renderer and closed typed preload bridges.
 - OS/session/expert-env/encrypted-vault credential modes.
 - CPU universal path with truthful DirectML, CUDA and CoreML provider selection.
 - Hardware Runtime Center with explicit execution evidence and resource-aware admission controls.
+- Signed optional accelerator bundles with full runtime re-verification and CPU fallback.
 
 ### Functional surfaces
 
@@ -159,7 +167,7 @@ A newer accepted decision or recorded implementation result overrides earlier pr
 - Agnes image/video Automation.
 - Atlas Studio and mixed-media evidence.
 - Detection Studio and Model Manager.
-- Hardware Runtime Center and resource-aware scheduler.
+- Hardware Runtime Center, optional accelerator bundles and resource-aware scheduler.
 - Job Center.
 - Report Library, custom templates and PDF export.
 - Settings and credential profiles.
