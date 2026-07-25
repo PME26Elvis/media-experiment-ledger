@@ -1,3 +1,4 @@
+import type { AcceleratorBundleApi } from '../shared/accelerator-bundle-contracts'
 import type { MelDesktopApi } from '../shared/contracts'
 import type { CustomModelApi } from '../shared/custom-model-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
@@ -12,6 +13,7 @@ declare global {
     mel: MelDesktopApi
     melHardware: HardwareApi
     melResourceScheduler: ResourceSchedulerApi
+    melAcceleratorBundles: AcceleratorBundleApi
     melDiagnostics: DiagnosticsApi
     melTemplates: ReportTemplateApi
     melCustomModels: CustomModelApi
