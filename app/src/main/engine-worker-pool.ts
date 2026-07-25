@@ -13,6 +13,7 @@ interface ActiveRequest {
   signal: AbortSignal
   abort: () => void
   settled: boolean
+  idleSeconds: number
 }
 
 function developmentPython(): string {
@@ -64,7 +65,8 @@ class PersistentEngineWorker {
     })
     this.child.on('error', error => this.fail(error))
     this.child.on('exit', code => {
-      if (this.active && !this.active.settled) this.fail(new Error(`Persistent engine exited with code ${code ?? 'unknown'}`))
+      if (this.active && !this.active.settled) this.finishFailure(new Error(`Persistent engine exited with code ${code ?? 'unknown'}`), false)
+      this.destroyed = true
       this.cleanup()
     })
   }
@@ -82,10 +84,10 @@ class PersistentEngineWorker {
     if (this.idleTimer) clearTimeout(this.idleTimer)
     return new Promise((resolve, reject) => {
       const abort = () => {
+        this.finishFailure(new Error('Engine request aborted'), false)
         this.destroy()
-        reject(new Error('Engine request aborted'))
       }
-      const request: ActiveRequest = { resolve, reject, onEvent, signal, abort, settled: false }
+      const request: ActiveRequest = { resolve, reject, onEvent, signal, abort, settled: false, idleSeconds }
       this.active = request
       signal.addEventListener('abort', abort, { once: true })
       try {
@@ -94,7 +96,6 @@ class PersistentEngineWorker {
         this.finishFailure(error instanceof Error ? error : new Error(String(error)))
       }
       this.lastUsedAt = new Date().toISOString()
-      this.scheduleIdle(idleSeconds)
     })
   }
 
@@ -102,6 +103,8 @@ class PersistentEngineWorker {
     if (this.destroyed) return
     this.destroyed = true
     if (this.idleTimer) clearTimeout(this.idleTimer)
+    if (this.active && !this.active.settled) this.finishFailure(new Error('Persistent engine worker closed.'), false)
+    this.stdout.close()
     this.child.kill()
     this.cleanup()
   }
@@ -127,9 +130,10 @@ class PersistentEngineWorker {
     this.active = undefined
     this.lastUsedAt = new Date().toISOString()
     request.resolve(result)
+    this.scheduleIdle(request.idleSeconds)
   }
 
-  private finishFailure(error: Error): void {
+  private finishFailure(error: Error, scheduleIdle = true): void {
     const request = this.active
     if (!request || request.settled) return
     request.settled = true
@@ -137,19 +141,22 @@ class PersistentEngineWorker {
     this.active = undefined
     this.lastUsedAt = new Date().toISOString()
     request.reject(error)
+    if (scheduleIdle) this.scheduleIdle(request.idleSeconds)
   }
 
   private fail(error: Error): void {
-    this.finishFailure(error)
+    this.finishFailure(error, false)
     this.destroy()
   }
 
   private scheduleIdle(idleSeconds: number): void {
     if (this.idleTimer) clearTimeout(this.idleTimer)
-    if (idleSeconds <= 0) return
+    if (idleSeconds <= 0 || this.destroyed) {
+      if (idleSeconds <= 0 && !this.busy) this.destroy()
+      return
+    }
     this.idleTimer = setTimeout(() => {
       if (!this.busy) this.destroy()
-      else this.scheduleIdle(idleSeconds)
     }, idleSeconds * 1000)
     this.idleTimer.unref()
   }
