@@ -21,6 +21,8 @@ _RUNTIME_DISTRIBUTIONS = (
     'nvidia-cudnn-cu12',
 )
 
+COREML_COMPUTE_UNITS = {'ALL', 'CPU_ONLY', 'CPU_AND_GPU', 'CPU_AND_NE'}
+
 
 def _distribution_versions() -> dict[str, str]:
     versions: dict[str, str] = {}
@@ -54,6 +56,7 @@ def provider_options(
     *,
     model_path: Path | None = None,
     device_id: int = 0,
+    coreml_compute_units: str = 'ALL',
 ) -> dict[str, str]:
     if device_id < 0:
         raise ValueError('device_id must be zero or greater')
@@ -64,9 +67,12 @@ def provider_options(
             'do_copy_in_default_stream': '1',
         }
     if provider == 'CoreMLExecutionProvider':
+        compute_units = coreml_compute_units.upper()
+        if compute_units not in COREML_COMPUTE_UNITS:
+            raise ValueError(f'Unsupported CoreML compute units: {coreml_compute_units!r}')
         options = {
             'ModelFormat': 'MLProgram',
-            'MLComputeUnits': 'ALL',
+            'MLComputeUnits': compute_units,
             'RequireStaticInputShapes': '0',
             'EnableOnSubgraphs': '0',
         }
@@ -85,6 +91,7 @@ def provider_plan(
     allow_cpu_fallback: bool,
     model_path: Path | None = None,
     device_id: int = 0,
+    coreml_compute_units: str = 'ALL',
 ) -> dict[str, Any]:
     requested_key = requested.lower()
     desired = provider_name(requested_key)
@@ -102,7 +109,12 @@ def provider_plan(
         active = 'CPUExecutionProvider'
         unavailable_fallback = True
 
-    active_options = provider_options(active, model_path=model_path, device_id=device_id)
+    active_options = provider_options(
+        active,
+        model_path=model_path,
+        device_id=device_id,
+        coreml_compute_units=coreml_compute_units,
+    )
     entries: list[Any] = [(active, active_options)] if active_options else [active]
     names = [active]
     options = [active_options]
@@ -126,6 +138,7 @@ def provider_plan(
         'allow_cpu_fallback': allow_cpu_fallback,
         'provider_fallback': unavailable_fallback,
         'device_id': device_id,
+        'coreml_compute_units': coreml_compute_units.upper(),
     }
 
 
@@ -164,7 +177,7 @@ def provider_inventory() -> dict[str, Any]:
         for key, provider in PROVIDER_MAP.items()
     }
     return {
-        'schema_version': 2,
+        'schema_version': 3,
         'runtime_version': ort.__version__,
         'runtime_device': ort.get_device(),
         'platform': platform.system().lower(),
