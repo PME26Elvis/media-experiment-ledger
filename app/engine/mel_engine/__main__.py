@@ -23,7 +23,7 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
     if operation == 'atlas':
         return run_atlas(request)
     if operation == 'detection':
-        return run_detection(request)
+        return run_detection_benchmark(request) if request.get('benchmark_mode') else run_detection(request)
     if operation == 'detection-benchmark':
         return run_detection_benchmark(request)
     if operation == 'automation':
