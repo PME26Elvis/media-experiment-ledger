@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { MelDesktopApi } from '../shared/contracts'
 import type { CustomModelApi } from '../shared/custom-model-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
+import type { HardwareApi } from '../shared/hardware-contracts'
 import type { IntegrationApi } from '../shared/integration-contracts'
 import type { ReportTemplateApi } from '../shared/template-contracts'
 
@@ -52,6 +53,15 @@ const IPC = {
   updaterImportOffline: 'mel:updater-import-offline',
   updaterOpenOffline: 'mel:updater-open-offline',
 } as const satisfies typeof import('../shared/contracts').IPC
+
+const HARDWARE_IPC = {
+  snapshot: 'mel:hardware-snapshot',
+  selfTest: 'mel:hardware-self-test',
+  preferencesGet: 'mel:hardware-preferences-get',
+  preferencesSet: 'mel:hardware-preferences-set',
+  clearCache: 'mel:hardware-clear-cache',
+  exportEvidence: 'mel:hardware-export-evidence',
+} as const satisfies typeof import('../shared/hardware-contracts').HARDWARE_IPC
 
 const DIAGNOSTICS_IPC = {
   preview: 'mel:diagnostics-preview',
@@ -148,6 +158,17 @@ const api: MelDesktopApi = {
   },
 }
 
+const hardware: HardwareApi = {
+  snapshot: refresh => ipcRenderer.invoke(HARDWARE_IPC.snapshot, refresh),
+  selfTest: request => ipcRenderer.invoke(HARDWARE_IPC.selfTest, request),
+  preferences: {
+    get: () => ipcRenderer.invoke(HARDWARE_IPC.preferencesGet),
+    set: patch => ipcRenderer.invoke(HARDWARE_IPC.preferencesSet, patch),
+  },
+  clearCache: provider => ipcRenderer.invoke(HARDWARE_IPC.clearCache, provider),
+  exportEvidence: (outputDirectory, selfTest) => ipcRenderer.invoke(HARDWARE_IPC.exportEvidence, outputDirectory, selfTest),
+}
+
 const diagnostics: DiagnosticsApi = {
   preview: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.preview),
   createBundle: outputDirectory => ipcRenderer.invoke(DIAGNOSTICS_IPC.createBundle, outputDirectory),
@@ -193,6 +214,7 @@ const integrations: IntegrationApi = {
 }
 
 contextBridge.exposeInMainWorld('mel', Object.freeze(api))
+contextBridge.exposeInMainWorld('melHardware', Object.freeze(hardware))
 contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
 contextBridge.exposeInMainWorld('melTemplates', Object.freeze(templates))
 contextBridge.exposeInMainWorld('melCustomModels', Object.freeze(customModels))
