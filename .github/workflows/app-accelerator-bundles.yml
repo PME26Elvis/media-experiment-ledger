@@ -1,0 +1,227 @@
+name: Optional Accelerator Engine Bundles
+
+on:
+  pull_request:
+    branches: [app-main]
+    paths:
+      - app/src/main/accelerator-bundle-manager.ts
+      - app/src/shared/accelerator-bundle-contracts.ts
+      - app/scripts/build_accelerator_bundle.mjs
+      - app/scripts/verify_accelerator_bundle.mjs
+      - .github/workflows/app-accelerator-bundles.yml
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Bundle version
+        required: true
+        default: 1.0.0-rc.6
+        type: string
+      app_minimum:
+        description: Minimum compatible Studio version
+        required: true
+        default: 1.0.0-rc.6
+        type: string
+      publish:
+        description: Publish a signed accelerator-bundle Release
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: optional-accelerator-bundles-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: build ${{ matrix.id }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: directml-windows-x64
+            os: windows-latest
+            profile: directml
+            platform: win32
+            arch: x64
+            python_arch: x64
+            bundle_id: mel-directml-windows-x64
+            requirement_args: ''
+          - id: coreml-macos-arm64
+            os: macos-latest
+            profile: coreml
+            platform: darwin
+            arch: arm64
+            python_arch: arm64
+            bundle_id: mel-coreml-macos-arm64
+            requirement_args: ''
+          - id: coreml-macos-x64
+            os: macos-15-intel
+            profile: coreml
+            platform: darwin
+            arch: x64
+            python_arch: x64
+            bundle_id: mel-coreml-macos-x64
+            requirement_args: ''
+          - id: cuda-linux-x64
+            os: ubuntu-latest
+            profile: cuda
+            platform: linux
+            arch: x64
+            python_arch: x64
+            bundle_id: mel-cuda-linux-x64
+            requirement_args: '--cuda-major 12 --cudnn-major 9 --minimum-nvidia-driver 525.60.13'
+    runs-on: ${{ matrix.os }}
+    env:
+      BUNDLE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.0-rc.6' }}
+      APP_MINIMUM: ${{ github.event_name == 'workflow_dispatch' && inputs.app_minimum || '1.0.0-rc.6' }}
+      ACCELERATOR_BUNDLE_PRIVATE_KEY: ${{ secrets.ACCELERATOR_BUNDLE_ED25519_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          show-progress: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          architecture: ${{ matrix.python_arch }}
+          cache: pip
+          cache-dependency-path: |
+            app/engine/requirements.txt
+            app/engine/requirements-build.txt
+      - name: Install engine build dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r app/engine/requirements.txt -r app/engine/requirements-build.txt
+          if [[ "${{ matrix.profile }}" == "cuda" ]]; then
+            python -m pip uninstall -y onnxruntime onnxruntime-directml || true
+            python -m pip install 'onnxruntime-gpu[cuda,cudnn]>=1.22,<2'
+          fi
+      - name: Build and smoke frozen engine
+        run: python app/scripts/build_engine.py
+      - name: Build signed bundle directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="app/accelerator-bundle-out/${{ matrix.id }}"
+          args=(
+            --engine-root app/engine-bin/mel-engine
+            --output "$output"
+            --profile "${{ matrix.profile }}"
+            --bundle-id "${{ matrix.bundle_id }}"
+            --version "$BUNDLE_VERSION"
+            --app-minimum "$APP_MINIMUM"
+            --platform "${{ matrix.platform }}"
+            --arch "${{ matrix.arch }}"
+          )
+          if [[ -n "${ACCELERATOR_BUNDLE_PRIVATE_KEY:-}" ]]; then
+            printf '%s' "$ACCELERATOR_BUNDLE_PRIVATE_KEY" > accelerator-bundle-private-key.pem
+            args+=(--private-key accelerator-bundle-private-key.pem)
+          else
+            if [[ "${{ github.event_name == 'workflow_dispatch' && inputs.publish || false }}" == "true" ]]; then
+              echo 'Publishing requires ACCELERATOR_BUNDLE_ED25519_PRIVATE_KEY.' >&2
+              exit 1
+            fi
+            args+=(--development-key)
+          fi
+          if [[ -n "${{ matrix.requirement_args }}" ]]; then
+            read -r -a extra <<< "${{ matrix.requirement_args }}"
+            args+=("${extra[@]}")
+          fi
+          node app/scripts/build_accelerator_bundle.mjs "${args[@]}" 2>&1 | tee "accelerator-bundle-build-${{ matrix.id }}.log"
+      - name: Verify signed manifest and every file
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="app/accelerator-bundle-out/${{ matrix.id }}"
+          if [[ -f "$root/DEVELOPMENT-PUBLIC-KEY.pem" ]]; then
+            key="$root/DEVELOPMENT-PUBLIC-KEY.pem"
+          else
+            printf '%s' "$ACCELERATOR_BUNDLE_PRIVATE_KEY" > accelerator-bundle-private-key.pem
+            node -e "const {createPublicKey}=require('node:crypto');const {readFileSync,writeFileSync}=require('node:fs');writeFileSync('accelerator-bundle-public-key.pem',createPublicKey(readFileSync('accelerator-bundle-private-key.pem')).export({type:'spki',format:'pem'}))"
+            key=accelerator-bundle-public-key.pem
+          fi
+          node app/scripts/verify_accelerator_bundle.mjs "$root" "$key" 2>&1 | tee "accelerator-bundle-verify-${{ matrix.id }}.log"
+          python -m zipfile -c "app/accelerator-bundle-out/${{ matrix.id }}.zip" "$root"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accelerator-bundle-${{ matrix.id }}
+          path: |
+            accelerator-bundle-build-${{ matrix.id }}.log
+            accelerator-bundle-verify-${{ matrix.id }}.log
+            app/accelerator-bundle-out/${{ matrix.id }}.zip
+            app/accelerator-bundle-out/${{ matrix.id }}/accelerator-bundle-manifest.json
+            app/accelerator-bundle-out/${{ matrix.id }}/bundle-build-evidence.json
+            app/accelerator-bundle-out/${{ matrix.id }}/SBOM.spdx.json
+            app/accelerator-bundle-out/${{ matrix.id }}/THIRD_PARTY_NOTICES.txt
+            app/accelerator-bundle-out/${{ matrix.id }}/native-library-inventory.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  finalize:
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '1.0.0-rc.6' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: accelerator-bundle-*
+          path: bundles
+          merge-multiple: false
+      - name: Build hash-pinned catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib, json, pathlib, os, shutil
+          root = pathlib.Path('bundles')
+          output = pathlib.Path('release-assets')
+          output.mkdir(parents=True, exist_ok=True)
+          assets = []
+          for path in sorted(root.rglob('*.zip')):
+              target = output / path.name
+              if target.exists():
+                  raise SystemExit(f'Duplicate accelerator bundle asset name: {target.name}')
+              shutil.copy2(path, target)
+              digest = hashlib.sha256(target.read_bytes()).hexdigest()
+              assets.append({'file': target.name, 'sizeBytes': target.stat().st_size, 'sha256': digest})
+          if len(assets) != 4:
+              raise SystemExit(f'Expected four accelerator bundles, found {len(assets)}')
+          catalog = {'schemaVersion': 1, 'version': os.environ['BUNDLE_VERSION'], 'assets': assets}
+          (output / 'accelerator-bundle-catalog.json').write_text(json.dumps(catalog, indent=2) + '\n', encoding='utf-8')
+          PY
+          sha256sum release-assets/*.zip release-assets/accelerator-bundle-catalog.json > release-assets/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: accelerator-bundle-catalog-${{ env.BUNDLE_VERSION }}
+          path: release-assets/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish signed bundle Release
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="studio-accelerator-bundles-v${BUNDLE_VERSION}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Refusing to modify existing Release: $tag" >&2
+            exit 1
+          fi
+          gh release create "$tag" \
+            --target app-main \
+            --title "Media Experiment Ledger Accelerator Bundles ${BUNDLE_VERSION}" \
+            --notes "Signed optional DirectML, CoreML and CUDA engine profiles for compatible Media Experiment Ledger Studio releases." \
+            --prerelease \
+            release-assets/*
