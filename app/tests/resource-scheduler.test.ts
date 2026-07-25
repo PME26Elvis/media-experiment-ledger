@@ -93,6 +93,14 @@ describe('ResourceScheduler', () => {
     expect(Object.keys(normalized.devicePolicies)).toEqual(['cuda:0'])
   })
 
+  it('clamps a fallback safety reserve when a malformed policy lowers the memory budget', () => {
+    const normalized = normalizeSchedulerPreferences({
+      defaultAcceleratorPolicy: { maxConcurrent: 1, memoryBudgetMb: 256 },
+    })
+    expect(normalized.defaultAcceleratorPolicy.memoryBudgetMb).toBe(256)
+    expect(normalized.defaultAcceleratorPolicy.safetyReserveMb).toBe(128)
+  })
+
   it('classifies accelerator OOM with actionable recovery', () => {
     const request = estimateJobResource(job('gpu', { execution_provider: 'cuda' }))
     const result = classifyOutOfMemory(new Error('CUDA out of memory allocating tensor'), request)
