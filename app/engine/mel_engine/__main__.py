@@ -10,6 +10,7 @@ from .common import emit
 from .detection import run_detection
 from .download import run_sample_download
 from .generated_collection import finalize_generated_collection
+from .hardware import clear_provider_cache, hardware_diagnostics, run_provider_self_test
 from .providers import provider_inventory
 from .scan import run_scan
 
@@ -28,6 +29,12 @@ def dispatch(request: dict[str, Any]) -> dict[str, Any]:
         return run_sample_download(request)
     if operation == 'providers':
         return provider_inventory()
+    if operation == 'hardware-diagnostics':
+        return hardware_diagnostics()
+    if operation == 'provider-self-test':
+        return run_provider_self_test(request)
+    if operation == 'provider-cache-clear':
+        return clear_provider_cache(request)
     if operation == 'pdf-export':
         return {'status': 'document-export-delegated-to-electron-print-pipeline'}
     raise ValueError(f'Unsupported operation: {operation}')
