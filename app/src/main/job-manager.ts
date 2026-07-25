@@ -3,7 +3,7 @@ import type { CreateJobRequest, JobRecord } from '../shared/contracts'
 import type { ResourceSchedulerSnapshot } from '../shared/resource-scheduler-contracts'
 import { StudioDatabase } from './database'
 import { detectionWorkerKey, EngineWorkerPool } from './engine-worker-pool'
-import { runEngine } from './engine'
+import { runEngine, type EngineEvent } from './engine'
 import { classifyOutOfMemory, ResourceScheduler } from './resource-scheduler'
 import { SecretStore } from './secret-store'
 
@@ -32,7 +32,7 @@ export class JobManager {
   }
 
   resourceSnapshot(): ResourceSchedulerSnapshot {
-    return this.resources.snapshot(this.workers.snapshot().workers)
+    return { ...this.resources.snapshot(), warmWorkers: this.workers.snapshot().workers }
   }
 
   create(request: CreateJobRequest): JobRecord {
@@ -98,7 +98,7 @@ export class JobManager {
         : undefined
       const environment = await this.secrets.resolveEnvironment(profileId)
       const payload = { operation: job.kind, job_id: job.id, ...job.config }
-      const onEvent = (event: Parameters<typeof runEngine>[1] extends (value: infer Event) => void ? Event : never) => {
+      const onEvent = (event: EngineEvent) => {
         const current = this.db.getJob(job.id) ?? job
         if (event.type === 'progress') {
           this.save({
