@@ -185,24 +185,28 @@ jobs:
         run: |
           set -euo pipefail
           python - <<'PY'
-          import hashlib, json, pathlib, os
+          import hashlib, json, pathlib, os, shutil
           root = pathlib.Path('bundles')
+          output = pathlib.Path('release-assets')
+          output.mkdir(parents=True, exist_ok=True)
           assets = []
           for path in sorted(root.rglob('*.zip')):
-              digest = hashlib.sha256(path.read_bytes()).hexdigest()
-              assets.append({'file': path.name, 'sizeBytes': path.stat().st_size, 'sha256': digest})
-          catalog = {'schemaVersion': 1, 'version': os.environ['BUNDLE_VERSION'], 'assets': assets}
-          pathlib.Path('accelerator-bundle-catalog.json').write_text(json.dumps(catalog, indent=2) + '\n', encoding='utf-8')
+              target = output / path.name
+              if target.exists():
+                  raise SystemExit(f'Duplicate accelerator bundle asset name: {target.name}')
+              shutil.copy2(path, target)
+              digest = hashlib.sha256(target.read_bytes()).hexdigest()
+              assets.append({'file': target.name, 'sizeBytes': target.stat().st_size, 'sha256': digest})
           if len(assets) != 4:
               raise SystemExit(f'Expected four accelerator bundles, found {len(assets)}')
+          catalog = {'schemaVersion': 1, 'version': os.environ['BUNDLE_VERSION'], 'assets': assets}
+          (output / 'accelerator-bundle-catalog.json').write_text(json.dumps(catalog, indent=2) + '\n', encoding='utf-8')
           PY
-          sha256sum bundles/*/*.zip accelerator-bundle-catalog.json > SHA256SUMS
+          sha256sum release-assets/*.zip release-assets/accelerator-bundle-catalog.json > release-assets/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: accelerator-bundle-catalog-${{ env.BUNDLE_VERSION }}
-          path: |
-            accelerator-bundle-catalog.json
-            SHA256SUMS
+          path: release-assets/*
           if-no-files-found: error
           retention-days: 30
       - name: Publish signed bundle Release
@@ -220,4 +224,4 @@ jobs:
             --title "Media Experiment Ledger Accelerator Bundles ${BUNDLE_VERSION}" \
             --notes "Signed optional DirectML, CoreML and CUDA engine profiles for compatible Media Experiment Ledger Studio releases." \
             --prerelease \
-            bundles/*/*.zip accelerator-bundle-catalog.json SHA256SUMS
+            release-assets/*
