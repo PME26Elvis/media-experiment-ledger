@@ -23,6 +23,13 @@ const explicitMarkers: Record<string, Record<string, string>> = {
     ja: '連携センター',
     ko: '통합 센터',
   },
+  '/hardware': {
+    en: 'Know what will execute before starting a corpus',
+    'zh-TW': '在開始資料集工作前確認實際執行環境',
+    'zh-CN': '在开始数据集任务前确认实际运行环境',
+    ja: 'コーパス処理前に実行環境を確認',
+    ko: '코퍼스 작업 전에 실제 실행 환경 확인',
+  },
 }
 
 export function localizedRouteMarker(route: string, locale: string): string {
