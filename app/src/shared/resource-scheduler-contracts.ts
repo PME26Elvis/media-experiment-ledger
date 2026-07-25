@@ -60,7 +60,7 @@ export interface ResourceSchedulerSnapshot {
   capturedAt: string
   preferences: ResourceSchedulerPreferences
   reservations: ResourceReservation[]
-  warmWorkers: WarmEngineWorkerState[]
+  warmWorkers?: WarmEngineWorkerState[]
   queued: Array<{
     jobId: string
     title: string
