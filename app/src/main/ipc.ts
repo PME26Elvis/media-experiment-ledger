@@ -20,7 +20,7 @@ import { UpdateManager } from './update-manager'
 const pathSchema = z.string().min(1).max(32768)
 const uuidSchema = z.string().uuid()
 const createJobSchema = z.object({
-  kind: z.enum(['scan', 'atlas', 'detection', 'detection-benchmark', 'automation', 'pdf-export', 'sample-download']),
+  kind: z.enum(['scan', 'atlas', 'detection', 'automation', 'pdf-export', 'sample-download']),
   title: z.string().min(1).max(160),
   config: z.record(z.string(), z.unknown()),
 })
