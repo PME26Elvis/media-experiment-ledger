@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 import type { AcceleratorBundleApi } from '../shared/accelerator-bundle-contracts'
 import type { MelDesktopApi } from '../shared/contracts'
 import type { CustomModelApi } from '../shared/custom-model-contracts'
+import type { DetectionWorkflowApi } from '../shared/detection-workflow-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
 import type { HardwareApi } from '../shared/hardware-contracts'
 import type { IntegrationApi } from '../shared/integration-contracts'
@@ -33,6 +34,10 @@ const RESOURCE_SCHEDULER_IPC = {
 const ACCELERATOR_BUNDLE_IPC = {
   snapshot: 'mel:accelerator-bundles-snapshot', install: 'mel:accelerator-bundles-install', activate: 'mel:accelerator-bundles-activate', rollback: 'mel:accelerator-bundles-rollback', quarantine: 'mel:accelerator-bundles-quarantine', remove: 'mel:accelerator-bundles-remove',
 } as const satisfies typeof import('../shared/accelerator-bundle-contracts').ACCELERATOR_BUNDLE_IPC
+
+const DETECTION_WORKFLOW_IPC = {
+  browse: 'mel:detection-browse', presetsList: 'mel:detection-presets-list', presetsSave: 'mel:detection-presets-save', presetsRemove: 'mel:detection-presets-remove', presetsSetDefault: 'mel:detection-presets-set-default',
+} as const satisfies typeof import('../shared/detection-workflow-contracts').DETECTION_WORKFLOW_IPC
 
 const DIAGNOSTICS_IPC = {
   preview: 'mel:diagnostics-preview', createBundle: 'mel:diagnostics-create-bundle', consentGet: 'mel:telemetry-consent-get', consentSet: 'mel:telemetry-consent-set', send: 'mel:telemetry-send',
@@ -90,6 +95,16 @@ const acceleratorBundles: AcceleratorBundleApi = {
   remove: (bundleId, version) => ipcRenderer.invoke(ACCELERATOR_BUNDLE_IPC.remove, bundleId, version),
 }
 
+const detectionWorkflow: DetectionWorkflowApi = {
+  browse: request => ipcRenderer.invoke(DETECTION_WORKFLOW_IPC.browse, request),
+  presets: {
+    list: () => ipcRenderer.invoke(DETECTION_WORKFLOW_IPC.presetsList),
+    save: preset => ipcRenderer.invoke(DETECTION_WORKFLOW_IPC.presetsSave, preset),
+    remove: id => ipcRenderer.invoke(DETECTION_WORKFLOW_IPC.presetsRemove, id),
+    setDefault: id => ipcRenderer.invoke(DETECTION_WORKFLOW_IPC.presetsSetDefault, id),
+  },
+}
+
 const diagnostics: DiagnosticsApi = {
   preview: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.preview), createBundle: outputDirectory => ipcRenderer.invoke(DIAGNOSTICS_IPC.createBundle, outputDirectory),
   consent: { get: () => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentGet), set: (enabled, endpoint) => ipcRenderer.invoke(DIAGNOSTICS_IPC.consentSet, enabled, endpoint) },
@@ -115,6 +130,7 @@ contextBridge.exposeInMainWorld('mel', Object.freeze(api))
 contextBridge.exposeInMainWorld('melHardware', Object.freeze(hardware))
 contextBridge.exposeInMainWorld('melResourceScheduler', Object.freeze(resourceScheduler))
 contextBridge.exposeInMainWorld('melAcceleratorBundles', Object.freeze(acceleratorBundles))
+contextBridge.exposeInMainWorld('melDetection', Object.freeze(detectionWorkflow))
 contextBridge.exposeInMainWorld('melDiagnostics', Object.freeze(diagnostics))
 contextBridge.exposeInMainWorld('melTemplates', Object.freeze(templates))
 contextBridge.exposeInMainWorld('melCustomModels', Object.freeze(customModels))
