@@ -3,6 +3,7 @@ import type { CustomModelApi } from '../shared/custom-model-contracts'
 import type { DiagnosticsApi } from '../shared/diagnostics-contracts'
 import type { HardwareApi } from '../shared/hardware-contracts'
 import type { IntegrationApi } from '../shared/integration-contracts'
+import type { ResourceSchedulerApi } from '../shared/resource-scheduler-contracts'
 import type { ReportTemplateApi } from '../shared/template-contracts'
 import type { RendererSmokeApi } from './smoke-audit'
 
@@ -10,6 +11,7 @@ declare global {
   interface Window {
     mel: MelDesktopApi
     melHardware: HardwareApi
+    melResourceScheduler: ResourceSchedulerApi
     melDiagnostics: DiagnosticsApi
     melTemplates: ReportTemplateApi
     melCustomModels: CustomModelApi
