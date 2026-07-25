@@ -57,7 +57,7 @@ class ProviderInventoryTests(unittest.TestCase):
         self.assertFalse(inventory['provider_support']['coreml']['available'])
         self.assertEqual(inventory['distributions'], {'onnxruntime-directml': '1.99.0'})
 
-    def test_coreml_plan_uses_official_options_cache_and_ordered_cpu_fallback(self) -> None:
+    def test_coreml_plan_uses_official_options_cache_compute_units_and_ordered_cpu_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             model = Path(directory) / 'model.onnx'
             model.write_bytes(b'model')
@@ -66,15 +66,20 @@ class ProviderInventoryTests(unittest.TestCase):
                 ['CoreMLExecutionProvider', 'CPUExecutionProvider'],
                 allow_cpu_fallback=True,
                 model_path=model,
+                coreml_compute_units='CPU_AND_GPU',
             )
 
         self.assertEqual(plan['provider_names'], ['CoreMLExecutionProvider', 'CPUExecutionProvider'])
         options = plan['provider_options'][0]
         self.assertEqual(options['ModelFormat'], 'MLProgram')
-        self.assertEqual(options['MLComputeUnits'], 'ALL')
+        self.assertEqual(options['MLComputeUnits'], 'CPU_AND_GPU')
         self.assertEqual(options['RequireStaticInputShapes'], '0')
         self.assertEqual(options['EnableOnSubgraphs'], '0')
-        self.assertEqual(Path(options['ModelCacheDirectory']).parts[-2:], ('.mel-provider-cache', 'coreml'))
+        self.assertTrue(Path(options['ModelCacheDirectory']).parts[-2:] == ('.mel-provider-cache', 'coreml'))
+
+    def test_coreml_rejects_unknown_compute_units(self) -> None:
+        with self.assertRaisesRegex(ValueError, 'Unsupported CoreML compute units'):
+            provider_options('CoreMLExecutionProvider', coreml_compute_units='GPU_ONLY')
 
     def test_cuda_plan_exposes_device_and_safe_copy_options(self) -> None:
         options = provider_options('CUDAExecutionProvider', device_id=2)

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { IPC, type CreateJobRequest, type ReportDocument, type StudioSettings } from '../shared/contracts'
 import { StudioDatabase } from './database'
 import { engineProviderInventory, engineReady } from './engine'
+import { registerHardwareIpc } from './hardware-ipc'
 import { JobManager } from './job-manager'
 import { ModelManager } from './model-manager'
 import { RecoveryManager } from './recovery-manager'
@@ -52,6 +53,7 @@ export function registerIpc(
   recovery: RecoveryManager,
   updater: UpdateManager,
 ): void {
+  registerHardwareIpc(app.getPath('userData'))
   ipcMain.handle(IPC.systemInfo, async () => ({
     platform: process.platform,
     arch: process.arch,

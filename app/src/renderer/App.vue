@@ -41,6 +41,7 @@ const items = computed(() => [
   ['automation', 'mdi-robot-outline'],
   ['atlas', 'mdi-image-multiple-outline'],
   ['detection', 'mdi-vector-square'],
+  ['hardware', 'mdi-expansion-card-variant'],
   ['jobs', 'mdi-progress-clock'],
   ['models', 'mdi-cube-outline'],
   ['reports', 'mdi-file-chart-outline'],
