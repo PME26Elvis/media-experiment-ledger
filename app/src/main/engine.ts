@@ -1,10 +1,17 @@
-import { createHash } from 'node:crypto'
+import { createHash, verify } from 'node:crypto'
 import { app } from 'electron'
 import { access } from 'node:fs/promises'
-import { existsSync, readFileSync } from 'node:fs'
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
+import { existsSync, lstatSync, readFileSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { spawn } from 'node:child_process'
 import { createInterface } from 'node:readline'
+import {
+  acceleratorBundleManifestSchema,
+  canonicalAcceleratorBundlePayload,
+  compareVersions,
+  safeBundlePath,
+} from './accelerator-bundle-manager'
+import type { AcceleratorBundleManifest } from '../shared/accelerator-bundle-contracts'
 
 export interface EngineEvent {
   type: 'progress' | 'result' | 'error' | 'log'
@@ -31,6 +38,7 @@ interface ActiveBundlePointer {
   schemaVersion: 1
   bundleId: string
   version: string
+  profile: string
   entrypoint: string
   engineSha256: string
 }
@@ -43,23 +51,50 @@ export function engineSourceRoot(): string {
 }
 
 export function basePackagedEngineExecutable(): string {
-  return join(
-    process.resourcesPath,
-    'engine-bin',
-    'mel-engine',
-    process.platform === 'win32' ? 'mel-engine.exe' : 'mel-engine',
-  )
+  return join(process.resourcesPath, 'engine-bin', 'mel-engine', process.platform === 'win32' ? 'mel-engine.exe' : 'mel-engine')
 }
 
 function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex')
 }
 
-function safeBundleEntrypoint(root: string, entrypoint: string): string | undefined {
-  const target = resolve(root, entrypoint)
-  const relation = relative(resolve(root), target)
-  if (relation === '..' || relation.startsWith(`..${sep}`) || isAbsolute(relation)) return undefined
-  return target
+function trustKeyPath(userData: string): string | undefined {
+  const candidates = [
+    join(userData, 'accelerator-bundle-public-key.pem'),
+    join(process.resourcesPath, 'accelerator-bundle-public-key.pem'),
+    join(userData, 'update-public-key.pem'),
+    join(process.resourcesPath, 'update-public-key.pem'),
+  ]
+  return candidates.find(path => existsSync(path) && statSync(path).isFile())
+}
+
+function verifyManifestIdentity(manifest: AcceleratorBundleManifest, pointer: ActiveBundlePointer): void {
+  if (manifest.bundleId !== pointer.bundleId || manifest.version !== pointer.version || manifest.profile !== pointer.profile) throw new Error('Active bundle pointer does not match the signed manifest identity.')
+  if (manifest.engine.entrypoint !== pointer.entrypoint || manifest.engine.sha256.toLowerCase() !== pointer.engineSha256.toLowerCase()) throw new Error('Active bundle pointer does not match the signed engine identity.')
+  if (manifest.platform !== process.platform || manifest.arch !== process.arch) throw new Error('Active accelerator bundle does not match this host.')
+  if (compareVersions(app.getVersion(), manifest.appVersion.minimum) < 0) throw new Error('Active accelerator bundle requires a newer Studio version.')
+  if (manifest.appVersion.maximum && compareVersions(app.getVersion(), manifest.appVersion.maximum) > 0) throw new Error('Active accelerator bundle is not compatible with this Studio version.')
+}
+
+function verifySignedManifest(manifest: AcceleratorBundleManifest, userData: string): void {
+  const payload = canonicalAcceleratorBundlePayload(manifest)
+  if (manifest.signedPayload !== payload) throw new Error('Active accelerator bundle signed payload is inconsistent.')
+  const key = trustKeyPath(userData)
+  if (!key) throw new Error('No accelerator bundle trust key is installed.')
+  if (!verify(null, Buffer.from(payload, 'utf8'), readFileSync(key), Buffer.from(manifest.signature, 'base64'))) throw new Error('Active accelerator bundle signature is invalid.')
+}
+
+function verifyBundleFiles(manifest: AcceleratorBundleManifest, root: string): string {
+  for (const file of manifest.files) {
+    const path = safeBundlePath(root, file.path)
+    if (!existsSync(path)) throw new Error(`Active accelerator bundle file is missing: ${file.path}`)
+    const details = lstatSync(path)
+    if (details.isSymbolicLink() || !details.isFile()) throw new Error(`Active accelerator bundle entry is not a regular file: ${file.path}`)
+    if (details.size !== file.sizeBytes || sha256(path) !== file.sha256.toLowerCase()) throw new Error(`Active accelerator bundle integrity failed: ${file.path}`)
+  }
+  const executable = safeBundlePath(root, manifest.engine.entrypoint)
+  if (sha256(executable) !== manifest.engine.sha256.toLowerCase()) throw new Error('Active accelerator engine entrypoint integrity failed.')
+  return executable
 }
 
 function activeBundleEngineExecutable(): string | undefined {
@@ -77,9 +112,12 @@ function activeBundleEngineExecutable(): string | undefined {
     const pointer = JSON.parse(pointerBytes.toString('utf8')) as ActiveBundlePointer
     if (pointer.schemaVersion !== 1 || !/^[a-z0-9][a-z0-9._-]{2,79}$/u.test(pointer.bundleId) || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/u.test(pointer.version)) throw new Error('Invalid active bundle pointer.')
     const root = join(userData, 'accelerator-bundles', 'installed', pointer.bundleId, pointer.version)
-    const executable = safeBundleEntrypoint(root, pointer.entrypoint)
-    if (!executable || !existsSync(executable)) throw new Error('Active bundle engine is missing.')
-    if (!/^[0-9a-f]{64}$/iu.test(pointer.engineSha256) || sha256(executable) !== pointer.engineSha256.toLowerCase()) throw new Error('Active bundle engine failed integrity verification.')
+    const manifestPath = join(root, 'accelerator-bundle-manifest.json')
+    if (!existsSync(manifestPath)) throw new Error('Active bundle manifest is missing.')
+    const manifest = acceleratorBundleManifestSchema.parse(JSON.parse(readFileSync(manifestPath, 'utf8'))) as AcceleratorBundleManifest
+    verifyManifestIdentity(manifest, pointer)
+    verifySignedManifest(manifest, userData)
+    const executable = verifyBundleFiles(manifest, root)
     activeEngineCache = { pointerFingerprint, executable }
     return executable
   } catch {
@@ -99,11 +137,7 @@ export function resetEngineProviderInventory(): void {
 
 export async function engineReady(): Promise<boolean> {
   try {
-    await access(
-      app.isPackaged
-        ? packagedEngineExecutable()
-        : join(engineSourceRoot(), 'mel_engine', '__main__.py'),
-    )
+    await access(app.isPackaged ? packagedEngineExecutable() : join(engineSourceRoot(), 'mel_engine', '__main__.py'))
     return true
   } catch {
     return false
@@ -143,25 +177,11 @@ export function runEngine(
   environment: Record<string, string> = {},
 ): Promise<Record<string, unknown>> {
   return new Promise((resolvePromise, reject) => {
-    const executable = app.isPackaged
-      ? packagedEngineExecutable()
-      : developmentPython()
+    const executable = app.isPackaged ? packagedEngineExecutable() : developmentPython()
     const args = app.isPackaged ? [] : ['-m', 'mel_engine']
     const cwd = app.isPackaged ? dirname(executable) : engineSourceRoot()
-    const env = app.isPackaged
-      ? { ...process.env, ...environment }
-      : {
-          ...process.env,
-          ...environment,
-          PYTHONPATH: engineSourceRoot(),
-        }
-    const child = spawn(executable, args, {
-      cwd,
-      env,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      windowsHide: true,
-      shell: false,
-    })
+    const env = app.isPackaged ? { ...process.env, ...environment } : { ...process.env, ...environment, PYTHONPATH: engineSourceRoot() }
+    const child = spawn(executable, args, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true, shell: false })
     let finalResult: Record<string, unknown> | undefined
     let settled = false
     const finish = (callback: () => void) => {
@@ -170,21 +190,17 @@ export function runEngine(
       callback()
     }
     const stdout = createInterface({ input: child.stdout })
-    stdout.on('line', (line) => {
+    stdout.on('line', line => {
       try {
         const event = JSON.parse(line) as EngineEvent
         onEvent(event)
         if (event.type === 'result') finalResult = event.data ?? {}
         if (event.type === 'error') finish(() => reject(new Error(event.message ?? 'Engine error')))
-      } catch {
-        onEvent({ type: 'log', message: line })
-      }
+      } catch { onEvent({ type: 'log', message: line }) }
     })
-    child.stderr.on('data', (chunk) => {
-      onEvent({ type: 'log', message: String(chunk).trim() })
-    })
+    child.stderr.on('data', chunk => onEvent({ type: 'log', message: String(chunk).trim() }))
     child.on('error', error => finish(() => reject(error)))
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       if (code === 0) finish(() => resolvePromise(finalResult ?? {}))
       else finish(() => reject(new Error(`Engine exited with code ${code}`)))
     })
