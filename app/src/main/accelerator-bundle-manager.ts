@@ -1,4 +1,4 @@
-import { createHash, verify } from 'node:crypto'
+import { createHash, randomUUID, verify } from 'node:crypto'
 import {
   chmodSync,
   copyFileSync,
@@ -14,7 +14,6 @@ import {
 } from 'node:fs'
 import { execFileSync, spawnSync } from 'node:child_process'
 import { basename, dirname, isAbsolute, join, normalize, relative, resolve, sep } from 'node:path'
-import { randomUUID } from 'node:crypto'
 import { release } from 'node:os'
 import { z } from 'zod'
 import type {
@@ -93,25 +92,52 @@ interface BundleJobGate {
   resetEngineRuntime(): void
 }
 
+interface ParsedVersion {
+  core: number[]
+  prerelease: string[]
+}
+
 function sha256File(path: string): string {
-  const digest = createHash('sha256')
-  digest.update(readFileSync(path))
-  return digest.digest('hex')
+  return createHash('sha256').update(readFileSync(path)).digest('hex')
 }
 
 function sha256Text(value: string): string {
   return createHash('sha256').update(value, 'utf8').digest('hex')
 }
 
-function versionParts(value: string): number[] {
-  return value.split('-', 1)[0].split('.').map(part => Number(part))
+function parseVersion(value: string): ParsedVersion {
+  const match = value.trim().match(/^(\d+(?:\.\d+)*)(?:-([0-9A-Za-z.-]+))?/u)
+  if (!match) return { core: [0], prerelease: [] }
+  return {
+    core: match[1].split('.').map(part => Number(part)),
+    prerelease: match[2]?.split('.') ?? [],
+  }
+}
+
+function compareIdentifier(left: string, right: string): number {
+  const leftNumeric = /^\d+$/u.test(left)
+  const rightNumeric = /^\d+$/u.test(right)
+  if (leftNumeric && rightNumeric) return Number(left) - Number(right)
+  if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1
+  return left.localeCompare(right)
 }
 
 export function compareVersions(left: string, right: string): number {
-  const a = versionParts(left)
-  const b = versionParts(right)
-  for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
-    const difference = (a[index] ?? 0) - (b[index] ?? 0)
+  const a = parseVersion(left)
+  const b = parseVersion(right)
+  for (let index = 0; index < Math.max(a.core.length, b.core.length); index += 1) {
+    const difference = (a.core[index] ?? 0) - (b.core[index] ?? 0)
+    if (difference !== 0) return difference
+  }
+  if (a.prerelease.length === 0 && b.prerelease.length === 0) return 0
+  if (a.prerelease.length === 0) return 1
+  if (b.prerelease.length === 0) return -1
+  for (let index = 0; index < Math.max(a.prerelease.length, b.prerelease.length); index += 1) {
+    const leftIdentifier = a.prerelease[index]
+    const rightIdentifier = b.prerelease[index]
+    if (leftIdentifier === undefined) return -1
+    if (rightIdentifier === undefined) return 1
+    const difference = compareIdentifier(leftIdentifier, rightIdentifier)
     if (difference !== 0) return difference
   }
   return 0
@@ -240,6 +266,7 @@ export class AcceleratorBundleManager {
     this.verifyManifestSignature(manifest)
     const stage = join(this.stagingRoot, `${manifest.bundleId}-${manifest.version}-${randomUUID()}`)
     mkdirSync(stage, { recursive: true })
+    writeFileSync(join(stage, 'accelerator-bundle-manifest.json'), rawManifest, 'utf8')
     try {
       const verification = this.verifyAndCopyFiles(manifest, sourceRoot, stage, rawManifest)
       const inventory = this.runProviderInventory(manifest, stage)
@@ -253,10 +280,7 @@ export class AcceleratorBundleManager {
       return this.recordFromPath(target, 'installed')
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)
-      if (existsSync(stage)) {
-        writeFileSync(join(stage, 'quarantine-reason.txt'), `${reason}\n`, 'utf8')
-        this.moveToQuarantine(stage, manifest.bundleId, manifest.version, reason)
-      }
+      if (existsSync(stage)) this.moveToQuarantine(stage, manifest.bundleId, manifest.version, reason)
       throw error
     }
   }
@@ -298,6 +322,7 @@ export class AcceleratorBundleManager {
       const target = join(this.installedRoot, candidate.bundleId, candidate.version)
       if (!existsSync(target)) continue
       const record = this.recordFromPath(target, 'installed')
+      this.validateCompatibility(record.manifest)
       this.runProviderInventory(record.manifest, target)
       this.writeActivePointer({
         schemaVersion: 1,
@@ -465,7 +490,7 @@ export class AcceleratorBundleManager {
         const child = join(directory, entry.name)
         const manifestPath = join(child, 'accelerator-bundle-manifest.json')
         if (existsSync(manifestPath)) {
-          try { records.push(this.recordFromPath(child, state)) } catch { /* corrupt records stay invisible until manual cleanup */ }
+          try { records.push(this.recordFromPath(child, state)) } catch { /* corrupt records stay isolated until manual cleanup */ }
         } else walk(child)
       }
     }
