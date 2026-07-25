@@ -5,7 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from mel_engine.detection import _percentile, _write_exports, should_sample_frame
+import imageio.v3 as iio
+import imageio_ffmpeg
+import numpy as np
+from PIL import Image
+
+from mel_engine.detection import _encode_annotated_video, _percentile, _write_exports, should_sample_frame
 
 
 class DetectionWorkflowTests(unittest.TestCase):
@@ -23,6 +28,41 @@ class DetectionWorkflowTests(unittest.TestCase):
         self.assertEqual(_percentile([], 95), 0.0)
         self.assertAlmostEqual(_percentile([1.0, 2.0, 3.0, 4.0], 50), 2.5)
         self.assertAlmostEqual(_percentile([1.0, 2.0, 3.0, 4.0], 95), 3.85)
+
+    def test_annotated_video_rebuilds_all_frames_and_replaces_sampled_frames(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / 'source.mp4'
+            output = root / 'annotated.mp4'
+            writer = imageio_ffmpeg.write_frames(
+                str(source),
+                (32, 32),
+                fps=6,
+                codec='libx264',
+                pix_fmt_in='rgb24',
+                pix_fmt_out='yuv420p',
+                ffmpeg_log_level='error',
+            )
+            writer.send(None)
+            try:
+                for value in (20, 40, 60):
+                    writer.send(np.full((32, 32, 3), value, dtype=np.uint8).tobytes())
+            finally:
+                writer.close()
+            annotation = root / 'frame-1.jpg'
+            Image.new('RGB', (32, 32), (240, 10, 10)).save(annotation, 'JPEG', quality=95)
+
+            evidence = _encode_annotated_video(source, output, {1: annotation}, fps=6.0)
+            frames = [np.asarray(frame, dtype=np.uint8) for frame in iio.imiter(output)]
+
+            self.assertTrue(output.is_file())
+            self.assertEqual(evidence['frame_count'], 3)
+            self.assertEqual(evidence['annotation_policy'], 'sampled-frames-only')
+            self.assertEqual(len(frames), 3)
+            self.assertLess(float(frames[0].mean()), 35.0)
+            self.assertGreater(float(frames[1][..., 0].mean()), 180.0)
+            self.assertLess(float(frames[1][..., 1].mean()), 60.0)
+            self.assertGreater(float(frames[2].mean()), 45.0)
 
     def test_structured_exports_include_empty_items_crops_and_coco_categories(self) -> None:
         items = [
