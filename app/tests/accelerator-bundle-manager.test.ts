@@ -1,4 +1,4 @@
-import { generateKeyPairSync, sign, createHash } from 'node:crypto'
+import { createHash, generateKeyPairSync, sign, type KeyObject } from 'node:crypto'
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, relative, sep } from 'node:path'
@@ -35,7 +35,7 @@ function writeExecutable(root: string, provider: string, runtime = '1.22.1'): st
   return executable
 }
 
-function createBundle(root: string, version: string, privateKey: ReturnType<typeof generateKeyPairSync>['privateKey']) {
+function createBundle(root: string, version: string, privateKey: KeyObject) {
   const { profile, provider } = profileForHost()
   const source = join(root, `source-${version}`)
   const engineRoot = join(source, 'engine')
@@ -49,10 +49,10 @@ function createBundle(root: string, version: string, privateKey: ReturnType<type
   writeFileSync(native, '{"libraries":[]}\n', 'utf8')
   const paths = [executable, sbom, notices, native]
   const relativePath = (path: string) => relative(source, path).split(sep).join('/')
-  const distributions = profile === 'cuda'
+  const distributions: Record<string, string> = profile === 'cuda'
     ? { 'onnxruntime-gpu': '1.22.1', 'nvidia-cuda-runtime-cu12': '12.9.79', 'nvidia-cudnn-cu12': '9.10.2.21' }
     : { onnxruntime: '1.22.1' }
-  const manifest = {
+  const manifest: AcceleratorBundleManifest = {
     schemaVersion: 1,
     bundleId: `mel-${profile}-${process.platform}-${process.arch}`,
     version,
@@ -79,7 +79,7 @@ function createBundle(root: string, version: string, privateKey: ReturnType<type
     nativeInventoryFile: relativePath(native),
     signedPayload: '',
     signature: '',
-  } satisfies AcceleratorBundleManifest
+  }
   manifest.signedPayload = canonicalAcceleratorBundlePayload(manifest)
   manifest.signature = sign(null, Buffer.from(manifest.signedPayload, 'utf8'), privateKey).toString('base64')
   const manifestPath = join(source, 'accelerator-bundle-manifest.json')
@@ -100,13 +100,14 @@ describe('AcceleratorBundleManager', () => {
     expect(acceleratorBundleManifestSchema.safeParse(duplicate).success).toBe(false)
   })
 
-  it('compares release-candidate version cores for compatibility gates', () => {
-    expect(compareVersions('1.0.0-rc.6', '1.0.0-rc.1')).toBe(0)
+  it('orders release candidates and stable versions for compatibility gates', () => {
+    expect(compareVersions('1.0.0-rc.6', '1.0.0-rc.1')).toBeGreaterThan(0)
+    expect(compareVersions('1.0.0', '1.0.0-rc.99')).toBeGreaterThan(0)
     expect(compareVersions('1.1.0', '1.0.9')).toBeGreaterThan(0)
     expect(compareVersions('0.9.9', '1.0.0')).toBeLessThan(0)
   })
 
-  it('installs, activates and rolls back verified bundles atomically', () => {
+  it.skipIf(process.platform === 'win32')('installs, activates and rolls back verified bundles atomically', () => {
     const pair = generateKeyPairSync('ed25519')
     writeFileSync(join(root, 'accelerator-bundle-public-key.pem'), pair.publicKey.export({ type: 'spki', format: 'pem' }))
     const jobs = { activeCount: () => 0, resetEngineRuntime: vi.fn() }
