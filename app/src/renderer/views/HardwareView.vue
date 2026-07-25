@@ -7,6 +7,7 @@ import type {
   HardwareSelfTestResult,
   HardwareSnapshot,
 } from '../../shared/hardware-contracts'
+import AcceleratorBundlesPanel from '../components/AcceleratorBundlesPanel.vue'
 import PageHeader from '../components/PageHeader.vue'
 import ResourceSchedulerPanel from '../components/ResourceSchedulerPanel.vue'
 
@@ -143,6 +144,7 @@ onMounted(async () => {
       <v-alert v-if="selfTest.recommendation" :type="selfTest.passed ? 'success' : 'warning'" variant="tonal" class="mt-3">{{ selfTest.recommendation }}</v-alert><v-alert v-if="selfTest.error" type="error" variant="tonal" class="mt-3">{{ selfTest.error.name }}: {{ selfTest.error.message }}</v-alert>
     </v-card>
 
+    <AcceleratorBundlesPanel />
     <ResourceSchedulerPanel />
     <v-snackbar v-model="snackbar" :color="messageType" :timeout="6500">{{ message }}</v-snackbar>
   </div>
