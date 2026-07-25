@@ -2,7 +2,6 @@ import { ipcMain } from 'electron'
 import { z } from 'zod'
 import { RESOURCE_SCHEDULER_IPC, type ResourceSchedulerPreferences } from '../shared/resource-scheduler-contracts'
 import type { JobManager } from './job-manager'
-import type { ResourceScheduler } from './resource-scheduler'
 
 const policySchema = z.object({
   maxConcurrent: z.number().int().min(1).max(32),
@@ -19,9 +18,9 @@ const preferencesPatchSchema = z.object({
   devicePolicies: z.record(z.string().regex(/^(?:directml|cuda|coreml):\d+$/u), policySchema).optional(),
 })
 
-export function registerResourceSchedulerIpc(resources: ResourceScheduler, jobs: JobManager): void {
+export function registerResourceSchedulerIpc(jobs: JobManager): void {
   ipcMain.handle(RESOURCE_SCHEDULER_IPC.snapshot, () => jobs.resourceSnapshot())
-  ipcMain.handle(RESOURCE_SCHEDULER_IPC.preferencesGet, () => resources.preferences())
+  ipcMain.handle(RESOURCE_SCHEDULER_IPC.preferencesGet, () => jobs.resourcePreferences())
   ipcMain.handle(RESOURCE_SCHEDULER_IPC.preferencesSet, (_event, patch: Partial<ResourceSchedulerPreferences>) =>
-    resources.updatePreferences(preferencesPatchSchema.parse(patch)))
+    jobs.updateResourcePreferences(preferencesPatchSchema.parse(patch)))
 }
