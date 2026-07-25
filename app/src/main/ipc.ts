@@ -4,6 +4,8 @@ import { IPC, type CreateJobRequest, type ReportDocument, type StudioSettings } 
 import { AcceleratorBundleManager } from './accelerator-bundle-manager'
 import { registerAcceleratorBundleIpc } from './accelerator-bundle-ipc'
 import { StudioDatabase } from './database'
+import { registerDetectionWorkflowIpc } from './detection-workflow-ipc'
+import { DetectionWorkflowManager } from './detection-workflow-manager'
 import { engineProviderInventory, engineReady } from './engine'
 import { registerHardwareIpc } from './hardware-ipc'
 import { JobManager } from './job-manager'
@@ -18,7 +20,7 @@ import { UpdateManager } from './update-manager'
 const pathSchema = z.string().min(1).max(32768)
 const uuidSchema = z.string().uuid()
 const createJobSchema = z.object({
-  kind: z.enum(['scan', 'atlas', 'detection', 'automation', 'pdf-export', 'sample-download']),
+  kind: z.enum(['scan', 'atlas', 'detection', 'detection-benchmark', 'automation', 'pdf-export', 'sample-download']),
   title: z.string().min(1).max(160),
   config: z.record(z.string(), z.unknown()),
 })
@@ -59,6 +61,7 @@ export function registerIpc(
   registerHardwareIpc(app.getPath('userData'))
   registerResourceSchedulerIpc(jobs)
   registerAcceleratorBundleIpc(new AcceleratorBundleManager(app.getPath('userData'), process.resourcesPath, app.getVersion(), jobs))
+  registerDetectionWorkflowIpc(new DetectionWorkflowManager(app.getPath('userData')))
   ipcMain.handle(IPC.systemInfo, async () => ({
     platform: process.platform,
     arch: process.arch,
