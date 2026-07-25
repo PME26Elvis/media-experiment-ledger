@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createHash, generateKeyPairSync, sign, verify } from 'node:crypto'
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join, relative, resolve, sep } from 'node:path'
+import { basename, join, relative, resolve, sep } from 'node:path'
 import process from 'node:process'
 
 function argumentsMap(argv) {
@@ -104,7 +104,10 @@ if (!['directml', 'cuda', 'coreml'].includes(profile)) throw new Error(`Unsuppor
 if (!existsSync(engineRoot) || !statSync(engineRoot).isDirectory()) throw new Error(`Engine root does not exist: ${engineRoot}`)
 mkdirSync(outputRoot, { recursive: true })
 const bundleEngineRoot = join(outputRoot, 'engine')
-cpSync(engineRoot, bundleEngineRoot, { recursive: true, errorOnExist: false, force: true })
+// PyInstaller uses platform-native symlinks for some Unix libraries. The transport
+// format intentionally contains only regular files, so materialize those links
+// while copying and keep the application-side installer fail-closed on symlinks.
+cpSync(engineRoot, bundleEngineRoot, { recursive: true, errorOnExist: false, force: true, dereference: true })
 
 const buildManifestPath = join(bundleEngineRoot, 'engine-build-manifest.json')
 if (!existsSync(buildManifestPath)) throw new Error('engine-build-manifest.json is required in the engine root')
