@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto'
+import { app } from 'electron'
 import type { CreateJobRequest, JobRecord } from '../shared/contracts'
-import type { ResourceSchedulerSnapshot } from '../shared/resource-scheduler-contracts'
+import type { ResourceSchedulerPreferences, ResourceSchedulerSnapshot } from '../shared/resource-scheduler-contracts'
 import { StudioDatabase } from './database'
 import { detectionWorkerKey, EngineWorkerPool } from './engine-worker-pool'
 import { runEngine, type EngineEvent } from './engine'
-import { classifyOutOfMemory, ResourceScheduler } from './resource-scheduler'
+import { classifyOutOfMemory, ResourceScheduler, schedulerPreferencesPath } from './resource-scheduler'
 import { SecretStore } from './secret-store'
 
 const ACTIVE_STATUSES = new Set<JobRecord['status']>(['queued', 'running', 'pausing', 'cancelling'])
@@ -16,8 +17,8 @@ export class JobManager {
   constructor(
     private readonly db: StudioDatabase,
     private readonly secrets: SecretStore,
-    private readonly resources: ResourceScheduler,
-    private readonly workers: EngineWorkerPool,
+    private readonly resources = new ResourceScheduler(schedulerPreferencesPath(app.getPath('userData'))),
+    private readonly workers = new EngineWorkerPool(),
   ) {
     this.resources.setChangedCallback(() => { void this.dispatch() })
     this.resources.setQueuedJobs(this.list())
@@ -33,6 +34,14 @@ export class JobManager {
 
   resourceSnapshot(): ResourceSchedulerSnapshot {
     return { ...this.resources.snapshot(), warmWorkers: this.workers.snapshot().workers }
+  }
+
+  resourcePreferences(): ResourceSchedulerPreferences {
+    return this.resources.preferences()
+  }
+
+  updateResourcePreferences(patch: Partial<ResourceSchedulerPreferences>): ResourceSchedulerPreferences {
+    return this.resources.updatePreferences(patch)
   }
 
   create(request: CreateJobRequest): JobRecord {
@@ -126,8 +135,9 @@ export class JobManager {
     } catch (error) {
       const current = this.db.getJob(job.id) ?? job
       const cancelled = controller.signal.aborted
+      const interrupted = current.status === 'recoverable' && current.stage.startsWith('interrupted')
       const classification = classifyOutOfMemory(error, request)
-      this.save({
+      this.save(interrupted ? current : {
         ...current,
         status: cancelled ? (current.status === 'pausing' ? 'paused' : 'cancelled') : 'recoverable',
         stage: cancelled
@@ -206,6 +216,7 @@ export class JobManager {
       }
     }
     this.resources.setQueuedJobs(this.list())
+    this.shutdown()
     return recovered
   }
 
