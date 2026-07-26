@@ -4,6 +4,8 @@ import { IPC, type CreateJobRequest, type ReportDocument, type StudioSettings } 
 import { AcceleratorBundleManager } from './accelerator-bundle-manager'
 import { registerAcceleratorBundleIpc } from './accelerator-bundle-ipc'
 import { StudioDatabase } from './database'
+import { registerDetectionWorkflowIpc } from './detection-workflow-ipc'
+import { DetectionWorkflowManager } from './detection-workflow-manager'
 import { engineProviderInventory, engineReady } from './engine'
 import { registerHardwareIpc } from './hardware-ipc'
 import { JobManager } from './job-manager'
@@ -59,6 +61,7 @@ export function registerIpc(
   registerHardwareIpc(app.getPath('userData'))
   registerResourceSchedulerIpc(jobs)
   registerAcceleratorBundleIpc(new AcceleratorBundleManager(app.getPath('userData'), process.resourcesPath, app.getVersion(), jobs))
+  registerDetectionWorkflowIpc(new DetectionWorkflowManager(app.getPath('userData')))
   ipcMain.handle(IPC.systemInfo, async () => ({
     platform: process.platform,
     arch: process.arch,
