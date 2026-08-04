@@ -4,149 +4,128 @@
 > Decision: separate detector inference workflows, one aggregate publisher workflow, one combined detector Release family  
 > Atlas impact: **none**
 
-## 1. Goal
+## 1. Purpose and interpretation boundary
 
-Add NanoDet-Plus as a second COCO-pretrained object detector without coupling it to Prompt Repeatability Atlas. YOLOX-Tiny and NanoDet must run independently, publish transport artifacts, and then feed a third workflow that creates one coherent detector Release plus a YOLOX-versus-NanoDet comparison gallery.
+The repository runs YOLOX-Tiny and NanoDet-Plus-m-320 independently over the same complete canonical image corpus, then publishes one validated comparison product. The generated media has no human-verified COCO ground truth, so this product reports **agreement, disagreement, coverage, box overlap, confidence, class distribution, and runtime**. It must never present repository observations as model accuracy, precision, recall, or mAP.
 
-The target product is not an accuracy benchmark. The repository has generated media but no human-verified COCO ground truth. The comparison therefore reports **agreement, disagreement, coverage, box overlap, confidence, class distribution, and runtime**, never model accuracy, precision, recall, or mAP on this corpus.
+Required disclaimer:
 
-## 2. Correctness of the proposed GitHub Actions architecture
+> These are observations from two COCO-pretrained detectors, not ground-truth labels or an accuracy benchmark. Agreement does not prove correctness, and disagreement does not identify which detector is correct.
 
-The proposed architecture is valid:
+Videos are outside this detector corpus. They remain part of general Analytics and the image/video Prompt Repeatability Atlas.
 
-1. Workflow A rebuilds the canonical corpus and runs YOLOX-Tiny.
-2. Workflow B rebuilds the same canonical corpus and runs NanoDet-Plus.
-3. Workflow C downloads the artifacts from the exact A/B workflow run IDs, validates them, builds comparison outputs, and publishes one Release.
+## 2. Canonical source corpus
 
-`actions/download-artifact` supports downloading artifacts from another workflow run when `run-id` and `github-token` are supplied. The implementation should use the current major version available at development time; the initial design targets `actions/download-artifact@v5` rather than intentionally pinning the older v4 interface.
+Every invocation rebuilds the image inventory from all published, non-draft `media-exp-*` Releases after applying `config/release-quarantine.json`.
 
-The difficult part is pairing two runs safely. "Latest successful YOLO" plus "latest successful NanoDet" is forbidden because the two runs may describe different source Releases, quarantine policy, thresholds, or code versions.
+The inventory process must:
 
-## 3. Release families
+- download formal manifests, standalone `run_*-outputs.jsonl`, and `run_*-images*.zip` assets;
+- reject unsafe ZIP paths and unsupported members;
+- verify Release asset integrity, manifest records, member hashes, image decode, dimensions, and byte size;
+- exclude quarantined runs;
+- deduplicate byte-identical images by SHA-256 while preserving every source Release, run, prompt, category, model, and timestamp alias;
+- produce an immutable corpus fingerprint and ordered canonical SHA set;
+- start from scratch on every workflow run, with no hidden incremental state, cross-run inference cache, or published-result reuse.
 
-Existing immutable history remains valid:
+## 3. Implemented workflow topology
 
-- `media-yolo-all-*`: historical YOLO-only Releases.
-- `media-analysis-*`: Prompt Repeatability Atlas; never modified by this feature.
-
-After NanoDet production verification, new combined detector publications use:
-
-```text
-media-detection-all-<latest-experiment-date>-vN
-```
-
-Example:
-
-```text
-media-detection-all-2026-07-13-v1
-```
-
-The Release title identifies both detector implementations and model hashes. YOLO-only `media-yolo-*` Releases remain accessible but are treated as the legacy single-detector family.
-
-## 4. Workflow topology
-
-### 4.1 Workflow A — YOLOX inference
-
-Planned file:
+### 3.1 Workflow A — YOLOX-Tiny inference
 
 ```text
 .github/workflows/detector-yolox-inference.yml
 ```
 
-Responsibilities:
+The workflow:
 
-- enumerate every published `media-exp-*` Release;
-- apply `config/release-quarantine.json`;
-- validate manifests, Release asset size/SHA, ZIP CRC, member paths and member hashes;
-- build the canonical unique-image inventory;
-- run the existing SHA-pinned YOLOX-Tiny ONNX Runtime CPU implementation;
-- render annotated images and explicit empty-detection images;
-- create success or failure sidecars for every canonical image;
-- package YOLOX namespaced ZIP assets;
-- upload exactly one workflow artifact containing the detector package and completion manifest;
-- **do not create or edit a GitHub Release**;
-- **do not write indexes or README history to `main`**.
+- rebuilds the complete canonical image corpus;
+- downloads and verifies the SHA-pinned YOLOX-Tiny ONNX model and COCO 80 labels;
+- runs real ONNX Runtime CPU inference;
+- emits one normalized success or explicit failure sidecar for every canonical image;
+- renders annotated images and explicit empty-detection evidence;
+- builds deterministic namespaced ZIP packages and an offline gallery;
+- uploads exactly one short-lived `detector-yolox-<analysis_batch_id>` workflow artifact;
+- has read-only repository contents permission and never creates a Release or writes indexes.
 
-### 4.2 Workflow B — NanoDet inference
-
-Planned file:
+### 3.2 Workflow B — NanoDet-Plus inference
 
 ```text
 .github/workflows/detector-nanodet-inference.yml
 ```
 
-Responsibilities mirror Workflow A, but use the NanoDet adapter and NanoDet model lock.
+The workflow mirrors Workflow A while using NanoDet-Plus-m-320. The production model is the **official immutable pre-exported ONNX** asset from the pinned upstream Release. Its byte size, SHA-256, labels hash, input shape, strides, and `reg_max` are fixed in `object-detection/nanodet-model-lock.json`; a real ONNX Runtime shape smoke runs before full-corpus inference.
 
-Initial model candidate:
+The artifact name is:
 
 ```text
-NanoDet-Plus-m-320
-ShuffleNetV2 1.0x
-320 × 320
-COCO 80 classes
-Apache-2.0
+detector-nanodet-<analysis_batch_id>
 ```
 
-The official project reports approximately 1.17 million parameters, 0.9 GFLOPs, and 27.0 COCO mAP for this variant. These upstream benchmark values are descriptive metadata only and must not be presented as performance on this repository's generated images.
-
-### 4.3 Workflow C — aggregate and publish
-
-Planned file:
+### 3.3 Workflow C — validate, compare, and publish
 
 ```text
 .github/workflows/detector-comparison-publish.yml
 ```
 
-Responsibilities:
+The publisher:
 
-- identify an exact successful YOLOX run and NanoDet run;
-- download both workflow artifacts using exact run IDs and the repository token;
-- extract only into `${{ runner.temp }}` after path validation;
-- validate completion manifests and every packaged file hash;
-- reject mismatched batches, corpora, source Release sets, quarantine digests, COCO labels, or image coverage;
-- build detector-comparison JSON, representative tri-panel images and an offline HTML gallery;
-- create deterministic comparison ZIP assets;
-- create a draft `media-detection-all-*` Release;
-- upload all namespaced ZIP assets;
-- verify the published asset list and hashes;
-- publish the Release;
-- write independent detector latest/history indexes and versioned Release Notes previews to `main` with rebase/retry;
-- never change Atlas indexes, Atlas Releases, Atlas previews, or Atlas history.
+- accepts explicit YOLOX and NanoDet workflow run IDs as a deterministic recovery interface;
+- also listens to trusted `workflow_run` completions from A and B;
+- downloads both artifacts with `actions/download-artifact@v5`, exact `run-id`, and `github-token`;
+- validates both completion manifests and every packaged file hash before comparison;
+- creates comparison JSON, representative tri-panels, an offline HTML gallery, and deterministic ZIP assets;
+- publishes one immutable `media-detection-all-<latest-experiment-date>-vN` Release;
+- updates independent detector latest/history indexes and versioned Detector Lab previews on `main` using fetch/rebase/push retries;
+- never changes Atlas workflows, Releases, previews, indexes, history, Notes, or success state.
 
-## 5. Batch identity and pairing
+## 4. Trigger and refresh policy
 
-Every inference invocation receives or derives an immutable `analysis_batch_id`.
+### 4.1 Manual inference
 
-Recommended value:
+Operators may manually dispatch A and B using the same `analysis_batch_id`. Workflow C may then be manually dispatched with the two exact run IDs.
 
-```text
-detection-<latest-experiment-date>-<corpus-fingerprint-12>-<requested-at-UTC>
-```
+### 4.2 Automatic same-head pairing
 
-Example:
+For `workflow_run` publication, Workflow C only accepts successful detector runs that:
 
-```text
-detection-2026-07-13-633b2daf9eab-20260721T040000Z
-```
+- belong to this repository;
+- target trusted `main`;
+- come from the expected workflow IDs;
+- use the same head SHA;
+- each expose exactly one unexpired artifact with the expected detector prefix;
+- carry the same `analysis_batch_id`.
 
-The batch ID is metadata, not persistent processing state. It exists only to pair workflow artifacts.
+The publisher may query the latest successful counterpart **for that exact head SHA**, but it must never pair independently selected generic “latest successful” detector runs. If the counterpart is not ready, the first publisher attempt exits without publication; completion of the second inference workflow retries the pairing.
 
-Both detector manifests must contain:
+### 4.3 Input promotion integration
+
+A non-dry-run **Promote input snapshot** Action:
+
+1. reconstructs and promotes the input archive;
+2. counts newly created formal `media-exp-*` Releases from the publisher output;
+3. refreshes Analytics and the full Experiment Release Audit;
+4. when and only when at least one new formal Release was created, dispatches A and B with one shared `promotion-<workflow-run-id>` batch ID.
+
+A repeated no-op promotion does not rerun detector inference. Direct CLI publishing or CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches Atlas, but it does not additionally dispatch the Audit or detector workflows.
+
+## 5. Batch and artifact identity
+
+Every detector manifest includes at least:
 
 ```json
 {
   "schema_version": 1,
-  "analysis_batch_id": "detection-...",
-  "detector_id": "yolox-tiny" ,
+  "analysis_batch_id": "detection-or-promotion-...",
+  "detector_id": "yolox-tiny",
   "workflow_run_id": 123456789,
   "head_sha": "...",
   "corpus_fingerprint": "...",
   "quarantine_policy_digest": "...",
   "source_release_tags": ["media-exp-..."],
-  "date_from": "2026-06-29",
-  "date_to": "2026-07-13",
-  "canonical_image_count": 387,
-  "successful_image_count": 387,
+  "date_from": "YYYY-MM-DD",
+  "date_to": "YYYY-MM-DD",
+  "canonical_image_count": 893,
+  "successful_image_count": 893,
   "failed_image_count": 0,
   "labels_sha256": "...",
   "model_sha256": "...",
@@ -155,152 +134,57 @@ Both detector manifests must contain:
     "nms_iou": 0.45,
     "max_detections": 100
   },
-  "package_files": [
-    {
-      "name": "...zip",
-      "size_bytes": 123,
-      "sha256": "..."
-    }
-  ]
+  "package_files": []
 }
 ```
 
-Publisher requirements:
+The example count is illustrative of a corpus snapshot, not a fixed contract value.
+
+The publisher requires:
 
 - exact `analysis_batch_id` match;
-- exact `corpus_fingerprint` match;
-- exact `quarantine_policy_digest` match;
-- identical ordered `source_release_tags`;
+- exact corpus fingerprint and quarantine-policy digest match;
+- identical ordered source Release tags;
 - identical canonical image SHA set;
-- identical COCO label hash;
-- zero missing sidecars;
-- failures below the declared policy threshold;
-- detector IDs must be distinct and expected.
+- identical COCO labels hash and compatible thresholds;
+- distinct expected detector IDs;
+- complete sidecar coverage and policy-compliant failures;
+- every artifact file name, size, and SHA-256 to match its manifest.
 
-A mismatch produces an explicit failed workflow and no Release.
+Any mismatch fails closed and creates no Release.
 
-## 6. Trigger strategy
+## 6. Security boundary
 
-### 6.1 Initial reliable mode
+The privileged publisher must never consume arbitrary PR artifacts or execute content from detector artifacts.
 
-The initial implementation should favor explicit run pairing:
+It must:
 
-1. manually dispatch A and B with the same batch ID;
-2. after both succeed, manually dispatch C with `yolox_run_id` and `nanodet_run_id`.
+- checkout publisher code from current trusted `main`;
+- reject runs from another repository, untrusted branch, unexpected workflow, or unsuccessful conclusion;
+- extract only under `${{ runner.temp }}`;
+- reject absolute paths, `..`, symlinks, unexpected top-level members, and hash mismatches;
+- validate schemas before reading comparison data;
+- use fixed concurrency with `cancel-in-progress: false`;
+- prevent duplicate publication for the same batch.
 
-This mode is deterministic, easy to audit, and avoids hidden run selection.
+## 7. Model supply chain
 
-### 6.2 Optional automatic mode
+### YOLOX-Tiny
 
-After production verification, C may listen to `workflow_run` completion events for A and B.
+- model family and immutable download are pinned in `object-detection/model-lock.json`;
+- labels are pinned in `object-detection/coco-80.json`;
+- CI verifies model size, SHA-256, labels, ONNX Runtime session creation, and real output tensor shape.
 
-The publisher then:
+### NanoDet-Plus-m-320
 
-1. downloads the triggering run's completion manifest;
-2. reads its batch ID;
-3. queries successful runs of the counterpart workflow;
-4. finds exactly one unexpired counterpart artifact with the same batch ID;
-5. exits successfully without publication if the counterpart is not ready;
-6. publishes when both artifacts exist;
-7. uses a fixed publisher concurrency group with `cancel-in-progress: false`;
-8. checks for an existing draft/final Release carrying the same batch ID before creating another.
+- upstream model: NanoDet-Plus-m-320 / ShuffleNetV2 1.0x / 320 × 320 / COCO 80 / Apache-2.0;
+- immutable ONNX details are pinned in `object-detection/nanodet-model-lock.json`;
+- CI verifies expected size, SHA-256, labels hash, input/output shape, and real ONNX Runtime execution;
+- upstream COCO benchmark numbers are descriptive model metadata only and are never claimed as results on this generated corpus.
 
-The batch-level duplicate-publication guard is publication idempotency, not inference-result reuse.
+## 8. Normalized sidecar contract
 
-## 7. Artifact contract
-
-### 7.1 YOLOX workflow artifact
-
-Artifact name:
-
-```text
-detector-yolox-<analysis_batch_id>
-```
-
-Contents:
-
-```text
-completion-manifest.json
-release-assets/
-  yolox-coco-metadata.zip
-  yolox-coco-detections-part001.zip
-  yolox-coco-annotated-part001.zip
-  yolox-coco-offline-gallery.zip
-  yolox-coco-complete-part001.zip
-```
-
-### 7.2 NanoDet workflow artifact
-
-Artifact name:
-
-```text
-detector-nanodet-<analysis_batch_id>
-```
-
-Contents:
-
-```text
-completion-manifest.json
-release-assets/
-  nanodet-coco-metadata.zip
-  nanodet-coco-detections-part001.zip
-  nanodet-coco-annotated-part001.zip
-  nanodet-coco-offline-gallery.zip
-  nanodet-coco-complete-part001.zip
-```
-
-Artifacts are transport packages only:
-
-- retention: 7 days by default;
-- `compression-level: 0` because payloads are already ZIP-compressed;
-- no incremental state;
-- no cache hit may skip inference;
-- no artifact is considered a published source of truth;
-- the final immutable Release remains the published product.
-
-## 8. NanoDet model supply chain
-
-### 8.1 Model choice
-
-Initial target:
-
-```text
-NanoDet-Plus-m-320
-```
-
-Reasons:
-
-- official Apache-2.0 project;
-- COCO 80-class output aligns with YOLOX;
-- very small model and low compute;
-- suitable for GitHub-hosted CPU inference;
-- materially different anchor-free detector architecture from YOLOX.
-
-### 8.2 Export and runtime
-
-The official project distributes PyTorch weights/checkpoints and provides `tools/export_onnx.py`.
-
-The production implementation should use:
-
-- a pinned NanoDet Git commit or tagged Release;
-- a pinned official weight/checkpoint URL;
-- expected byte size and SHA-256;
-- Python 3.10 for compatibility with the upstream PyTorch range;
-- pinned CPU PyTorch/torchvision versions for export;
-- deterministic ONNX export with fixed input shape 320 × 320;
-- SHA-256 of the exported ONNX written into the completion manifest;
-- ONNX Runtime CPU for full-corpus inference.
-
-Two acceptable implementation policies:
-
-1. **Export every workflow run.** This is simplest, fully reproducible, and adds only model-setup time.
-2. **Publish a repository-owned immutable model-preparation Release.** This reduces setup time, but requires a separate audited supply-chain spec and must not be treated as an inference result cache.
-
-Initial implementation should use option 1 unless export compatibility proves unstable.
-
-## 9. Common detector sidecar schema
-
-Both detector adapters must emit the same normalized schema:
+Both adapters emit the same comparison-facing schema:
 
 ```json
 {
@@ -330,259 +214,101 @@ Both detector adapters must emit the same normalized schema:
 }
 ```
 
-Detector-specific raw tensors or preprocessing details may be included in namespaced fields, but comparison logic consumes only the normalized schema.
+Detector-specific preprocessing evidence may appear in namespaced fields, but comparison code consumes the normalized contract.
 
-## 10. Comparison logic
+## 9. Comparison metrics
 
-### 10.1 Per-image agreement
+For each canonical image, the comparison records:
 
-For every canonical image:
-
-- class-set intersection and union;
-- class Jaccard similarity;
+- class-set intersection, union, and Jaccard similarity;
 - total detection-count delta;
-- YOLOX-only class list;
-- NanoDet-only class list;
+- YOLOX-only and NanoDet-only classes;
 - both-empty, one-empty, or both-nonempty state;
-- same-class box matches using deterministic descending-confidence greedy matching;
-- match eligibility: same COCO class and IoU at least 0.50;
-- matched-box count;
-- unmatched YOLOX boxes;
-- unmatched NanoDet boxes;
-- mean and median IoU among matched boxes;
-- matched confidence delta;
-- maximum disagreement score.
+- deterministic same-class greedy box matching at IoU ≥ 0.50;
+- matched and unmatched box counts;
+- mean/median matched IoU and confidence delta;
+- a versioned normalized disagreement score.
 
-These metrics are called **agreement metrics**, not accuracy metrics.
+Aggregate output includes corpus coverage, detector failure counts, detections by class, co-occurrence and class deltas, matched/unmatched totals, runtime/throughput, and top agreement/disagreement cases. These remain agreement observations, not accuracy metrics.
 
-### 10.2 Disagreement score
+## 10. Galleries and Release assets
 
-Suggested normalized ranking score:
-
-```text
-0.35 × class-set disagreement
-+ 0.25 × normalized count difference
-+ 0.25 × unmatched-box fraction
-+ 0.15 × (1 - mean matched IoU)
-```
-
-The exact formula and version must be stored in the comparison report.
-
-### 10.3 Aggregate summaries
-
-- total images compared;
-- both-empty count;
-- YOLOX-only nonempty count;
-- NanoDet-only nonempty count;
-- both-nonempty count;
-- total detections by detector;
-- per-class counts by detector;
-- per-class count difference;
-- per-class co-occurrence;
-- matched/unmatched box totals;
-- runtime and throughput comparison;
-- top agreement and disagreement image lists;
-- category and prompt breakdowns.
-
-## 11. Comparison gallery design
-
-### 11.1 Representative static previews
-
-Create up to 20 versioned repository previews for Release Notes and the web UI.
-
-Each preview is a three-column panel:
+Representative previews use:
 
 ```text
 Original | YOLOX-Tiny | NanoDet-Plus
 ```
 
-Footer metadata:
+Up to 20 versioned tri-panels are selected deterministically across categories, one-empty cases, high-density scenes, strong agreement, and strong disagreement.
 
-- prompt ID;
-- source category;
-- image SHA prefix;
-- detector counts;
-- shared classes;
-- detector-only classes;
-- agreement score.
-
-Selection policy:
-
-1. strongest detector disagreement per category;
-2. one-empty versus nonempty cases;
-3. high box-count scenes;
-4. strongest agreement examples;
-5. fill remaining slots deterministically by disagreement score and SHA.
-
-### 11.2 Full offline HTML gallery
-
-Release asset:
-
-```text
-detector-comparison-gallery.zip
-```
-
-Contents:
-
-```text
-index.html
-data.json
-assets/
-  originals/
-  yolox/
-  nanodet/
-  tri-panel/
-```
-
-UI controls:
-
-- search by prompt/category/SHA/class;
-- filter by agreement state;
-- select COCO class;
-- minimum confidence per detector;
-- sort by disagreement, matched IoU, counts, prompt or SHA;
-- original/YOLOX/NanoDet/tri-panel view;
-- toggle boxes and labels;
-- keyboard next/previous;
-- link to detector sidecars and containing ZIP assets.
-
-## 12. Final combined Release assets
-
-Expected namespaced assets:
+Final Release assets are ZIP-only and namespaced:
 
 ```text
 # YOLOX
- yolo[x]-coco-metadata.zip
- yolo[x]-coco-detections-part001.zip
- yolo[x]-coco-annotated-part001.zip
- yolo[x]-coco-offline-gallery.zip
- yolo[x]-coco-complete-part001.zip
+  yolox-coco-metadata.zip
+  yolox-coco-detections-part*.zip
+  yolox-coco-annotated-part*.zip
+  yolox-coco-offline-gallery.zip
+  yolox-coco-complete-part*.zip
 
 # NanoDet
- nanodet-coco-metadata.zip
- nanodet-coco-detections-part001.zip
- nanodet-coco-annotated-part001.zip
- nanodet-coco-offline-gallery.zip
- nanodet-coco-complete-part001.zip
+  nanodet-coco-metadata.zip
+  nanodet-coco-detections-part*.zip
+  nanodet-coco-annotated-part*.zip
+  nanodet-coco-offline-gallery.zip
+  nanodet-coco-complete-part*.zip
 
 # Comparison
- detector-comparison-metadata.zip
- detector-comparison-gallery.zip
- detector-comparison-complete-part001.zip
+  detector-comparison-metadata.zip
+  detector-comparison-gallery.zip
+  detector-comparison-complete-part*.zip
 ```
 
-Actual implementation should consistently use `yolox-` rather than retaining the historical `yolo-` prefix where migration allows. Every individual Release asset must remain below GitHub's per-file Release limit. Complete packages split deterministically before 1.75 GiB.
+Complete packages split deterministically before 1.75 GiB. The offline gallery supports prompt/category/SHA/class search, agreement filters, sorting, and Original/YOLOX/NanoDet/tri-panel views.
 
-## 13. Release Notes
-
-Release Notes sections:
-
-1. source corpus and batch identity;
-2. detector model locks and thresholds;
-3. per-detector coverage and runtime;
-4. aggregate agreement summary;
-5. representative tri-panel previews;
-6. top classes and detector count differences;
-7. ZIP asset table;
-8. interpretation limits.
-
-Required disclaimer:
-
-> These are observations from two COCO-pretrained detectors, not ground-truth labels or an accuracy benchmark. Agreement does not prove correctness, and disagreement does not identify which detector is correct.
-
-## 14. Failure and recovery
+## 11. Failure and recovery
 
 ### Inference workflows
 
-- every canonical image must produce success or explicit failure sidecar;
-- failure rate above policy threshold fails the workflow;
-- artifact upload occurs only after coverage validation;
-- failed workflow artifacts may be retained as short-lived diagnostics, but publisher rejects them.
+- every canonical image produces a success or explicit failure sidecar;
+- coverage and failure policy are validated before artifact upload;
+- failed artifacts may be retained only as short-lived diagnostics and are rejected by the publisher.
 
-### Publisher workflow
+### Publisher
 
-- creates the draft only after both artifacts pass validation;
-- upload may resume the same batch draft after transient failure;
-- final publication requires exact asset-name and checksum verification;
-- index/history writeback occurs only after final publication;
-- writeback uses fetch/rebase/push retry;
-- publisher failure cannot affect Atlas or experiment Releases.
+- no Release is created until both artifacts pass the complete pair contract;
+- an interrupted draft may be resumed only for the same verified batch;
+- final publication requires exact asset-list and checksum verification;
+- index/history writeback happens only after final publication;
+- failures cannot affect experiment Releases or Atlas products.
 
-## 15. Security boundaries
+Manual exact run IDs remain the recovery route if automatic same-head pairing is unavailable.
 
-A privileged `workflow_run` publisher must never consume arbitrary PR artifacts.
+## 12. Resource policy
 
-Publisher requirements:
+Both detectors use complete GitHub-hosted CPU jobs with a 350-minute timeout. The implementation is designed for several thousand canonical images, but every larger corpus must be judged by measured end-to-end workflow evidence rather than extrapolated inference-only speed.
 
-- triggering workflows must exist on default branch;
-- triggering repository must equal the current repository;
-- accepted runs must target `main` or be owner-authorized `workflow_dispatch` runs;
-- conclusion must be `success`;
-- artifact extraction occurs under `${{ runner.temp }}`;
-- reject absolute paths, `..`, symlinks and unexpected top-level members;
-- validate manifest schema, detector ID, file size and SHA before use;
-- never execute scripts from detector artifacts;
-- publisher uses checked-in code from current `main`, not code from the artifact-producing run.
+Artifacts are transport, not persistent state. Re-running the pipeline repeats corpus acquisition, verification, inference, packaging, and publication validation from scratch.
 
-## 16. Resource planning
+## 13. Acceptance criteria
 
-At the current 387 canonical images, both detector workflows are expected to finish comfortably within hosted-runner limits. Even a future 3,000-image corpus is compatible with independent single CPU jobs, provided measured throughput remains within the existing 350-minute design budget.
-
-Inference remains full-corpus and from scratch on every invocation. Workflow artifacts are transport, not persistent state or inference caches.
-
-## 17. Migration plan
-
-### Phase 1 — shared schemas and NanoDet smoke
-
-- add NanoDet model lock and export smoke test;
-- add normalized detector sidecar schema tests;
-- extract common corpus/package code from YOLO without changing current production Release.
-
-### Phase 2 — artifact-only detector workflows
-
-- add A and B;
-- verify both artifacts on the complete corpus;
-- keep current `media-yolo-*` workflow available during transition.
-
-### Phase 3 — comparison publisher
-
-- add C with explicit run-ID inputs;
-- publish a draft combined Release;
-- verify ZIPs, gallery, latest/history indexes and web entry.
-
-### Phase 4 — production switch
-
-- publish first `media-detection-all-*` Release;
-- mark `media-yolo-*` as legacy single-detector history;
-- disable direct Release publication in the old YOLO workflow;
-- retain YOLO inference implementation as Workflow A;
-- preserve Atlas unchanged.
-
-### Phase 5 — optional automatic pairing
-
-- add `workflow_run` pairing only after explicit-run mode is proven;
-- retain manual run-ID publisher inputs as recovery path.
-
-## 18. Acceptance criteria
-
-- YOLOX and NanoDet workflows have no Release write permission requirement.
-- Both detector artifacts describe exactly the same canonical SHA set.
-- Publisher downloads exact run IDs, not "latest" artifacts.
-- Publisher rejects any corpus/model/label/coverage mismatch.
-- One combined `media-detection-all-*` Release contains namespaced YOLOX, NanoDet and comparison ZIPs.
-- Full gallery works offline after extraction.
-- Twenty or fewer representative tri-panel previews render from versioned repository paths.
+- A and B have read-only repository permissions and publish no Releases.
+- Both artifacts describe the exact same canonical SHA set and batch identity.
+- Workflow C supports exact run IDs and safe same-head automatic pairing.
+- Any corpus/model/label/coverage/hash mismatch fails closed.
+- One combined `media-detection-all-*` Release contains YOLOX, NanoDet, and comparison ZIPs.
+- Full gallery works offline; representative previews remain versioned repository files.
 - Comparison language never claims accuracy without ground truth.
-- No Atlas workflow, Release, Notes, preview count, index or history is modified.
-- Existing 15-image/all-eligible-video Atlas Release Notes contract remains covered by tests.
-- All three workflows have deterministic package manifests and explicit recovery behavior.
+- No Atlas workflow, Release, Notes, preview, index, history, or finalizer is modified.
+- Promotion-triggered refresh is idempotent and only runs detectors when the formal corpus changed.
+- All workflows retain deterministic manifests and explicit recovery behavior.
 
 <!-- NANODET:IMPLEMENTATION:START -->
-## 18. Production implementation status — verified 2026-07-21
+## 14. Production implementation status — verified 2026-07-21
 
-Status is **`implemented`**. The complete corpus was processed by YOLOX-Tiny run `29812888677` and NanoDet-Plus run `29812888709`. Publisher run `29813188073` verified the exact pair and created immutable ZIP-only Release [`media-detection-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1).
+Status is **`implemented`**. The first production corpus was processed by YOLOX-Tiny run `29812888677` and NanoDet-Plus run `29812888709`. Publisher run `29813188073` verified the exact run IDs and created immutable ZIP-only Release [`media-detection-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1).
 
-Production evidence:
+Permanent baseline evidence:
 
 - canonical images: **387**, zero detector failures;
 - YOLOX detections: **1,533**; NanoDet detections: **3,243**;
@@ -593,6 +319,6 @@ Production evidence:
 - detector writeback commit `9bef82a565ac25db97708628acfe8f56e1cc3b29` preserved the exact Atlas index blob SHA `3778183686ca7603e3c6d49013ff643182445cec`.
 
 The official NanoDet ONNX remains pinned at SHA-256 `4f12723cce3d48e47ca92cb925ba74d97a965c069208edca660bbb9f7ce2c610`. These are detector agreement/disagreement observations, not ground-truth labels or an accuracy benchmark. Full evidence: [`docs/reports/NANODET_PRODUCTION_EVIDENCE.md`](reports/NANODET_PRODUCTION_EVIDENCE.md).
-The production model is the official immutable pre-exported ONNX asset from the pinned upstream Release.
 
+This section is an immutable first-production evidence snapshot. New detector publications update `data/detection/latest.json`, `data/detection/history.json`, and the web index; they do not rewrite the baseline above.
 <!-- NANODET:IMPLEMENTATION:END -->
