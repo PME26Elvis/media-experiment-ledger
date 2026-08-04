@@ -288,7 +288,7 @@ Manual exact run IDs remain the recovery route if automatic same-head pairing is
 
 Both detectors use complete GitHub-hosted CPU jobs with a 350-minute timeout. The implementation is designed for several thousand canonical images, but every larger corpus must be judged by measured end-to-end workflow evidence rather than extrapolated inference-only speed.
 
-Artifacts are transport, not persistent state. Re-running the pipeline repeats corpus acquisition, verification, inference, packaging, and publication validation from scratch.
+Workflow artifacts are transport, not persistent state. Re-running the pipeline repeats corpus acquisition, verification, inference, packaging, and publication validation from scratch.
 
 ## 13. Acceptance criteria
 
