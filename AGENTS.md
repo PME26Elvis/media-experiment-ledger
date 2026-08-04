@@ -89,7 +89,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - `Promote input snapshot` dispatches both inference workflows with one shared batch ID only when that promotion created at least one new formal `media-exp-*` Release. Repeated no-op promotion must not rerun detectors.
 - Detector workflows rebuild the complete canonical **image** corpus; videos remain outside the YOLOX/NanoDet corpus.
 - Workflow artifacts are short-lived transport only, never source of truth, inference cache, or persistent processing state.
-- The combined Release family is `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
+- Combined publications use the `media-detection-*` Release namespace, with formal tags shaped as `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
 - The comparison gallery uses Original / YOLOX-Tiny / NanoDet-Plus tri-panels plus a full offline HTML ZIP.
 - Without human-verified ground truth, describe agreement, disagreement, coverage, IoU, class distributions, and runtime. Never claim accuracy, precision, recall, or mAP on this generated corpus.
 - Multi-detector workflows and Releases remain independent of Atlas. They may not change Atlas Notes, previews, indexes, Releases, history, or workflow success.
