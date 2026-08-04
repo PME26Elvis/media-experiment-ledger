@@ -151,6 +151,14 @@ python tools/input_snapshot.py publish results.zip --dry-run
 
 Workflow 會下載並驗證所有 parts、byte-for-byte 重建原 ZIP、安全解壓，最後呼叫同一個共同 publisher。整個多日期批次成功後只 dispatch 一次全資料 Atlas；analytics 另外由 promotion workflow 更新。
 
+非 dry-run 的 Action 路徑還會補齊下游維護：
+
+- 重新執行全量 Experiment Release Audit，驗證所有正式 `media-exp-*` manifests、JSONL 與媒體 ZIP；
+- 只有本次真的建立至少一個新正式 Release 時，才以同一個 batch ID dispatch YOLOX-Tiny 與 NanoDet-Plus；
+- detector 會從頭處理全部 canonical **圖片** corpus，再由 comparison publisher 建立新的 `media-detection-*` Release 與 Detector Lab index；影片不屬於目前這條 YOLOX／NanoDet corpus。
+
+因此從 GitHub Action promote 完成後，應確認四層結果：正式 experiment Releases、Analytics／Pages、全資料 Atlas，以及 Audit／Detector refresh。直接在 Codespaces 執行 CLI promotion 仍會建立正式 Releases、觸發 release-based Analytics 並 dispatch Atlas，但不會額外 dispatch Audit 或 Detector workflows；需要時請在 Actions 手動執行它們。
+
 ### Codespaces
 
 Promote 最新 snapshot：
