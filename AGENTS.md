@@ -26,7 +26,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Apply `config/release-quarantine.json` to every canonical corpus consumer.
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
-- YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, README history, 387-image coverage, and Atlas non-regression were verified.
+- YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, project-status history, 387-image coverage, and Atlas non-regression were verified.
 - YOLOX + NanoDet is `implemented` and production-verified. The first immutable baseline and permanent evidence fields remain in `project-contract.json`; newer full-corpus runs update the independent detector latest/history indexes without rewriting that historical baseline.
 
 ## Repository source-of-truth rules
@@ -50,6 +50,8 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Canonical writeback is limited to `analytics/` and `forecasts/`, downloaded from a short-lived workflow artifact and committed with fetch/rebase/push retries.
 - Never add `site/` to writeback paths; doing so duplicates versioned Atlas GIF/JPEG and detector previews and causes large generated commits.
 - `tools/validate_site_build.py` must cover all primary routes, Analytics/Forecast/Visual Lab/Detector Lab/YOLO Lab JSON URLs, JSON parsing, malformed base paths, and Pages artifact size guards.
+- Root `README.md` and `README.en.md` are stable landing pages. Generated corpus statistics, Atlas history, and detector-history blocks belong in `docs/PROJECT_STATUS.md` and `docs/PROJECT_STATUS.en.md`.
+- Atlas and legacy YOLO workflows must write generated status only to those status pages; they must not reinsert growing tables into the root READMEs.
 
 ## Atlas behavior
 
@@ -96,10 +98,12 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 
 ## Documentation and UX direction
 
-- `README.md` is the default Traditional Chinese landing page; `README.en.md` is the English companion.
-- Update README, analysis specifications, Visual Lab/YOLO Lab, and workflow descriptions whenever an implementation contract changes.
+- `README.md` is the default Traditional Chinese landing page; `README.en.md` is the English companion. Keep them concise, stable, and organized around user entry points.
+- `docs/README.md` and `docs/README.en.md` are intent-based documentation hubs.
+- `docs/PROJECT_STATUS.md` and `docs/PROJECT_STATUS.en.md` own generated corpus statistics, Atlas history, YOLO history, and immutable multi-detector baseline evidence.
+- Update the landing pages, status pages, analysis specifications, Visual Lab/YOLO Lab, and workflow descriptions whenever an implementation contract changes.
 - The project should feel polished and complete rather than intentionally minimal. Rich but coherent UI/UX is preferred.
-- Avoid hiding evidence merely to shorten a page. Use grouping, filters, headings, and downloadable bundles to manage density.
+- Avoid hiding or deleting evidence merely to shorten the landing page. Move growing evidence into status/history pages, and use grouping, filters, headings, and downloadable bundles to manage density.
 
 ## Validation expectations
 
