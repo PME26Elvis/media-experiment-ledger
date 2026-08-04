@@ -27,7 +27,7 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Preserve immutable Atlas history: explicit report metrics normally win, then `config/atlas-history-overrides.json`; only a proven corrupt legacy report may use an audited `authoritative: true` override. Never backfill an old row from current corpus totals.
 - When a contract changes, update all synchronized surfaces in the same PR and run `python tools/validate_project_contract.py`.
 - YOLOX-Tiny object detection is `implemented`: production Release `media-yolo-all-2026-07-13-v1`, writeback commit `bab357c4f92963d5d74e7229ad86272147436295`, YOLO Lab, README history, 387-image coverage, and Atlas non-regression were verified.
-- YOLOX + NanoDet is `implemented`; the workflows, indexes, Detector Lab, and `media-detection-*` publisher exist, but do not call the feature production-verified until the evidence fields in `project-contract.json` are populated.
+- YOLOX + NanoDet is `implemented` and production-verified. The first immutable baseline and permanent evidence fields remain in `project-contract.json`; newer full-corpus runs update the independent detector latest/history indexes without rewriting that historical baseline.
 
 ## Repository source-of-truth rules
 
@@ -84,10 +84,12 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 ## Multi-detector behavior
 
 - Inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the publisher is `.github/workflows/detector-comparison-publish.yml`.
-- The initial publisher must accept **exact workflow run IDs**. Never pair "latest successful" detector runs.
+- Manual recovery accepts **exact workflow run IDs**. Automatic pairing may only combine successful runs from the same trusted `main` head SHA after verifying the identical shared batch and complete artifact contract; never pair independently selected generic "latest successful" runs.
 - Both artifacts must have identical `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release list, canonical image SHA set, and COCO labels hash.
+- `Promote input snapshot` dispatches both inference workflows with one shared batch ID only when that promotion created at least one new formal `media-exp-*` Release. Repeated no-op promotion must not rerun detectors.
+- Detector workflows rebuild the complete canonical **image** corpus; videos remain outside the YOLOX/NanoDet corpus.
 - Workflow artifacts are short-lived transport only, never source of truth, inference cache, or persistent processing state.
-- The combined Release family is `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
+- Combined publications use the `media-detection-*` Release namespace, with formal tags shaped as `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
 - The comparison gallery uses Original / YOLOX-Tiny / NanoDet-Plus tri-panels plus a full offline HTML ZIP.
 - Without human-verified ground truth, describe agreement, disagreement, coverage, IoU, class distributions, and runtime. Never claim accuracy, precision, recall, or mAP on this generated corpus.
 - Multi-detector workflows and Releases remain independent of Atlas. They may not change Atlas Notes, previews, indexes, Releases, history, or workflow success.
@@ -119,7 +121,7 @@ npm run build --prefix web
 python tools/validate_site_build.py
 ```
 
-For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For future NanoDet work, validate official checkpoint integrity, deterministic ONNX export, normalized sidecars, exact-run artifact pairing, and comparison-language guardrails.
+For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For NanoDet work, validate official model integrity, real ONNX Runtime shape smoke, normalized sidecars, exact/safe artifact pairing, and comparison-language guardrails.
 
 <!-- NANODET:AGENTS:START -->
 ## Multi-detector behavior
