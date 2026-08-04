@@ -121,7 +121,7 @@ python tools/input_snapshot.py publish results.zip
 
 The script verifies the ZIP central directory, splits the file into byte-exact parts below 1.8 GiB, calculates SHA-256 for the source and every part, and creates a neutral `media-input-*` Release. The source is not recompressed.
 
-Input snapshots are transport/storage records. They are excluded from repository statistics and Atlas source data until promotion creates formal `media-exp-*` Releases.
+Input snapshots are transport/storage records. They are excluded from the corpus statistics in [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md) and from Atlas source data until promotion creates formal `media-exp-*` Releases.
 
 Packaging-only test:
 
