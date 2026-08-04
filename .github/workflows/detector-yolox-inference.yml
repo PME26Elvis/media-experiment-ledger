@@ -22,6 +22,7 @@ on:
     paths:
       - '.github/workflows/detector-yolox-inference.yml'
       - '.github/workflows/detector-comparison-publish.yml'
+      - '.github/workflows/promote-input-snapshot.yml'
       - 'tools/build_detector_artifact.py'
       - 'tools/publish_detector_comparison.py'
       - 'tools/yolo_*.py'
