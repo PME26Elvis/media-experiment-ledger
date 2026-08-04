@@ -71,6 +71,8 @@ jobs:
             --confidence-threshold "$confidence"
             --nms-iou-threshold "$nms"
             --max-detections "$max_detections"
+            --readme docs/PROJECT_STATUS.md
+            --readme-en docs/PROJECT_STATUS.en.md
           )
           if [[ "$publish" == 'true' ]]; then args+=(--publish); fi
           python tools/build_yolo_detection.py "${args[@]}"
@@ -89,6 +91,8 @@ jobs:
             object-detection/output/
             data/yolo/
             web/public/data/yolo/
+            docs/PROJECT_STATUS.md
+            docs/PROJECT_STATUS.en.md
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0
@@ -97,7 +101,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          paths=(data/yolo web/public/data/yolo README.md README.en.md)
+          paths=(data/yolo web/public/data/yolo docs/PROJECT_STATUS.md docs/PROJECT_STATUS.en.md)
           if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
             echo 'Legacy YOLO index and history are unchanged'
             exit 0

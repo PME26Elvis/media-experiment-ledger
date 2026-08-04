@@ -2,7 +2,7 @@
 
 [繁體中文](README.md) | **English**
 
-A release-backed experiment platform for structured image and video generation runs. The repository keeps prompt banks, immutable experiment Releases, reproducible analytics, full-corpus image/video repeatability atlases, forecasts, and an Astro/Starlight observatory without committing original result folders to Git history.
+A media-generation experiment platform that uses **GitHub Releases as an immutable data layer**. It preserves image/video runs, rebuilds Analytics and forecasts, publishes a full-corpus Prompt Repeatability Atlas, and compares YOLOX with NanoDet without committing large source result folders into Git history.
 
 <!-- STUDIO_ENTRY:START -->
 > [!TIP]
@@ -11,232 +11,112 @@ A release-backed experiment platform for structured image and video generation r
 > [Download Studio Releases](https://github.com/PME26Elvis/media-experiment-ledger/releases?q=studio-v) · [Desktop app guide](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/app/README.md) · [Complete specification](https://github.com/PME26Elvis/media-experiment-ledger/blob/app-main/docs/app/README.md)
 <!-- STUDIO_ENTRY:END -->
 
-## Project contract and data integrity
+## Start here
 
-- [`project-contract.json`](project-contract.json) is the machine-validated synchronization anchor; [`docs/PROJECT_CONTRACT.md`](docs/PROJECT_CONTRACT.md) is the human-readable contract.
-- [`config/release-quarantine.json`](config/release-quarantine.json) preserves historical assets while excluding confirmed empty runs and metadata-only fixtures.
-- [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) normally fills fields missing from legacy Atlas schemas. An audited `authoritative: true` correction is allowed only when the report itself is proven wrong by the source Release, original history, and entry evidence. Current totals never rewrite immutable snapshots.
-- Formal reporting separates **API completion events** from **archived media**; new publication is blocked when those counts differ.
-- The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) fully checks every `media-exp-*` manifest, JSONL file, ZIP member, byte size, SHA-256, and CRC.
-- YOLOX-Tiny / ONNX Runtime / COCO object detection is live with an independent workflow, `media-yolo-*` Releases, ZIP-only assets, indexes, README history, and [YOLO Lab](web/src/content/docs/yolo-lab.mdx). The first Release, `media-yolo-all-2026-07-13-v1`, processed all 387 canonical images, observed detections in 313, and produced 1,533 boxes. See the [full contract](docs/YOLO_OBJECT_DETECTION_SPEC.md).
-- GitHub Pages now separates build, deploy, and writeback: `site/` is a short-lived Pages artifact rather than tracked Git output, so deployment is no longer blocked by concurrent bot writeback races on `main`.
-- The three-workflow YOLOX + NanoDet-Plus pipeline is `implemented`: two read-only inference workflows produce exact-run artifacts, then a publisher validates the full corpus/hash contract before creating a `media-detection-*` Release and Original/YOLOX/NanoDet comparison gallery.
-
-## Live repository statistics
-
-<!-- AUTO:LEDGER_STATS_EN:START -->
-> Rebuilt from all Releases by GitHub Actions. Totals count archived media from non-quarantined runs in formal `media-exp-*` Releases; `media-input-*` snapshots and metadata-only fixtures are excluded.
-
-| Metric | Value |
-|---|---:|
-| Formal experiment Releases | 20 |
-| Experiment date range | 2026-06-29 → 2026-08-03 |
-| Total images | 893 |
-| Total videos | 86 |
-| Latest Prompt Repeatability Atlas | [media-analysis-all-c1196dea3267-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v1) |
-<!-- AUTO:LEDGER_STATS_EN:END -->
-
-## Prompt Repeatability Atlas history
-
-<!-- AUTO:ATLAS_HISTORY_EN:START -->
-> Every Atlas workflow rescans all Atlas Releases and rebuilds this table without incremental state.
-
-| Published | Atlas type | Data range | Images | Videos | Comparable prompts | Release |
-|---|---|---|---:|---:|---:|---|
-| 2026-08-04 | Global repeatability atlas | 2026-06-29 → 2026-08-03 | 893 | 86 | 152 | [`media-analysis-all-c1196dea3267-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v1) |
-| 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v9`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v9) |
-| 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v8`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v8) |
-| 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v7`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v7) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v6`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v6) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v5`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v5) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v4`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v4) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v3`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v3) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v2) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v1) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-c45c1b53c1f7-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c45c1b53c1f7-v1) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 87 | [`media-analysis-all-34912876cb25-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-34912876cb25-v1) |
-| 2026-07-20 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-f5fdcae2c78b-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-f5fdcae2c78b-v1) |
-| 2026-07-19 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 937 | 40 | 80 | [`media-analysis-all-8b850904b063-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-8b850904b063-v1) |
-| 2026-07-19 | Legacy single-release atlas | 2026-07-13 | 3 | 1 | 3 | [`media-analysis-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-2026-07-13-v1) |
-<!-- AUTO:ATLAS_HISTORY_EN:END -->
+| Goal | Entry point |
+|---|---|
+| Inspect the current corpus, Atlas, and detector history | [Project status and history](docs/PROJECT_STATUS.en.md) |
+| Upload, store, or promote `results.zip` | [ZIP and snapshot workflow](docs/INPUT_ARCHIVE_WORKFLOW.en.md) |
+| Publish from Codespaces | [Codespaces publishing guide](docs/CODESPACES_PUBLISHING.en.md) |
+| Browse Analytics, Visual Lab, Detector Lab, and forecasts | [GitHub Pages observatory](https://pme26elvis.github.io/media-experiment-ledger/) |
+| Understand data and trust boundaries | [Project contract](docs/PROJECT_CONTRACT.md) |
+| Find every technical document | [Documentation hub](docs/README.en.md) |
 
 ## Core capabilities
 
-- Accepts one multi-day `results.zip` as the recommended Codespaces input while retaining direct `results/` compatibility.
-- Publishes one immutable `media-exp-*` Release per experiment date and supplemental Releases for genuinely new runs on an existing date.
-- Stores images and videos in separate ZIP assets, split before GitHub's 2 GiB per-asset boundary.
-- Keeps JSONL metadata and SHA-256 manifests available for inexpensive analytics.
-- Skips identical published runs and blocks conflicting reuse of a `run_id`.
-- Supports byte-verifiable `media-input-*` snapshots for store-now/promote-later uploads.
-- Rebuilds one global image + video Prompt Repeatability Atlas from **all published experiment data** after a successful publishing batch.
-- Packages image and video Atlas output in deterministic ZIP bundles containing up to **15 prompt IDs** each.
-- Uses static cards for image comparisons and FFmpeg-validated synchronized GIFs plus complete keyframe sheets for videos.
-- Publishes analytics, forecasts, searchable image/video comparisons, and architecture documentation through GitHub Pages.
+### Release-backed ledger
 
-## Supported ingestion paths
+- Creates one immutable `media-exp-*` Release per experiment date, with supplemental Releases for genuinely new runs on an existing date.
+- Packages images, videos, JSONL metadata, and SHA-256 manifests separately, splitting assets before GitHub's single-asset boundary.
+- Skips identical content and fails closed when the same `run_id` is reused with different content.
+- Stores large archives as byte-exact `media-input-*` snapshots for later promotion.
 
-All production paths converge on `tools/publish_results.py`, so date splitting, duplicate handling, manifests, and the final Atlas trigger stay consistent.
+### Reproducible analysis
 
-| Input situation | Command or workflow | Result |
-|---|---|---|
-| Recommended browser upload | `python tools/publish_from_archive.py results.zip` | Safely extracts one multi-day ZIP and publishes every new date/run. |
-| Existing results directory | `python tools/publish_results.py --source results` | Publishes `results/YYYY-MM-DD/run_*` directly. |
-| Store first | `python tools/input_snapshot.py publish results.zip` | Creates a byte-exact `media-input-*` snapshot. |
-| Promote a snapshot | `python tools/input_snapshot.py promote` or **Promote input snapshot** | Reconstructs and runs the same date publisher. |
-| Browser cannot transfer a 2+ GiB ZIP | Split, upload, reconstruct, then use `publish_from_archive.py` | Changes transport only. |
+- Rebuilds Analytics and ensemble forecasts from formal Releases.
+- Uses one corpus for image and video Prompt Repeatability Atlas products while keeping media types in separate cohorts.
+- Packages deterministic bundles with 15 prompt IDs each; images receive comparison cards, while videos receive FFmpeg validation, synchronized GIFs, and keyframe sheets.
+- Publishes Overview, Analytics, Visual Lab, Detector Lab, YOLO Lab, Forecast Lab, System Atlas, and Frontend Stack through GitHub Pages.
 
-A single archive may contain many dates. The publisher creates all required primary and supplemental `media-exp-*` Releases, then dispatches **one** all-data Atlas only after the entire batch succeeds.
+### Object detection
 
-See [ZIP input and snapshot workflow](docs/INPUT_ARCHIVE_WORKFLOW.en.md) and [Codespaces publishing](docs/CODESPACES_PUBLISHING.en.md).
+- YOLOX-Tiny and NanoDet-Plus-m-320 read-only inference workflows process the complete canonical image corpus from scratch.
+- The publisher accepts only exact workflow run IDs with matching `analysis_batch_id`, corpus fingerprint, quarantine digest, SHA set, labels, and thresholds.
+- `media-detection-*` reports agreement, disagreement, box IoU, class deltas, and runtime. Without human ground truth it never claims accuracy, precision, recall, or mAP.
+- [Multi-detector specification](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) · [Detector Lab](web/src/content/docs/detector-lab.mdx)
 
-## Fastest publishing path
+## Fastest publishing paths
+
+### Publish one multi-day archive directly
 
 ```bash
 python tools/publish_from_archive.py results.zip
 ```
 
-Accepted layouts include a top-level `results/`, direct `YYYY-MM-DD` directories, or one extra wrapper directory. ZIP64 archives are supported.
-
-Validation only:
+Validate without publishing:
 
 ```bash
 python tools/publish_from_archive.py results.zip --dry-run
 ```
 
-Selected dates:
-
-```bash
-python tools/publish_from_archive.py results.zip \
-  --date 2026-06-29 \
-  --date 2026-06-30
-```
-
-## Store first, process later
+### Store first, then promote through Actions
 
 ```bash
 python tools/input_snapshot.py publish results.zip
-python tools/input_snapshot.py promote --tag latest
 ```
 
-`media-input-*` Releases are transport/storage records. They are excluded from README statistics and Atlas source data; only promoted `media-exp-*` Releases count as formal experiments.
+Then run **Actions → Promote input snapshot**. When a non-dry-run promotion creates new formal Releases, the Action refreshes Analytics and the Release Audit, then starts YOLOX and NanoDet with one shared batch ID. Repeated no-op promotion does not waste detector inference.
 
-## Experiment Release layout
+> Direct CLI promotion still creates formal Releases and triggers Analytics and the Atlas, but it does not additionally dispatch Audit/detector maintenance. See the [input workflow guide](docs/INPUT_ARCHIVE_WORKFLOW.en.md) for the complete distinction.
+
+## Data flow
 
 ```text
-Tag: media-exp-2026-06-29
-
-run_20260629_120000-images.zip
-run_20260629_120000-videos.zip
-run_20260629_120000-outputs.jsonl
-run_20260629_120000-errors.jsonl
-manifest-2026-06-29.json
+results.zip / results/
+  → optional media-input-* snapshot
+  → immutable media-exp-* Releases
+  ├─ Analytics + Forecast + GitHub Pages
+  ├─ image/video Prompt Repeatability Atlas → media-analysis-*
+  ├─ full Release integrity audit
+  └─ YOLOX + NanoDet comparison → media-detection-*
 ```
 
-A genuinely new run on an existing date creates an immutable supplement such as `media-exp-2026-06-29-s01`.
+## Data integrity
 
-## Full-corpus Prompt Repeatability Atlas
+- [`project-contract.json`](project-contract.json) is the machine-validated synchronization anchor.
+- [`config/release-quarantine.json`](config/release-quarantine.json) preserves historical assets while excluding confirmed empty runs and metadata fixtures.
+- [`config/atlas-history-overrides.json`](config/atlas-history-overrides.json) permits an audited `authoritative: true` correction only for a proven-wrong legacy report; current totals never rewrite immutable history.
+- The [`Experiment Release Audit`](docs/reports/EXPERIMENT_RELEASE_AUDIT.md) verifies manifests, JSONL, ZIP members, sizes, SHA-256, and CRC.
+- `site/` is an ephemeral Pages build artifact rather than tracked Git output; build, deploy, and writeback remain separate.
 
-One companion Release handles both media types, while image and video samples always remain in separate controlled cohorts.
+## Repository map
 
-### Images
+| Area | Role |
+|---|---|
+| `tools/` | Publication, analysis, Atlas, detector, forecast, and validation tooling |
+| `.github/workflows/` | Publication, promotion, Analytics, Atlas, audit, detector, and Pages orchestration |
+| `docs/` | Operator guides, specifications, contracts, status, and production evidence |
+| `data/` | Versioned latest/history/audit indexes |
+| `web/` | Astro/Starlight Pages frontend and deployed data |
+| `app-main` | Media Experiment Ledger Studio desktop-product branch |
 
-For the same prompt ID, model, and appearance-relevant settings, the Atlas produces:
-
-- a compact primary comparison card;
-- an extended overview with up to 16 temporal quantiles;
-- full contact-sheet pages containing every verified byte-unique image;
-- JSON sidecars and source indexes;
-- deterministic bundles containing up to 15 image prompt IDs.
-
-### Videos
-
-For the same prompt ID, model, and non-random generation settings, the Atlas:
-
-- validates container, stream, duration, dimensions, frame rate, and codec with `ffprobe`;
-- decodes start, middle, and end frames with FFmpeg to reject broken media;
-- renders synchronized 2/3/4-run GIF comparisons;
-- starts every tile at `t=0`, freezes short clips on their last frame, and uses contain/letterbox without cropping;
-- creates 10%/50%/90% keyframe sheets for every verified byte-unique video;
-- preserves seed in the sample sidecar as evidence but excludes it from the cohort key;
-- packages up to 15 video prompt IDs per deterministic ZIP bundle.
-
-Image and video outputs remain in bundles containing up to 15 prompt IDs.
-
-Companion tags use:
-
-```text
-media-analysis-all-<dataset-fingerprint>-vN
-```
-
-Release Notes are split into **Image highlights** and **Video highlights**. Images dynamically include at most 15 cohorts with at least four verified unique samples, covering the strongest cohort in each category before filling by descending sample count. Videos include every comparable cohort by default. Release assets remain ZIP-only; versioned repository preview paths provide inline Notes and Visual Lab media.
-
-See the [shared/image Atlas specification](docs/PROMPT_REPEATABILITY_ATLAS.md) and [video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md).
-
-## README automation
-
-Every successful Atlas workflow:
-
-1. rescans all formal `media-exp-*` Releases;
-2. aggregates image/video counts from manifests while excluding `media-input-*` snapshots;
-3. rescans every published `media-analysis-*` Release;
-4. rebuilds the statistics and Atlas-history blocks in both READMEs;
-5. commits the updated READMEs, Visual Lab index, and versioned JPEG/GIF previews together.
-
-No incremental README state or cache is used.
-
-## Analytics, forecasts, and Pages
-
-```text
-Multi-day input batch
-  → immutable date-scoped experiment Releases
-  → one full-corpus image + video Prompt Repeatability Atlas
-  → canonical analytics and reports
-  → ensemble forecasts
-  → Astro/Starlight build
-  → GitHub Pages deployment
-```
-
-The site includes Overview, Analytics, Visual Lab with image/video filtering and GIF previews, Forecast Lab, System Atlas, and Frontend Stack sections.
-
-## Documentation
-
-- [ZIP input and snapshot workflow — English](docs/INPUT_ARCHIVE_WORKFLOW.en.md)
-- [Codespaces publishing — English](docs/CODESPACES_PUBLISHING.en.md)
-- [Shared and image Prompt Repeatability Atlas](docs/PROMPT_REPEATABILITY_ATLAS.md)
-- [Video Prompt Repeatability Atlas](docs/VIDEO_REPEATABILITY_ATLAS.md)
-- [Repository guidance for future coding agents](AGENTS.md)
-- [繁體中文 README](README.md)
-
-## Development
+## Development and validation
 
 ```bash
 python -m pip install \
   -r requirements-analytics.txt \
   -r requirements-forecast.txt \
-  -r requirements-visual-analysis.txt
+  -r requirements-visual-analysis.txt \
+  -r requirements-yolo.txt \
+  -r requirements-nanodet.txt
 sudo apt-get install -y --no-install-recommends ffmpeg
+python tools/validate_project_contract.py
 python -m compileall tools tests
 python -m unittest discover -s tests -v
+python tools/yolo_model_smoke.py
+python tools/nanodet_model_smoke.py
 npm install --prefix web --package-lock=false --no-audit --no-fund
 npm run build --prefix web
 ```
 
-## YOLO object-detection history
-
-<!-- AUTO:YOLO_HISTORY_EN:START -->
-| Published | Source range | Images | With detections | Detections | Model | Release |
-|---|---|---:|---:|---:|---|---|
-| 2026-07-20 | 2026-06-29 → 2026-07-13 | 387 | 313 | 1,533 | YOLOX-Tiny | [`media-yolo-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-yolo-all-2026-07-13-v1) |
-<!-- AUTO:YOLO_HISTORY_EN:END -->
-
-<!-- NANODET:README_EN:START -->
-## YOLOX + NanoDet multi-detector analysis
-
-The multi-detector pipeline is **`implemented`**. YOLOX-Tiny run `29812888677` and NanoDet-Plus-m-320 run `29812888709` each rebuilt all 387 canonical images from scratch. Publisher run `29813188073` paired the exact run IDs, validated the full corpus/hash contract, and published ZIP-only Release [`media-detection-all-2026-07-13-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-detection-all-2026-07-13-v1).
-
-- YOLOX observed 1,533 boxes; NanoDet observed 3,243; 902 same-class pairs matched at IoU ≥ 0.50.
-- Mean disagreement is 0.5574. This is not an accuracy benchmark; without human COCO ground truth, the project does not claim precision, recall, mAP, or which detector is correct.
-- [Detector Lab](web/src/content/docs/detector-lab.mdx) provides Original / YOLOX / NanoDet comparisons and 20 versioned representative previews; the Release gallery ZIP contains all 387 tri-panels.
-- Writeback commit `9bef82a565ac25db97708628acfe8f56e1cc3b29`, live Pages, ZIP-only assets, and Atlas non-regression were verified.
-- [Production evidence](docs/reports/NANODET_PRODUCTION_EVIDENCE.md) · [Full contract](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md)
-<!-- NANODET:README_EN:END -->
+Repository operating and merge policy is documented in [`AGENTS.md`](AGENTS.md). Growing generated statistics and history tables now live in [`docs/PROJECT_STATUS.en.md`](docs/PROJECT_STATUS.en.md) instead of the landing page.

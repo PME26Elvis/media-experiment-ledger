@@ -131,7 +131,7 @@ Assets:
   input-snapshot-manifest.json
 ```
 
-來源不會被重新壓縮。`media-input-*` 是傳輸／暫存記錄，不會被 README 統計或 Atlas 當成正式資料；只有 promote 後建立的 `media-exp-*` Releases 才會計入。
+來源不會被重新壓縮。`media-input-*` 是傳輸／暫存記錄，不會被 [`PROJECT_STATUS.md`](PROJECT_STATUS.md) 的 corpus 統計或 Atlas 當成正式資料；只有 promote 後建立的 `media-exp-*` Releases 才會計入。
 
 只測試打包：
 

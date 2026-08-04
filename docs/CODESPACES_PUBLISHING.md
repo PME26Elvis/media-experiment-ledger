@@ -81,7 +81,7 @@ python tools/input_snapshot.py promote --tag latest
 
 Promotion 會重建原始 archive 並呼叫相同共同 publisher，因此最終的全資料 Atlas 行為完全一致。Action 路徑還會 dispatch 全量 Audit；若本次真的建立新正式 Releases，也會 dispatch 共用 batch ID 的 YOLOX／NanoDet comparison refresh。
 
-`media-input-*` snapshot 只作為傳輸／儲存紀錄；README 統計與 Atlas 都會排除它，直到 promote 產生正式 `media-exp-*` Releases。
+`media-input-*` snapshot 只作為傳輸／儲存紀錄；[`PROJECT_STATUS.md`](PROJECT_STATUS.md) 的 corpus 統計與 Atlas 都會排除它，直到 promote 產生正式 `media-exp-*` Releases。
 
 ## 直接資料夾模式
 
@@ -138,4 +138,4 @@ python tools/publish_results.py \
 - **Cache／state**：不使用。
 - **Repo timeout**：沒有額外 90 分鐘限制。
 - **Assets**：全部為 ZIP；圖片 bundle 每包最多 15 個 prompt IDs；Notes previews 使用版本化 repo 路徑。
-- **README**：每次 Atlas 成功後，全量掃描正式 experiment 與 Atlas Releases，重建中英統計與歷史表。
+- **專案狀態**：每次 Atlas 成功後，全量掃描正式 experiment 與 Atlas Releases，重建 [`PROJECT_STATUS.md`](PROJECT_STATUS.md)／[`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md) 的中英統計與歷史表；根目錄 README 保持穩定入口頁。

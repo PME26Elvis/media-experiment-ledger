@@ -69,7 +69,7 @@ python tools/input_snapshot.py publish results.zip
 python tools/input_snapshot.py promote --tag latest
 ```
 
-Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from statistics and Atlas source data until promotion produces formal `media-exp-*` Releases. The Action path also dispatches the full audit and, when the corpus changed, one shared YOLOX/NanoDet comparison refresh.
+Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from the corpus totals and Atlas source data in [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md) until promotion produces formal `media-exp-*` Releases. The Action path also dispatches the full audit and, when the corpus changed, one shared YOLOX/NanoDet comparison refresh.
 
 ## Direct folder compatibility
 
@@ -124,4 +124,4 @@ python tools/publish_results.py \
 - Cache/state: none.
 - Repository timeout: no 90-minute limit.
 - Assets: ZIP-only; image bundles contain up to 15 prompt IDs, and inline Notes previews use versioned repository paths.
-- README: every successful Atlas run rescans formal experiment and Atlas Releases, then rebuilds bilingual statistics/history blocks.
+- Project status: every successful Atlas run rescans formal experiment and Atlas Releases, then rebuilds the bilingual statistics/history blocks in [`PROJECT_STATUS.md`](PROJECT_STATUS.md) and [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md); the root README remains a stable landing page.

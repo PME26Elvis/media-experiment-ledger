@@ -1,6 +1,6 @@
 # Project Contract / 專案契約
 
-本文件是 `project-contract.json` 的人類可讀版本。重要規則同時存在於 README、`AGENTS.md`、程式設定、測試與各分析規格中；CI 會執行 `python tools/validate_project_contract.py`，任何一個表面漂移都會阻止合併。
+本文件是 `project-contract.json` 的人類可讀版本。重要規則同時存在於根目錄 landing README、generated project-status pages、`AGENTS.md`、程式設定、測試與各分析規格中；CI 會執行 `python tools/validate_project_contract.py`，任何一個表面漂移都會阻止合併。
 
 ## Authority and synchronization
 
@@ -11,9 +11,11 @@
 3. `config/release-quarantine.json`：歷史無效 run 的版本化例外。
 4. `config/atlas-history-overrides.json`：舊 Atlas schema 缺失欄位，以及極少數經證據確認 report 本身錯誤時的審核記錄。
 5. `.github/workflows/analytics.yml` 與 `tools/validate_site_build.py`：Pages build、deploy、writeback 與路由／資料驗證契約。
-6. README、`AGENTS.md` 與本文件：人類／agent 操作說明。
-7. Atlas、影片、YOLO 與 multi-detector 規格：各分析模組的完整契約。
-8. tests 與 validation workflow：防止上述內容靜默漂移。
+6. `README.md`／`README.en.md`：穩定的雙語入口頁；`docs/README*.md`：依使用目的分組的文件索引。
+7. `docs/PROJECT_STATUS.md`／`docs/PROJECT_STATUS.en.md`：GitHub Actions 維護的 corpus totals、Atlas history 與 detector history／baseline。
+8. `AGENTS.md` 與本文件：人類／agent 操作說明。
+9. Atlas、影片、YOLO 與 multi-detector 規格：各分析模組的完整契約。
+10. tests 與 validation workflow：防止上述內容靜默漂移。
 
 ## Source of truth
 
@@ -28,7 +30,7 @@
 `config/release-quarantine.json` 是公開、可審核、帶雙語理由與證據的 policy。所有以下表面必須共用它：
 
 - canonical analytics；
-- README totals；
+- `PROJECT_STATUS.md`／`PROJECT_STATUS.en.md` corpus totals；
 - image/video Prompt Repeatability Atlas；
 - Experiment Release Audit；
 - YOLO object-detection corpus；
@@ -61,6 +63,13 @@
 - `tools/validate_site_build.py` 必須驗證 `overview`、`analytics`、`visual-lab`、`detector-lab`、`yolo-lab`、`forecast`、`architecture`、`frontend-stack`，以及 `analytics.json`、`forecast.json`、`visual-analysis.json`、`detection/latest.json`、`yolo/latest.json`。
 - Pages artifact 另有 1 GB 總量與 100 MB 單檔防呆；這是 repo contract 的預警門檻，不是宣稱 GitHub 平台的絕對限制。
 
+## Landing and generated-status boundary
+
+- 根目錄 `README.md`／`README.en.md` 是穩定入口頁，負責快速導航、核心能力、最短操作路徑、資料流程與文件入口。
+- 持續增長的 corpus totals、Atlas history、legacy YOLO history 與 immutable multi-detector baseline 集中在 `docs/PROJECT_STATUS.md`／`docs/PROJECT_STATUS.en.md`。
+- Atlas workflow 與 legacy YOLO recovery workflow 只能更新 project-status pages，不得把長歷史表重新插回根目錄 README。
+- `docs/README.md`／`docs/README.en.md` 以使用目的組織操作、分析、偵測、契約與桌面產品文件；功能資訊是搬移與分組，不是刪除。
+
 ## Prompt Repeatability Atlas
 
 - 使用全部已發布、非 quarantine 的正式 corpus，每次全量重建，不使用隱藏 incremental state。
@@ -89,7 +98,7 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 - annotated JPEG、class summaries、timing、source indexes 與 deterministic ZIP-only assets；
 - 獨立 `.github/workflows/yolo-object-detection.yml`；
 - 獨立 `media-yolo-*` Release 家族，正式 tag 使用 `media-yolo-all-<latest-experiment-date>-vN`；
-- 獨立 latest/history indexes、README history 與 YOLO Lab；
+- 獨立 latest/history indexes、`PROJECT_STATUS.md`／`.en.md` history 與 YOLO Lab；
 - 每次 invocation 從零重跑，不使用 persistent state、跨 run cache skip 或 published-result reuse；
 - YOLO 與 Atlas 不共用 workflow、draft Release、finalizer、assets、Notes、latest pointer 或 history table。
 
@@ -132,7 +141,7 @@ npm run build --prefix web
 python tools/validate_site_build.py
 ```
 
-`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、README、`AGENTS.md`、本文件、分析規格、Pages workflow、`.gitignore`、route/data validator、YOLO model lock、labels、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
+`validate_project_contract.py` 會檢查 JSON contract、Atlas config、quarantine policy、landing READMEs、generated project-status pages、`AGENTS.md`、本文件、分析規格、Pages workflow、`.gitignore`、route/data validator、YOLO model lock、labels、indexes、UI 與測試表面。修改任何契約時，必須在同一個 PR 中同步所有受影響表面。
 
 <!-- NANODET:PROJECT_CONTRACT:START -->
 ## Multi-detector production boundary

@@ -10,7 +10,7 @@
 - 同一個 `media-analysis-all-<fingerprint>-vN` companion Release；
 - ZIP-only asset contract；
 - Visual Lab index；
-- README statistics 與 Atlas history 更新。
+- `PROJECT_STATUS.md`／`PROJECT_STATUS.en.md` 的 corpus statistics 與 Atlas history 更新。
 
 主要實作位於：
 
@@ -247,7 +247,7 @@ Atlas 仍沒有 repository-specific 90-minute timeout、processing cache 或 per
 - FFmpeg／FFprobe 不存在會使 workflow 明確失敗；
 - draft Release 可在下一次 run 恢復；
 - 預期 ZIP 缺失或出現 non-ZIP asset 時不發布成功 index；
-- failure recovery artifact 保留 output、index、previews 與 README。
+- failure recovery artifact 保留 output、index、previews 與 bilingual project-status pages。
 
 ## Production acceptance criteria
 
