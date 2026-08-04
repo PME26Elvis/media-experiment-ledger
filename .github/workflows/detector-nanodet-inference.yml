@@ -22,6 +22,7 @@ on:
     paths:
       - '.github/workflows/detector-nanodet-inference.yml'
       - '.github/workflows/detector-comparison-publish.yml'
+      - '.github/workflows/promote-input-snapshot.yml'
       - 'tools/build_detector_artifact.py'
       - 'tools/nanodet_core.py'
       - 'tools/prepare_nanodet_model.py'
