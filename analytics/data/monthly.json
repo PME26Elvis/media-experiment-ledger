@@ -11,12 +11,22 @@
   },
   {
     "period": "2026-07",
-    "runs": 7,
-    "image_completed": 347,
-    "video_completed": 29,
-    "errors": 9,
-    "success_rate": 0.9766233766233766,
-    "latency_mean_s": 69.16299480787227,
-    "source_bytes": 2105663293
+    "runs": 17,
+    "image_completed": 791,
+    "video_completed": 75,
+    "errors": 25,
+    "success_rate": 0.9719416386083053,
+    "latency_mean_s": 120.81055179828996,
+    "source_bytes": 4866023645
+  },
+  {
+    "period": "2026-08",
+    "runs": 1,
+    "image_completed": 62,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9857142857142858,
+    "latency_mean_s": 90.07142857142857,
+    "source_bytes": 423546309
   }
 ]

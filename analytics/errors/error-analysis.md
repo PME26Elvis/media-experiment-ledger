@@ -2,5 +2,5 @@
 
 | Class | Count |
 |---|---|
-| server_busy | 14 |
-| transient_or_duplicate | 1 |
+| server_busy | 27 |
+| transient_or_duplicate | 5 |

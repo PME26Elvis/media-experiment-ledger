@@ -88,5 +88,115 @@
     "success_rate": 0.6666666666666666,
     "latency_mean_s": 111.33333333333333,
     "source_bytes": 18054070
+  },
+  {
+    "period": "2026-07-17",
+    "runs": 1,
+    "image_completed": 7,
+    "video_completed": 4,
+    "errors": 2,
+    "success_rate": 0.8461538461538461,
+    "latency_mean_s": 130.15384615384616,
+    "source_bytes": 53193407
+  },
+  {
+    "period": "2026-07-20",
+    "runs": 1,
+    "image_completed": 1,
+    "video_completed": 4,
+    "errors": 2,
+    "success_rate": 0.7142857142857143,
+    "latency_mean_s": 377.14285714285717,
+    "source_bytes": 20125385
+  },
+  {
+    "period": "2026-07-21",
+    "runs": 1,
+    "image_completed": 3,
+    "video_completed": 4,
+    "errors": 2,
+    "success_rate": 0.7777777777777778,
+    "latency_mean_s": 164.66666666666666,
+    "source_bytes": 30512884
+  },
+  {
+    "period": "2026-07-22",
+    "runs": 1,
+    "image_completed": 1,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.8888888888888888,
+    "latency_mean_s": 183.77777777777777,
+    "source_bytes": 31366786
+  },
+  {
+    "period": "2026-07-23",
+    "runs": 1,
+    "image_completed": 0,
+    "video_completed": 2,
+    "errors": 2,
+    "success_rate": 0.5,
+    "latency_mean_s": 142.0,
+    "source_bytes": 3714236
+  },
+  {
+    "period": "2026-07-27",
+    "runs": 1,
+    "image_completed": 0,
+    "video_completed": 0,
+    "errors": 2,
+    "success_rate": 0.0,
+    "latency_mean_s": 80.5,
+    "source_bytes": 1962
+  },
+  {
+    "period": "2026-07-28",
+    "runs": 1,
+    "image_completed": 306,
+    "video_completed": 4,
+    "errors": 2,
+    "success_rate": 0.9935897435897436,
+    "latency_mean_s": 59.39423076923077,
+    "source_bytes": 1847454417
+  },
+  {
+    "period": "2026-07-29",
+    "runs": 1,
+    "image_completed": 113,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9917355371900827,
+    "latency_mean_s": 77.69421487603306,
+    "source_bytes": 650357474
+  },
+  {
+    "period": "2026-07-30",
+    "runs": 1,
+    "image_completed": 9,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9411764705882353,
+    "latency_mean_s": 142.05882352941177,
+    "source_bytes": 75993817
+  },
+  {
+    "period": "2026-07-31",
+    "runs": 1,
+    "image_completed": 4,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9166666666666666,
+    "latency_mean_s": 212.25,
+    "source_bytes": 47639984
+  },
+  {
+    "period": "2026-08-03",
+    "runs": 1,
+    "image_completed": 62,
+    "video_completed": 7,
+    "errors": 1,
+    "success_rate": 0.9857142857142858,
+    "latency_mean_s": 90.07142857142857,
+    "source_bytes": 423546309
   }
 ]
