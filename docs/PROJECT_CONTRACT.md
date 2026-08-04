@@ -32,7 +32,7 @@
 - image/video Prompt Repeatability Atlas；
 - Experiment Release Audit；
 - YOLO object-detection corpus；
-- 未來 NanoDet 與 multi-detector comparison corpus；
+- YOLOX + NanoDet multi-detector comparison corpus；
 - 任何其他全資料衍生分析。
 
 目前 2026-06-29 的 `run_test` 是 synthetic fixture，另有一個 0 files／0 bytes 的空 run；兩者保留在歷史 Release 中，但不再被當作正式實驗。
@@ -54,11 +54,11 @@
 
 - `site/` 必須列在 `.gitignore`，不得提交至 `main`。
 - Pages workflow 分成獨立的 **build**、**deploy**、**writeback** jobs。
-- build 會產生 analytics／forecast、暫存 browser JSON、建置 Astro、驗證七個 primary routes 與四份 JSON，再以 `actions/upload-pages-artifact` 上傳 `site/`。
+- build 會產生 analytics／forecast、暫存 browser JSON、建置 Astro、驗證八個 primary routes 與五份 JSON，再以 `actions/upload-pages-artifact` 上傳 `site/`。
 - deploy 只依賴 build artifact，不依賴任何 `git push`，因此 bot writeback race 不能阻止已驗證網站部署。
 - writeback 只下載短期 workflow artifact 中的 `analytics/` 與 `forecasts/`，再以 fetch/rebase/push retry 寫回 `main`。
 - writeback 不得包含 `site/`、`web/public/` 或任何 Atlas／detector preview 複本。
-- `tools/validate_site_build.py` 必須驗證 `overview`、`analytics`、`visual-lab`、`yolo-lab`、`forecast`、`architecture`、`frontend-stack`，以及 `analytics.json`、`forecast.json`、`visual-analysis.json`、`yolo/latest.json`。
+- `tools/validate_site_build.py` 必須驗證 `overview`、`analytics`、`visual-lab`、`detector-lab`、`yolo-lab`、`forecast`、`architecture`、`frontend-stack`，以及 `analytics.json`、`forecast.json`、`visual-analysis.json`、`detection/latest.json`、`yolo/latest.json`。
 - Pages artifact 另有 1 GB 總量與 100 MB 單檔防呆；這是 repo contract 的預警門檻，不是宣稱 GitHub 平台的絕對限制。
 
 ## Prompt Repeatability Atlas
@@ -97,15 +97,17 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 
 ## YOLOX + NanoDet implementation
 
-[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`。NanoDet inference、exact-run publisher、comparison gallery、indexes 與 Detector Lab 已實作；首個 `media-detection-*` Release 尚待 main 上的完整 production A/B/C 驗證。
+[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`，且首個完整 production A/B/C 驗證已完成。NanoDet inference、YOLOX inference、exact-run／same-head safe publisher、comparison gallery、indexes 與 Detector Lab 均已上線；`media-detection-all-2026-07-13-v1` 與永久 evidence 文件保留首個 production baseline。
 
-核准方向：
+目前運作契約：
 
 - Workflow A：YOLOX-Tiny 全量 inference，只上傳短期 transport artifact。
 - Workflow B：NanoDet-Plus-m-320 全量 inference，只上傳短期 transport artifact。
-- Workflow C：使用**明確的兩個 workflow run IDs**下載 artifacts，驗證共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
+- Workflow C：可使用**明確的兩個 workflow run IDs**作為 recovery mode；自動模式只接受同 repository、trusted `main`、相同 head SHA 且成功的 A/B runs，並驗證共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
+- `Promote input snapshot` Action 在本次確實建立新正式 Releases 時，會以同一個 batch ID dispatch A 與 B；重複 promote 且沒有新正式 Release 時不重跑 detector。
 - workflow artifacts 不是 source of truth、state、cache 或 published-result reuse；最終 immutable Release 才是正式產品。
 - comparison gallery 使用 `Original | YOLOX-Tiny | NanoDet-Plus` tri-panel，另有完整 offline HTML ZIP。
+- detector corpus 僅處理 canonical 圖片；影片仍由 Atlas 與一般 Analytics 處理。
 - 由於沒有 human-verified ground truth，只能報告 agreement、disagreement、coverage、box IoU、class distribution 與 runtime；不得稱為 accuracy、precision、recall 或此 corpus 的 mAP。
 - 現有 `media-yolo-*` Releases 保持不可變歷史；Atlas 完全不受影響。
 
