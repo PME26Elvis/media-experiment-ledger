@@ -29,11 +29,11 @@ A release-backed experiment platform for structured image and video generation r
 
 | Metric | Value |
 |---|---:|
-| Formal experiment Releases | 9 |
-| Experiment date range | 2026-06-29 → 2026-07-13 |
-| Total images | 387 |
-| Total videos | 33 |
-| Latest Prompt Repeatability Atlas | [media-analysis-all-633b2daf9eab-v9](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v9) |
+| Formal experiment Releases | 20 |
+| Experiment date range | 2026-06-29 → 2026-08-03 |
+| Total images | 893 |
+| Total videos | 86 |
+| Latest Prompt Repeatability Atlas | [media-analysis-all-c1196dea3267-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v1) |
 <!-- AUTO:LEDGER_STATS_EN:END -->
 
 ## Prompt Repeatability Atlas history
@@ -43,6 +43,7 @@ A release-backed experiment platform for structured image and video generation r
 
 | Published | Atlas type | Data range | Images | Videos | Comparable prompts | Release |
 |---|---|---|---:|---:|---:|---|
+| 2026-08-04 | Global repeatability atlas | 2026-06-29 → 2026-08-03 | 893 | 86 | 152 | [`media-analysis-all-c1196dea3267-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v1) |
 | 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v9`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v9) |
 | 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v8`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v8) |
 | 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v7`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v7) |
