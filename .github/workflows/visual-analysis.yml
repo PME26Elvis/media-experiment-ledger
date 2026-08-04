@@ -110,7 +110,7 @@ jobs:
           fi
           python tools/build_prompt_atlas.py "${args[@]}"
 
-      - name: Refresh bilingual README statistics and Atlas history
+      - name: Refresh bilingual project status and Atlas history
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -118,8 +118,8 @@ jobs:
           set -euo pipefail
           python tools/update_readme_summary.py \
             --repo '${{ github.repository }}' \
-            --readme README.md \
-            --readme-en README.en.md
+            --readme docs/PROJECT_STATUS.md \
+            --readme-en docs/PROJECT_STATUS.en.md
 
       - name: Upload failure recovery artifact
         if: failure()
@@ -130,24 +130,24 @@ jobs:
             visual-analysis/output/
             web/public/data/visual-analysis.json
             web/public/data/visual-analysis/previews/
-            README.md
-            README.en.md
+            docs/PROJECT_STATUS.md
+            docs/PROJECT_STATUS.en.md
           if-no-files-found: warn
           retention-days: 7
           compression-level: 0
 
-      - name: Publish Visual Lab index, previews, and repository summary
+      - name: Publish Visual Lab index, previews, and project status
         shell: bash
         run: |
           set -euo pipefail
           paths=(
-            README.md
-            README.en.md
+            docs/PROJECT_STATUS.md
+            docs/PROJECT_STATUS.en.md
             web/public/data/visual-analysis.json
             web/public/data/visual-analysis/previews
           )
           if [[ -z "$(git status --porcelain -- "${paths[@]}")" ]]; then
-            echo "Visual Lab and README summary are unchanged"
+            echo "Visual Lab and project status are unchanged"
             exit 0
           fi
           git config user.name 'github-actions[bot]'
@@ -155,8 +155,8 @@ jobs:
           git add "${paths[@]}"
           git commit -m 'visual: publish image and video Atlas index'
 
-          # Analytics may update generated site files concurrently. Rebase and
-          # retry immediately; no sleep/poll loop or persistent state is used.
+          # Analytics may update generated data concurrently. Rebase and retry
+          # immediately; no sleep/poll loop or persistent state is used.
           for attempt in 1 2 3; do
             git fetch origin main
             git rebase origin/main
@@ -165,5 +165,5 @@ jobs:
             fi
             echo "Push attempt $attempt raced with another workflow; retrying after rebase"
           done
-          echo 'Unable to publish the Visual Lab and README summary after three attempts' >&2
+          echo 'Unable to publish the Visual Lab and project status after three attempts' >&2
           exit 1
