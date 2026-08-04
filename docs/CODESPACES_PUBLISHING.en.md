@@ -49,6 +49,15 @@ Open **Releases** and verify:
 - a small set of inline Atlas previews in the analysis Notes;
 - ZIP-only Atlas assets, including deterministic bundles of up to 15 prompt IDs and complete multipart packages.
 
+For **Actions → Promote input snapshot**, also verify:
+
+- `Audit experiment Releases` refreshed the full integrity report;
+- when at least one new `media-exp-*` Release was created, YOLOX-Tiny and NanoDet-Plus ran with one shared batch ID;
+- the comparison publisher created a new `media-detection-*` Release and refreshed Detector Lab indexes;
+- detectors cover the canonical image corpus only; videos remain part of Atlas and general Analytics rather than the YOLOX/NanoDet corpus.
+
+Direct Codespaces use of `publish_from_archive.py`, `publish_results.py`, or CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches the Atlas. It does not additionally dispatch Audit or Detector workflows; launch those manually from Actions when needed.
+
 ### 4. Cleanup
 
 Delete the Codespace when finished. Releases remain intact.
@@ -60,7 +69,7 @@ python tools/input_snapshot.py publish results.zip
 python tools/input_snapshot.py promote --tag latest
 ```
 
-Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from statistics and Atlas source data until promotion produces formal `media-exp-*` Releases.
+Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from statistics and Atlas source data until promotion produces formal `media-exp-*` Releases. The Action path also dispatches the full audit and, when the corpus changed, one shared YOLOX/NanoDet comparison refresh.
 
 ## Direct folder compatibility
 
