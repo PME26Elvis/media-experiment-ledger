@@ -17,6 +17,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/audit-experiment-releases.yml'
+      - '.github/workflows/promote-input-snapshot.yml'
       - 'tools/audit_experiment_releases.py'
       - 'tools/release_policy.py'
       - 'config/release-quarantine.json'
