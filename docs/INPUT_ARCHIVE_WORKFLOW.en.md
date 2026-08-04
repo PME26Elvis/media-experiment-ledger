@@ -135,6 +135,14 @@ python tools/input_snapshot.py publish results.zip --dry-run
 
 Run **Actions → Promote input snapshot** with `latest` or an exact `media-input-*` tag. The workflow reconstructs and verifies the exact ZIP, extracts it safely, and calls the same common publisher.
 
+A non-dry-run Action promotion also completes downstream maintenance:
+
+- it dispatches a full Experiment Release Audit over all formal `media-exp-*` manifests, JSONL files, and media ZIPs;
+- only when the promotion actually creates at least one new formal Release, it dispatches YOLOX-Tiny and NanoDet-Plus with one shared batch ID;
+- the detector pair rebuilds the complete canonical **image** corpus and the comparison publisher creates a new `media-detection-*` Release plus Detector Lab indexes. Videos are not part of this YOLOX/NanoDet corpus.
+
+After an Action promotion, review four layers: formal experiment Releases, Analytics/Pages, the full-corpus Atlas, and the Audit/Detector refresh. A CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches the Atlas, but it does not additionally dispatch the Audit or Detector workflows; run those manually from Actions when needed.
+
 ### Codespaces
 
 ```bash
