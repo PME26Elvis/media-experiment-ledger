@@ -41,6 +41,7 @@ jobs:
         run: df -h . /tmp
 
       - name: Restore and promote snapshot
+        id: promote
         env:
           GH_TOKEN: ${{ github.token }}
           SNAPSHOT_TAG: ${{ inputs.snapshot_tag }}
@@ -52,10 +53,50 @@ jobs:
           if [[ "$DRY_RUN" == "true" ]]; then
             args+=(--dry-run)
           fi
-          python tools/input_snapshot.py "${args[@]}"
+
+          log="$RUNNER_TEMP/input-snapshot-promotion.log"
+          python tools/input_snapshot.py "${args[@]}" 2>&1 | tee "$log"
+
+          published_count="$(grep -Ec '^PUBLISHED [0-9]{4}-[0-9]{2}-[0-9]{2}:' "$log" || true)"
+          echo "published_count=$published_count" >> "$GITHUB_OUTPUT"
+          {
+            echo '## Input snapshot promotion'
+            echo "- Formal experiment Releases created: **$published_count**"
+            echo "- Dry run: **$DRY_RUN**"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Refresh analytics after automated releases
         if: ${{ always() && inputs.dry_run == false }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run analytics.yml --ref main -f selection_mode=new_only
+
+      - name: Refresh full Release audit
+        if: ${{ always() && inputs.dry_run == false }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run audit-experiment-releases.yml \
+            --ref main \
+            -f verify_archives=true \
+            -f repair_notes=true
+
+      - name: Refresh YOLOX and NanoDet comparison for a changed corpus
+        if: ${{ success() && inputs.dry_run == false && steps.promote.outputs.published_count != '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          batch="promotion-${GITHUB_RUN_ID}"
+          gh workflow run detector-yolox-inference.yml \
+            --ref main \
+            -f analysis_batch_id="$batch"
+          gh workflow run detector-nanodet-inference.yml \
+            --ref main \
+            -f analysis_batch_id="$batch"
+          {
+            echo '## Post-promotion detector refresh'
+            echo "- Shared batch: \`$batch\`"
+            echo '- YOLOX-Tiny and NanoDet-Plus were dispatched against the complete canonical image corpus.'
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -52,6 +52,15 @@ Wrapper 會驗證並安全解壓 archive，接著呼叫共同 publisher。共同
 - Atlas assets 全部是 ZIP；圖片 Atlas 每個 bundle 最多包含 15 個 prompt IDs；
 - 完整 multipart packages 都存在。
 
+若是從 **Actions → Promote input snapshot** 執行，還要確認：
+
+- `Audit experiment Releases` 已更新全量 integrity report；
+- 本次若建立了至少一個新 `media-exp-*` Release，YOLOX-Tiny 與 NanoDet-Plus 使用同一個 batch ID 執行；
+- comparison publisher 最後建立新的 `media-detection-*` Release，並更新 Detector Lab index；
+- detector 只處理 canonical 圖片，影片仍由 Atlas 與一般 Analytics 處理。
+
+直接在 Codespaces 執行 `publish_from_archive.py`、`publish_results.py` 或 CLI promotion 時，正式 Releases、release-based Analytics 與 Atlas 仍會正常工作，但 Audit／Detector workflows 不會被 CLI 額外 dispatch；需要時請從 Actions 手動啟動。
+
 ### 4. 清理
 
 確認 Releases 後即可刪除 Codespace，已發布資料不會被刪除。
@@ -70,7 +79,7 @@ python tools/input_snapshot.py publish results.zip
 python tools/input_snapshot.py promote --tag latest
 ```
 
-Promotion 會重建原始 archive 並呼叫相同共同 publisher，因此最終的全資料 Atlas 行為完全一致。
+Promotion 會重建原始 archive 並呼叫相同共同 publisher，因此最終的全資料 Atlas 行為完全一致。Action 路徑還會 dispatch 全量 Audit；若本次真的建立新正式 Releases，也會 dispatch 共用 batch ID 的 YOLOX／NanoDet comparison refresh。
 
 `media-input-*` snapshot 只作為傳輸／儲存紀錄；README 統計與 Atlas 都會排除它，直到 promote 產生正式 `media-exp-*` Releases。
 
