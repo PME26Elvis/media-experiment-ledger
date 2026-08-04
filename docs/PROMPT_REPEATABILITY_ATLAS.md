@@ -4,7 +4,7 @@
 
 The production Prompt Repeatability Atlas turns the complete release-backed media ledger into controlled image and video comparisons. Both renderers share the same corpus, fingerprint, workflow, report, companion Release, generated project-status refresh, and Visual Lab index.
 
-The Atlas is a **global snapshot**. It scans every currently published `media-exp-*` Release, not only the Release that triggered the workflow.
+The Atlas is a **global snapshot** and a **full-corpus** product. It scans every currently published `media-exp-*` Release, not only the Release that triggered the workflow.
 
 Detailed video behavior is documented in [VIDEO_REPEATABILITY_ATLAS.md](VIDEO_REPEATABILITY_ATLAS.md).
 
@@ -134,7 +134,7 @@ The companion Release uploads **only `.zip` assets**. No JPEG, GIF, JSON, MP4, o
 
 ### Image bundles
 
-Prompt IDs are sorted deterministically. Up to 15 distinct image prompt IDs are placed in each bundle, and every cohort for one prompt stays together.
+Prompt IDs are sorted deterministically. The **15 prompt** policy places up to 15 distinct image prompt IDs in each bundle, and every cohort for one prompt stays together.
 
 ```text
 prompt-atlas-bundle-001-i0001-to-i0015.zip
