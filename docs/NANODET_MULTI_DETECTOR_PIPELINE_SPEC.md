@@ -95,7 +95,7 @@ For `workflow_run` publication, Workflow C only accepts successful detector runs
 - each expose exactly one unexpired artifact with the expected detector prefix;
 - carry the same `analysis_batch_id`.
 
-The publisher may query the latest successful counterpart **for that exact head SHA**, but it must never pair independently selected generic “latest successful” detector runs. If the counterpart is not ready, the first publisher attempt exits without publication; completion of the second inference workflow retries the pairing.
+The publisher may query the latest successful counterpart **for that exact head SHA**, but it must never pair independently selected generic “latest successful” detector runs. **"Latest successful YOLO" plus "latest successful NanoDet" is forbidden.** If the counterpart is not ready, the first publisher attempt exits without publication; completion of the second inference workflow retries the pairing.
 
 ### 4.3 Input promotion integration
 
