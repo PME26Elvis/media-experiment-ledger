@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The production Prompt Repeatability Atlas turns the complete release-backed media ledger into controlled image and video comparisons. Both renderers share the same corpus, fingerprint, workflow, report, companion Release, README refresh, and Visual Lab index.
+The production Prompt Repeatability Atlas turns the complete release-backed media ledger into controlled image and video comparisons. Both renderers share the same corpus, fingerprint, workflow, report, companion Release, generated project-status refresh, and Visual Lab index.
 
 The Atlas is a **global snapshot**. It scans every currently published `media-exp-*` Release, not only the Release that triggered the workflow.
 
@@ -195,18 +195,18 @@ Schema version 3 includes:
 
 The Visual Lab supports image/video filtering, animated GIF cards, search, category filtering, and direct bundle downloads.
 
-## README statistics and Atlas history
+## Generated project statistics and Atlas history
 
-Every successful Atlas workflow runs `tools/update_readme_summary.py` after publication. It:
+Every successful Atlas workflow runs `tools/update_readme_summary.py` after publication. The historical filename is retained for compatibility, but its generated output now belongs to [`PROJECT_STATUS.md`](PROJECT_STATUS.md) and [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md), not the root landing-page READMEs. It:
 
 1. rescans all Releases;
 2. counts images and videos only from formal `media-exp-*` manifests;
 3. excludes `media-input-*` snapshots;
 4. reads every published `media-analysis-*` report;
-5. rebuilds the marked blocks in `README.md` and `README.en.md`;
-6. commits README files together with the Visual Lab index and JPEG/GIF previews.
+5. rebuilds the marked blocks in the bilingual project-status pages;
+6. commits those status pages together with the Visual Lab index and JPEG/GIF previews.
 
-Historical totals use the `release_tags` captured in each report, so later experiment data is not added retroactively to older rows.
+Historical totals use the `release_tags` captured in each report, so later experiment data is not added retroactively to older rows. Root `README.md` and `README.en.md` remain stable navigation surfaces.
 
 ## Workflow reliability
 
@@ -227,8 +227,8 @@ Observable stages:
 9. upload ZIP-only assets;
 10. publish Notes with JPEG/GIF previews;
 11. verify the published asset set;
-12. rebuild bilingual README statistics/history;
-13. commit README, Visual Lab index, and versioned previews.
+12. rebuild bilingual project statistics/history;
+13. commit project-status pages, Visual Lab index, and versioned previews.
 
 A failure-only Actions artifact is retained for seven days. Successful builds rely on the immutable analysis Release.
 
@@ -248,27 +248,18 @@ python tools/build_prompt_atlas.py \
   --repo PME26Elvis/media-experiment-ledger \
   --publish
 python tools/update_readme_summary.py \
-  --repo PME26Elvis/media-experiment-ledger
+  --repo PME26Elvis/media-experiment-ledger \
+  --readme docs/PROJECT_STATUS.md \
+  --readme-en docs/PROJECT_STATUS.en.md
 ```
 
 `gh auth status` must succeed. Publishing needs `contents: write`; batch dispatch also needs permission to run Actions workflows.
 
 ## Files
 
-- `.github/workflows/visual-analysis.yml` — global image/video orchestration, publication, README refresh, and writeback.
+- `.github/workflows/visual-analysis.yml` — global image/video orchestration, publication, generated status refresh, and writeback.
 - `.github/workflows/validate.yml` — Python, real FFmpeg, Astro, and route validation.
 - `tools/publish_results.py` — authoritative batch-completion dispatch.
-- `tools/prompt_atlas_core.py` — image cohort, selection, deduplication, and rendering primitives.
-- `tools/prompt_atlas_data.py` — corpus discovery and image extraction.
-- `tools/prompt_atlas_video.py` — video metadata, validation, GIF, keyframes, and sidecars.
-- `tools/prompt_atlas_build.py` — combined full-corpus build and index.
-- `tools/prompt_atlas_packages.py` — image/video bundles and global packages.
-- `tools/prompt_atlas_publish.py` — draft recovery, ZIP upload, combined Notes, and verification.
-- `tools/update_readme_summary.py` — full Release rescan and bilingual README generation.
-- `visual-analysis/config.json` — image/video rendering and packaging policy.
-- `tests/test_prompt_atlas.py` and `tests/test_prompt_atlas_video.py` — image and real FFmpeg video regressions.
-- `web/src/components/VisualAtlas.astro` — searchable image/video Visual Lab.
-
-## Synchronized project contract
-
-This is a **full-corpus** analysis over non-quarantined formal runs. Release assets remain **ZIP-only**, and image/video outputs remain in deterministic bundles containing up to **15 prompt** IDs. The machine-readable values live in `project-contract.json`; the canonical quarantine is `config/release-quarantine.json`.
+- `tools/build_prompt_atlas.py` — rendering and Release publication entrypoint.
+- `tools/update_readme_summary.py` — release rescan plus bilingual project-status rendering.
+- `docs/PROJECT_STATUS.md` / `docs/PROJECT_STATUS.en.md` — generated totals and immutable history tables.
