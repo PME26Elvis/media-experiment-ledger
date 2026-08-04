@@ -97,7 +97,7 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 
 ## YOLOX + NanoDet implementation
 
-[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`，且首個完整 production A/B/C 驗證已完成。NanoDet inference、YOLOX inference、exact-run／same-head safe publisher、comparison gallery、indexes 與 Detector Lab 均已上線；`media-detection-all-2026-07-13-v1` 與永久 evidence 文件保留首個 production baseline。
+[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`，且首個完整 production A/B/C 驗證已完成。NanoDet inference、YOLOX inference、exact-run／same-head safe publisher、comparison gallery、indexes 與 Detector Lab 均已上線；`media-detection-all-2026-07-13-v1` 與永久 evidence 文件保留首個 production baseline。所有 combined detector publications 均屬於 `media-detection-*` Release namespace。
 
 目前運作契約：
 
