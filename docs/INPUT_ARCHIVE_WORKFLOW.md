@@ -154,10 +154,18 @@ Workflow 會下載並驗證所有 parts、byte-for-byte 重建原 ZIP、安全�
 非 dry-run 的 Action 路徑還會補齊下游維護：
 
 - 重新執行全量 Experiment Release Audit，驗證所有正式 `media-exp-*` manifests、JSONL 與媒體 ZIP；
-- 只有本次真的建立至少一個新正式 Release 時，才以同一個 batch ID dispatch YOLOX-Tiny 與 NanoDet-Plus；
+- 只有本次真的建立至少一個新正式 Release 時，才建立一個 `promotion-<run-id>` batch，分別 `workflow_dispatch` YOLOX-Tiny 與 NanoDet-Plus；
+- Promotion 會從兩次 dispatch 的回傳網址抓出**精確 workflow run ID**，等待兩個 inference run 都成功；
+- 兩邊成功後，Promotion 再以那兩個 exact run IDs `workflow_dispatch` **Publish YOLOX + NanoDet comparison**，並等待 publisher 完成；
 - detector 會從頭處理全部 canonical **圖片** corpus，再由 comparison publisher 建立新的 `media-detection-*` Release 與 Detector Lab index；影片不屬於目前這條 YOLOX／NanoDet corpus。
 
-因此從 GitHub Action promote 完成後，應確認四層結果：正式 experiment Releases、Analytics／Pages、全資料 Atlas，以及 Audit／Detector refresh。直接在 Codespaces 執行 CLI promotion 仍會建立正式 Releases、觸發 release-based Analytics 並 dispatch Atlas，但不會額外 dispatch Audit 或 Detector workflows；需要時請在 Actions 手動執行它們。
+這條自動路徑**不依賴 chained `workflow_run` 自動配對**。兩個昂貴 inference workflows 與 comparison publisher 都是 `workflow_dispatch` only；repo push 或文件修改不會意外重跑完整 detector corpus。
+
+因此從 GitHub Action promote 完成後，應確認四層結果：正式 experiment Releases、Analytics／Pages、全資料 Atlas，以及 Audit／Detector refresh。對 Detector refresh 而言，Promotion 本身只有在 A、B、C 都成功後才會成功結束。
+
+若 YOLOX 與 NanoDet 已成功、但 Promotion 在 publisher 前後中斷，**不要重跑 inference**。只要 artifacts 尚未過期，可手動執行 **Publish YOLOX + NanoDet comparison**，填入原本兩個成功 run IDs 即可。
+
+直接在 Codespaces 執行 CLI promotion 仍會建立正式 Releases、觸發 release-based Analytics 並 dispatch Atlas，但不會額外 dispatch Audit 或 Detector workflows；需要時請在 Actions 手動執行它們。
 
 ### Codespaces
 
