@@ -1,7 +1,7 @@
 # Multi-detector YOLOX + NanoDet pipeline specification
 
 > Status: **`implemented`**  
-> Decision: separate detector inference workflows, one aggregate publisher workflow, one combined detector Release family  
+> Decision: separate detector inference workflows, one exact-run aggregate publisher workflow, one combined detector Release family  
 > Atlas impact: **none**
 
 ## 1. Purpose and interpretation boundary
@@ -38,6 +38,7 @@ The inventory process must:
 
 The workflow:
 
+- is **workflow_dispatch only**; repository pushes never launch a full-corpus inference run;
 - rebuilds the complete canonical image corpus;
 - downloads and verifies the SHA-pinned YOLOX-Tiny ONNX model and COCO 80 labels;
 - runs real ONNX Runtime CPU inference;
@@ -53,7 +54,7 @@ The workflow:
 .github/workflows/detector-nanodet-inference.yml
 ```
 
-The workflow mirrors Workflow A while using NanoDet-Plus-m-320. The production model is the **official immutable pre-exported ONNX** asset from the pinned upstream Release. Its byte size, SHA-256, labels hash, input shape, strides, and `reg_max` are fixed in `object-detection/nanodet-model-lock.json`; a real ONNX Runtime shape smoke runs before full-corpus inference.
+The workflow mirrors Workflow A and is also **workflow_dispatch only**, while using NanoDet-Plus-m-320. The production model is the **official immutable pre-exported ONNX** asset from the pinned upstream Release. Its byte size, SHA-256, labels hash, input shape, strides, and `reg_max` are fixed in `object-detection/nanodet-model-lock.json`; a real ONNX Runtime shape smoke runs before full-corpus inference.
 
 The artifact name is:
 
@@ -67,10 +68,14 @@ detector-nanodet-<analysis_batch_id>
 .github/workflows/detector-comparison-publish.yml
 ```
 
+The publisher is intentionally **workflow_dispatch only** and accepts the two explicit successful detector workflow run IDs. It does not infer a pair from generic latest runs or depend on a chained `workflow_run` event.
+
 The publisher:
 
-- accepts explicit YOLOX and NanoDet workflow run IDs as a deterministic recovery interface;
-- also listens to trusted `workflow_run` completions from A and B;
+- accepts explicit YOLOX and NanoDet workflow run IDs as the deterministic production and recovery interface;
+- verifies that each run belongs to this repository, used trusted `main`, completed successfully, and came from the expected detector workflow ID;
+- requires exactly one unexpired detector artifact from each run and requires the artifact batch IDs to match;
+- refuses already-published batches before downloading the large transport artifacts;
 - downloads both artifacts with `actions/download-artifact@v5`, exact `run-id`, and `github-token`;
 - validates both completion manifests and every packaged file hash before comparison;
 - creates comparison JSON, representative tri-panels, an offline HTML gallery, and deterministic ZIP assets;
@@ -80,31 +85,42 @@ The publisher:
 
 ## 4. Trigger and refresh policy
 
-### 4.1 Manual inference
+### 4.1 Manual inference and recovery
 
-Operators may manually dispatch A and B using the same `analysis_batch_id`. Workflow C may then be manually dispatched with the two exact run IDs.
+Operators may manually dispatch A and B using the same `analysis_batch_id`. After both succeed, dispatch Workflow C with those two **exact run IDs**. This is also the recovery route for a promotion whose detector publication step was interrupted after inference completed.
 
-### 4.2 Automatic same-head pairing
+The publisher never pairs independently selected generic latest detector runs. **"Latest successful YOLO" plus "latest successful NanoDet" is forbidden.**
 
-For `workflow_run` publication, Workflow C only accepts successful detector runs that:
+### 4.2 Promotion exact-run orchestration
 
-- belong to this repository;
-- target trusted `main`;
-- come from the expected workflow IDs;
-- use the same head SHA;
-- each expose exactly one unexpired artifact with the expected detector prefix;
-- carry the same `analysis_batch_id`.
+A non-dry-run **Promote input snapshot** Action that creates at least one new formal Release owns the automatic A → B → C handoff:
 
-The publisher may query the latest successful counterpart **for that exact head SHA**, but it must never pair independently selected generic “latest successful” detector runs. **"Latest successful YOLO" plus "latest successful NanoDet" is forbidden.** If the counterpart is not ready, the first publisher attempt exits without publication; completion of the second inference workflow retries the pairing.
+1. create one immutable `promotion-<promotion-workflow-run-id>` batch ID;
+2. dispatch YOLOX-Tiny and NanoDet-Plus with that same batch;
+3. capture the exact workflow run ID returned by each dispatch;
+4. wait for the exact YOLOX run to succeed;
+5. wait for the exact NanoDet run to succeed;
+6. dispatch Workflow C with those two exact run IDs and `publish_release=true`;
+7. wait for the exact publisher run to finish successfully.
 
-### 4.3 Input promotion integration
+In other words, Promotion **waits for both detector runs** and explicitly hands their IDs to the publisher. It does not rely on a chained `workflow_run` event, which is not a reliable orchestration boundary for workflows dispatched from another workflow through the repository `GITHUB_TOKEN`.
+
+If either detector fails, no publisher is dispatched. If the publisher fails, the promotion fails visibly while the successful detector artifacts remain available for the exact-run recovery path during their retention window.
+
+### 4.3 Expensive-trigger safety
+
+Both full-corpus inference workflows are manual-dispatch workflows only. They have no `push` trigger. This prevents workflow, documentation, or source-code merges from accidentally reprocessing thousands of images.
+
+The comparison publisher is also explicit-run `workflow_dispatch` only. Automatic publication is achieved by Promotion calling it after both exact inference runs succeed, not by hidden same-head discovery.
+
+### 4.4 Input promotion integration
 
 A non-dry-run **Promote input snapshot** Action:
 
 1. reconstructs and promotes the input archive;
 2. counts newly created formal `media-exp-*` Releases from the publisher output;
 3. refreshes Analytics and the full Experiment Release Audit;
-4. when and only when at least one new formal Release was created, dispatches A and B with one shared `promotion-<workflow-run-id>` batch ID.
+4. when and only when at least one new formal Release was created, performs the exact-run detector orchestration in §4.2.
 
 A repeated no-op promotion does not rerun detector inference. Direct CLI publishing or CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches Atlas, but it does not additionally dispatch the Audit or detector workflows.
 
@@ -159,8 +175,10 @@ The privileged publisher must never consume arbitrary PR artifacts or execute co
 
 It must:
 
+- accept only explicit run IDs supplied through its trusted `workflow_dispatch` interface;
 - checkout publisher code from current trusted `main`;
 - reject runs from another repository, untrusted branch, unexpected workflow, or unsuccessful conclusion;
+- require both artifact batch IDs to match before downloading large payloads;
 - extract only under `${{ runner.temp }}`;
 - reject absolute paths, `..`, symlinks, unexpected top-level members, and hash mismatches;
 - validate schemas before reading comparison data;
@@ -276,31 +294,33 @@ Complete packages split deterministically before 1.75 GiB. The offline gallery s
 
 ### Publisher
 
-- no Release is created until both artifacts pass the complete pair contract;
+- no Release is created until both exact run artifacts pass the complete pair contract;
 - an interrupted draft may be resumed only for the same verified batch;
+- an already-published batch exits before downloading the two large transport artifacts;
 - final publication requires exact asset-list and checksum verification;
 - index/history writeback happens only after final publication;
 - failures cannot affect experiment Releases or Atlas products.
 
-Manual exact run IDs remain the recovery route if automatic same-head pairing is unavailable.
+If automatic Promotion orchestration is interrupted after both inference runs succeeded, manually dispatch Workflow C with those exact run IDs. Re-running the two expensive inference jobs is unnecessary while their artifacts are still retained.
 
 ## 12. Resource policy
 
 Both detectors use complete GitHub-hosted CPU jobs with a 350-minute timeout. The implementation is designed for several thousand canonical images, but every larger corpus must be judged by measured end-to-end workflow evidence rather than extrapolated inference-only speed.
 
-Workflow artifacts are transport, not persistent state. Re-running the pipeline repeats corpus acquisition, verification, inference, packaging, and publication validation from scratch.
+Workflow artifacts are transport, not persistent state. Re-running the pipeline repeats corpus acquisition, verification, inference, packaging, and publication validation from scratch. Promotion therefore records and reuses the exact run IDs produced in that invocation rather than searching for a convenient recent run.
 
 ## 13. Acceptance criteria
 
-- A and B have read-only repository permissions and publish no Releases.
+- A and B are `workflow_dispatch` only, have read-only repository permissions, and publish no Releases.
 - Both artifacts describe the exact same canonical SHA set and batch identity.
-- Workflow C supports exact run IDs and safe same-head automatic pairing.
+- Workflow C is `workflow_dispatch` only and requires exact successful YOLOX and NanoDet run IDs.
+- Promotion captures the exact A/B run IDs, waits for both, dispatches C with that pair, and waits for C.
+- Repeated no-op Promotion does not run A/B/C.
 - Any corpus/model/label/coverage/hash mismatch fails closed.
 - One combined `media-detection-all-*` Release contains YOLOX, NanoDet, and comparison ZIPs.
 - Full gallery works offline; representative previews remain versioned repository files.
 - Comparison language never claims accuracy without ground truth.
 - No Atlas workflow, Release, Notes, preview, index, history, or finalizer is modified.
-- Promotion-triggered refresh is idempotent and only runs detectors when the formal corpus changed.
 - All workflows retain deterministic manifests and explicit recovery behavior.
 
 <!-- NANODET:IMPLEMENTATION:START -->
