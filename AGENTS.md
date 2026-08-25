@@ -49,7 +49,10 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 - Pages deployment depends on the validated build artifact, not on a successful Git push.
 - Canonical writeback is limited to `analytics/` and `forecasts/`, downloaded from a short-lived workflow artifact and committed with fetch/rebase/push retries.
 - Never add `site/` to writeback paths; doing so duplicates versioned Atlas GIF/JPEG and detector previews and causes large generated commits.
-- `tools/validate_site_build.py` must cover all primary routes, Analytics/Forecast/Visual Lab/Detector Lab/YOLO Lab JSON URLs, JSON parsing, malformed base paths, and Pages artifact size guards.
+- Versioned Atlas, combined-detector, and legacy YOLO previews under `web/public/data/*/previews/` are durable repository evidence served through `raw.githubusercontent.com`. They must stay tracked so Release Notes and historical preview URLs remain valid.
+- Astro copies those tracked preview trees into `site/`, but Pages does not serve the Labs from those copies. Both PR CI and production Pages must run `tools/prepare_pages_artifact.py` after Astro build to remove only `site/data/visual-analysis/previews/`, `site/data/detection/previews/`, and `site/data/yolo/previews/` before validation/upload. Never delete the corresponding tracked `web/public/` evidence to solve a Pages-size problem.
+- Keep the Pages total artifact guard at 1 GB and the per-file guard at 100 MB unless the product contract is deliberately revised. Do not bypass a size failure by simply raising the guard; first eliminate accidental deployment duplication.
+- `tools/validate_site_build.py` must cover all primary routes, Analytics/Forecast/Visual Lab/Detector Lab/YOLO Lab JSON URLs, JSON parsing, malformed base paths, preview-mirror exclusion, and Pages artifact size guards.
 - Root `README.md` and `README.en.md` are stable landing pages. Generated corpus statistics, Atlas history, and detector-history blocks belong in `docs/PROJECT_STATUS.md` and `docs/PROJECT_STATUS.en.md`.
 - Atlas and legacy YOLO workflows must write generated status only to those status pages; they must not reinsert growing tables into the root READMEs.
 
@@ -126,10 +129,11 @@ python tools/yolo_model_smoke.py
 python tools/nanodet_model_smoke.py
 npm install --prefix web --package-lock=false --no-audit --no-fund
 npm run build --prefix web
+python tools/prepare_pages_artifact.py --site site
 python tools/validate_site_build.py
 ```
 
-For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For NanoDet work, validate official model integrity, real ONNX Runtime shape smoke, normalized sidecars, exact/safe artifact pairing, Promotion exact-run handoff, and comparison-language guardrails.
+For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked, repository-backed preview evidence stays tracked, preview mirrors are excluded from the deployable artifact, and deployment is independent of writeback. For NanoDet work, validate official model integrity, real ONNX Runtime shape smoke, normalized sidecars, exact/safe artifact pairing, Promotion exact-run handoff, and comparison-language guardrails.
 
 <!-- NANODET:AGENTS:START -->
 ## Multi-detector behavior
