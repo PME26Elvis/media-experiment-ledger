@@ -26,6 +26,11 @@ jobs:
   promote:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    outputs:
+      published_count: ${{ steps.promote.outputs.published_count }}
+      detector_batch: ${{ steps.detector_dispatch.outputs.batch }}
+      yolox_run_id: ${{ steps.detector_dispatch.outputs.yolox_run_id }}
+      nanodet_run_id: ${{ steps.detector_dispatch.outputs.nanodet_run_id }}
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -81,8 +86,8 @@ jobs:
             -f verify_archives=true \
             -f repair_notes=true
 
-      - name: Run and publish exact YOLOX + NanoDet refresh for a changed corpus
-        id: detectors
+      - name: Dispatch exact YOLOX + NanoDet refresh for a changed corpus
+        id: detector_dispatch
         if: ${{ success() && inputs.dry_run == false && steps.promote.outputs.published_count != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -93,46 +98,134 @@ jobs:
 
           dispatch_workflow() {
             local workflow="$1"
-            shift
-            local output run_url run_id
-            output="$(gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main "$@")"
-            printf '%s\n' "$output" >&2
-            run_url="$(printf '%s\n' "$output" | grep -Eo 'https://github\.com/[^[:space:]]+/actions/runs/[0-9]+' | tail -n 1 || true)"
-            run_id="${run_url##*/}"
+            local inputs_json="$2"
+            local payload response run_id
+            payload="$(jq -nc \
+              --arg ref 'main' \
+              --argjson inputs "$inputs_json" \
+              '{ref: $ref, inputs: $inputs, return_run_details: true}')"
+            response="$(gh api \
+              --method POST \
+              "repos/${GITHUB_REPOSITORY}/actions/workflows/${workflow}/dispatches" \
+              --input - <<<"$payload")"
+            run_id="$(jq -r '.workflow_run_id // empty' <<<"$response")"
             if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then
-              echo "Unable to resolve workflow run ID after dispatching $workflow" >&2
+              echo "Workflow dispatch did not return a numeric workflow_run_id for $workflow" >&2
+              printf '%s\n' "$response" >&2
               exit 1
             fi
             printf '%s' "$run_id"
           }
 
-          yolox_run_id="$(dispatch_workflow detector-yolox-inference.yml \
-            -f analysis_batch_id="$batch")"
-          nanodet_run_id="$(dispatch_workflow detector-nanodet-inference.yml \
-            -f analysis_batch_id="$batch")"
+          detector_inputs="$(jq -nc --arg batch "$batch" '{analysis_batch_id: $batch}')"
+          yolox_run_id="$(dispatch_workflow detector-yolox-inference.yml "$detector_inputs")"
+          nanodet_run_id="$(dispatch_workflow detector-nanodet-inference.yml "$detector_inputs")"
 
+          echo "batch=$batch" >> "$GITHUB_OUTPUT"
           echo "yolox_run_id=$yolox_run_id" >> "$GITHUB_OUTPUT"
           echo "nanodet_run_id=$nanodet_run_id" >> "$GITHUB_OUTPUT"
 
-          echo "Waiting for YOLOX run $yolox_run_id"
-          gh run watch "$yolox_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-          echo "Waiting for NanoDet run $nanodet_run_id"
-          gh run watch "$nanodet_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-
-          publisher_run_id="$(dispatch_workflow detector-comparison-publish.yml \
-            -f yolox_run_id="$yolox_run_id" \
-            -f nanodet_run_id="$nanodet_run_id" \
-            -f publish_release=true)"
-          echo "publisher_run_id=$publisher_run_id" >> "$GITHUB_OUTPUT"
-
-          echo "Waiting for comparison publisher run $publisher_run_id"
-          gh run watch "$publisher_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
-
           {
-            echo '## Post-promotion detector refresh'
+            echo '## Post-promotion detector dispatch'
             echo "- Shared batch: \`$batch\`"
             echo "- YOLOX run: \`$yolox_run_id\`"
             echo "- NanoDet run: \`$nanodet_run_id\`"
-            echo "- Comparison publisher run: \`$publisher_run_id\`"
-            echo '- The promotion waited for both full-corpus inference runs and then dispatched the publisher with that exact run pair.'
+            echo '- Exact run IDs came directly from the workflow-dispatch API response.'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  publish_detector_comparison:
+    needs: promote
+    if: ${{ needs.promote.result == 'success' && inputs.dry_run == false && needs.promote.outputs.published_count != '0' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      actions: write
+      contents: read
+    outputs:
+      publisher_run_id: ${{ steps.publisher_dispatch.outputs.publisher_run_id }}
+    steps:
+      - name: Wait for exact detector pair
+        env:
+          GH_TOKEN: ${{ github.token }}
+          YOLOX_RUN_ID: ${{ needs.promote.outputs.yolox_run_id }}
+          NANODET_RUN_ID: ${{ needs.promote.outputs.nanodet_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in "$YOLOX_RUN_ID" "$NANODET_RUN_ID"; do
+            if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+              echo "Missing exact detector run ID from promotion: $value" >&2
+              exit 1
+            fi
+          done
+          echo "Waiting for YOLOX run $YOLOX_RUN_ID"
+          gh run watch "$YOLOX_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          echo "Waiting for NanoDet run $NANODET_RUN_ID"
+          gh run watch "$NANODET_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+
+      - name: Dispatch comparison publisher with exact run IDs
+        id: publisher_dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          YOLOX_RUN_ID: ${{ needs.promote.outputs.yolox_run_id }}
+          NANODET_RUN_ID: ${{ needs.promote.outputs.nanodet_run_id }}
+          DETECTOR_BATCH: ${{ needs.promote.outputs.detector_batch }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$(jq -nc \
+            --arg ref 'main' \
+            --arg yolox "$YOLOX_RUN_ID" \
+            --arg nanodet "$NANODET_RUN_ID" \
+            '{
+              ref: $ref,
+              inputs: {
+                yolox_run_id: $yolox,
+                nanodet_run_id: $nanodet,
+                publish_release: true
+              },
+              return_run_details: true
+            }')"
+          response="$(gh api \
+            --method POST \
+            "repos/${GITHUB_REPOSITORY}/actions/workflows/detector-comparison-publish.yml/dispatches" \
+            --input - <<<"$payload")"
+          publisher_run_id="$(jq -r '.workflow_run_id // empty' <<<"$response")"
+          if [[ ! "$publisher_run_id" =~ ^[0-9]+$ ]]; then
+            echo 'Comparison publisher dispatch did not return a numeric workflow_run_id' >&2
+            printf '%s\n' "$response" >&2
+            exit 1
+          fi
+          echo "publisher_run_id=$publisher_run_id" >> "$GITHUB_OUTPUT"
+          {
+            echo '## Detector comparison handoff'
+            echo "- Shared batch: \`$DETECTOR_BATCH\`"
+            echo "- YOLOX run: \`$YOLOX_RUN_ID\`"
+            echo "- NanoDet run: \`$NANODET_RUN_ID\`"
+            echo "- Comparison publisher run: \`$publisher_run_id\`"
+            echo '- Both inference runs completed successfully before this exact-pair publisher dispatch.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  verify_detector_publication:
+    needs: publish_detector_comparison
+    if: ${{ needs.publish_detector_comparison.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Wait for comparison publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISHER_RUN_ID: ${{ needs.publish_detector_comparison.outputs.publisher_run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$PUBLISHER_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "Missing exact publisher run ID: $PUBLISHER_RUN_ID" >&2
+            exit 1
+          fi
+          echo "Waiting for comparison publisher run $PUBLISHER_RUN_ID"
+          gh run watch "$PUBLISHER_RUN_ID" --repo "$GITHUB_REPOSITORY" --exit-status
+          echo "Comparison publisher run $PUBLISHER_RUN_ID completed successfully" >> "$GITHUB_STEP_SUMMARY"
