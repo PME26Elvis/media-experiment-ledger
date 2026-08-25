@@ -40,8 +40,9 @@ A media-generation experiment platform that uses **GitHub Releases as an immutab
 
 ### Object detection
 
-- YOLOX-Tiny and NanoDet-Plus-m-320 read-only inference workflows process the complete canonical image corpus from scratch.
+- YOLOX-Tiny and NanoDet-Plus-m-320 use read-only, `workflow_dispatch`-only inference workflows to process the complete canonical image corpus from scratch; repository pushes cannot accidentally launch an expensive full-corpus inference run.
 - The publisher accepts only exact workflow run IDs with matching `analysis_batch_id`, corpus fingerprint, quarantine digest, SHA set, labels, and thresholds.
+- When an Action promotion changes the corpus, it records the exact two inference run IDs, waits for both runs to succeed, and explicitly hands that pair to the comparison publisher instead of depending on chained `workflow_run` discovery.
 - `media-detection-*` reports agreement, disagreement, box IoU, class deltas, and runtime. Without human ground truth it never claims accuracy, precision, recall, or mAP.
 - [Multi-detector specification](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) · [Detector Lab](web/src/content/docs/detector-lab.mdx)
 
@@ -65,9 +66,9 @@ python tools/publish_from_archive.py results.zip --dry-run
 python tools/input_snapshot.py publish results.zip
 ```
 
-Then run **Actions → Promote input snapshot**. When a non-dry-run promotion creates new formal Releases, the Action refreshes Analytics and the Release Audit, then starts YOLOX and NanoDet with one shared batch ID. Repeated no-op promotion does not waste detector inference.
+Then run **Actions → Promote input snapshot**. When a non-dry-run promotion creates new formal Releases, the Action refreshes Analytics and the Release Audit, starts YOLOX and NanoDet with one shared batch ID, captures their exact run IDs, waits for both to succeed, then dispatches and waits for the comparison publisher. Repeated no-op promotion does not waste detector inference.
 
-> Direct CLI promotion still creates formal Releases and triggers Analytics and the Atlas, but it does not additionally dispatch Audit/detector maintenance. See the [input workflow guide](docs/INPUT_ARCHIVE_WORKFLOW.en.md) for the complete distinction.
+> Direct CLI promotion still creates formal Releases and triggers Analytics and the Atlas, but it does not additionally dispatch Audit/detector maintenance. See the [input workflow guide](docs/INPUT_ARCHIVE_WORKFLOW.en.md) for the complete distinction. If detector inference succeeded but publication was interrupted, manually run **Publish YOLOX + NanoDet comparison** with those two existing run IDs instead of rerunning inference.
 
 ## Data flow
 
@@ -78,7 +79,7 @@ results.zip / results/
   ├─ Analytics + Forecast + GitHub Pages
   ├─ image/video Prompt Repeatability Atlas → media-analysis-*
   ├─ full Release integrity audit
-  └─ YOLOX + NanoDet comparison → media-detection-*
+  └─ exact YOLOX + NanoDet runs → comparison publisher → media-detection-*
 ```
 
 ## Data integrity
