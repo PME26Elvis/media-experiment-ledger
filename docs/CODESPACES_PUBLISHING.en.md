@@ -52,11 +52,16 @@ Open **Releases** and verify:
 For **Actions → Promote input snapshot**, also verify:
 
 - `Audit experiment Releases` refreshed the full integrity report;
-- when at least one new `media-exp-*` Release was created, YOLOX-Tiny and NanoDet-Plus ran with one shared batch ID;
+- when at least one new `media-exp-*` Release was created, YOLOX-Tiny and NanoDet-Plus ran with one shared `promotion-<run-id>` batch ID;
+- Promotion recorded the exact two detector workflow run IDs, waited for both to succeed, and dispatched the comparison publisher with that exact pair;
 - the comparison publisher created a new `media-detection-*` Release and refreshed Detector Lab indexes;
 - detectors cover the canonical image corpus only; videos remain part of Atlas and general Analytics rather than the YOLOX/NanoDet corpus.
 
+This Action detector path uses explicit A/B/C orchestration rather than chained `workflow_run` pairing. Both full-corpus inference workflows and the comparison publisher are `workflow_dispatch` only, so ordinary main pushes, workflow edits, or documentation changes cannot accidentally start an expensive detector rebuild.
+
 Direct Codespaces use of `publish_from_archive.py`, `publish_results.py`, or CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches the Atlas. It does not additionally dispatch Audit or Detector workflows; launch those manually from Actions when needed.
+
+If both detector inference runs succeeded but comparison publication was interrupted, manually run **Publish YOLOX + NanoDet comparison** with those existing run IDs while their short-lived artifacts are retained. Do not rerun the complete inference corpus merely to recover publication.
 
 ### 4. Cleanup
 
@@ -69,7 +74,7 @@ python tools/input_snapshot.py publish results.zip
 python tools/input_snapshot.py promote --tag latest
 ```
 
-Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from the corpus totals and Atlas source data in [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md) until promotion produces formal `media-exp-*` Releases. The Action path also dispatches the full audit and, when the corpus changed, one shared YOLOX/NanoDet comparison refresh.
+Promotion reconstructs the original archive and calls the same common publisher. `media-input-*` snapshots are excluded from the corpus totals and Atlas source data in [`PROJECT_STATUS.en.md`](PROJECT_STATUS.en.md) until promotion produces formal `media-exp-*` Releases. The Action path also dispatches the full audit and, when the corpus changed, completes the shared-batch YOLOX/NanoDet → exact-run comparison publisher handoff.
 
 ## Direct folder compatibility
 
