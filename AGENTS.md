@@ -86,9 +86,11 @@ This file applies to the entire repository. A more specific `AGENTS.md` in a sub
 ## Multi-detector behavior
 
 - Inference workflows are `.github/workflows/detector-yolox-inference.yml` and `.github/workflows/detector-nanodet-inference.yml`; the publisher is `.github/workflows/detector-comparison-publish.yml`.
-- Manual recovery accepts **exact workflow run IDs**. Automatic pairing may only combine successful runs from the same trusted `main` head SHA after verifying the identical shared batch and complete artifact contract; never pair independently selected generic "latest successful" runs.
+- Both full-corpus inference workflows are **workflow_dispatch only**. Never add a `push` trigger that can reprocess the complete corpus merely because workflow, code, or documentation files changed.
+- The publisher is also **workflow_dispatch only** and accepts **exact successful workflow run IDs**. Never pair independently selected generic "latest successful" runs or depend on a chained `workflow_run` event for Promotion orchestration.
 - Both artifacts must have identical `analysis_batch_id`, corpus fingerprint, quarantine digest, source Release list, canonical image SHA set, and COCO labels hash.
-- `Promote input snapshot` dispatches both inference workflows with one shared batch ID only when that promotion created at least one new formal `media-exp-*` Release. Repeated no-op promotion must not rerun detectors.
+- `Promote input snapshot` dispatches both inference workflows with one shared batch ID only when that promotion created at least one new formal `media-exp-*` Release. It captures the exact YOLOX/NanoDet run IDs, waits for both successful completions, dispatches the publisher with that exact pair, and waits for the publisher. Repeated no-op promotion must not rerun detectors.
+- If Promotion is interrupted after the detector runs succeed, manually dispatch the publisher with those exact run IDs while the artifacts are retained; do not rerun inference unnecessarily.
 - Detector workflows rebuild the complete canonical **image** corpus; videos remain outside the YOLOX/NanoDet corpus.
 - Workflow artifacts are short-lived transport only, never source of truth, inference cache, or persistent processing state.
 - Combined publications use the `media-detection-*` Release namespace, with formal tags shaped as `media-detection-all-<latest-experiment-date>-vN`; existing `media-yolo-*` Releases remain immutable single-detector history.
@@ -115,24 +117,27 @@ python -m pip install \
   -r requirements-analytics.txt \
   -r requirements-forecast.txt \
   -r requirements-visual-analysis.txt \
-  -r requirements-yolo.txt
+  -r requirements-yolo.txt \
+  -r requirements-nanodet.txt
 sudo apt-get install -y --no-install-recommends ffmpeg
 python -m compileall tools tests
 python -m unittest discover -s tests -v
 python tools/yolo_model_smoke.py
+python tools/nanodet_model_smoke.py
 npm install --prefix web --package-lock=false --no-audit --no-fund
 npm run build --prefix web
 python tools/validate_site_build.py
 ```
 
-For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For NanoDet work, validate official model integrity, real ONNX Runtime shape smoke, normalized sidecars, exact/safe artifact pairing, and comparison-language guardrails.
+For video Atlas work, tests must exercise real `ffmpeg`/`ffprobe` behavior with generated media rather than only mocking subprocess calls. For YOLO work, CI must download the pinned model, verify its size/SHA, create an ONNX Runtime CPU session, and validate the real output tensor shape. For Pages work, tests must ensure `site/` remains ignored/untracked and deployment is independent of writeback. For NanoDet work, validate official model integrity, real ONNX Runtime shape smoke, normalized sidecars, exact/safe artifact pairing, Promotion exact-run handoff, and comparison-language guardrails.
 
 <!-- NANODET:AGENTS:START -->
 ## Multi-detector behavior
 
 - Multi-detector status is `implemented`; production Release is `media-detection-all-2026-07-13-v1`.
 - Verified production runs: YOLOX `29812888677`, NanoDet `29812888709`, publisher `29813188073`, writeback `9bef82a565ac25db97708628acfe8f56e1cc3b29`.
-- Inference workflows remain read-only and artifact-only. Pair only exact workflow run IDs; never combine independently selected latest runs.
+- Inference workflows remain read-only, artifact-only, and `workflow_dispatch` only. The publisher accepts exact successful run IDs only.
+- Action Promotion owns automatic orchestration: shared batch → capture exact A/B IDs → wait A/B → dispatch exact-ID publisher → wait publisher.
 - NanoDet uses the SHA-pinned official immutable ONNX and `requirements-nanodet.txt`.
 - Keep agreement/disagreement language; no accuracy claim without ground truth.
 - Detector Lab is the combined production UI; YOLO Lab is immutable legacy history.
