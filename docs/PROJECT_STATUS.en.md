@@ -12,11 +12,11 @@
 
 | Metric | Value |
 |---|---:|
-| Formal experiment Releases | 20 |
-| Experiment date range | 2026-06-29 → 2026-08-03 |
-| Total images | 893 |
-| Total videos | 86 |
-| Latest Prompt Repeatability Atlas | [media-analysis-all-c1196dea3267-v2](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v2) |
+| Formal experiment Releases | 29 |
+| Experiment date range | 2026-06-29 → 2026-08-19 |
+| Total images | 2,779 |
+| Total videos | 121 |
+| Latest Prompt Repeatability Atlas | [media-analysis-all-ae011b6ec5cf-v1](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-ae011b6ec5cf-v1) |
 <!-- AUTO:LEDGER_STATS_EN:END -->
 
 The [`Experiment Release Audit`](reports/EXPERIMENT_RELEASE_AUDIT.md) is authoritative for Release manifests, archived-media counts, and quarantine findings.
@@ -28,6 +28,7 @@ The [`Experiment Release Audit`](reports/EXPERIMENT_RELEASE_AUDIT.md) is authori
 
 | Published | Atlas type | Data range | Images | Videos | Comparable prompts | Release |
 |---|---|---|---:|---:|---:|---|
+| 2026-08-25 | Global repeatability atlas | 2026-06-29 → 2026-08-19 | 2,779 | 121 | 445 | [`media-analysis-all-ae011b6ec5cf-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-ae011b6ec5cf-v1) |
 | 2026-08-04 | Global repeatability atlas | 2026-06-29 → 2026-08-03 | 893 | 86 | 152 | [`media-analysis-all-c1196dea3267-v2`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v2) |
 | 2026-08-04 | Global repeatability atlas | 2026-06-29 → 2026-08-03 | 893 | 86 | 152 | [`media-analysis-all-c1196dea3267-v1`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-c1196dea3267-v1) |
 | 2026-07-21 | Global repeatability atlas | 2026-06-29 → 2026-07-13 | 387 | 33 | 87 | [`media-analysis-all-633b2daf9eab-v9`](https://github.com/PME26Elvis/media-experiment-ledger/releases/tag/media-analysis-all-633b2daf9eab-v9) |
