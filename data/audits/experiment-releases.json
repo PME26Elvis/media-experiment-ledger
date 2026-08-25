@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at_utc": "2026-08-25T09:11:21+00:00",
+  "generated_at_utc": "2026-08-25T16:34:04+00:00",
   "repository": "PME26Elvis/media-experiment-ledger",
-  "verify_archives": false,
-  "release_notes_repaired": false,
+  "verify_archives": true,
+  "release_notes_repaired": true,
   "release_count": 29,
   "canonical_run_count": 31,
   "quarantined_run_count": 2,
@@ -30,7 +30,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 2,
       "status": "corrected",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 0,
         "api_video_completed": 4,
@@ -123,8 +123,15 @@
               "kind": "videos",
               "expected_size_bytes": 16035718,
               "expected_sha256": "45c051d14199164a634a4afe84e5d553103df08cf435b328e8d0312c654a4e92",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 16035718,
+              "actual_sha256": "45c051d14199164a634a4afe84e5d553103df08cf435b328e8d0312c654a4e92",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -200,7 +207,7 @@
       "canonical_runs": 3,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 40,
         "api_video_completed": 0,
@@ -241,8 +248,15 @@
               "kind": "images",
               "expected_size_bytes": 121171092,
               "expected_sha256": "ff2e4dfdd2981de05c67688938b9e42c95d4d4218cc9addcecfc8031d337820f",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 121171092,
+              "actual_sha256": "ff2e4dfdd2981de05c67688938b9e42c95d4d4218cc9addcecfc8031d337820f",
+              "media_members": {
+                "images": 21,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -279,8 +293,15 @@
               "kind": "images",
               "expected_size_bytes": 62730401,
               "expected_sha256": "3cfab32d5603c49a964d1da27e0b53f6fc6bfa5e16bd83322cc9e521a9c70f0f",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 62730401,
+              "actual_sha256": "3cfab32d5603c49a964d1da27e0b53f6fc6bfa5e16bd83322cc9e521a9c70f0f",
+              "media_members": {
+                "images": 11,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -317,8 +338,15 @@
               "kind": "images",
               "expected_size_bytes": 46186234,
               "expected_sha256": "ad4025fc707110cf30260f7aab99481deb6995478eedd712912888f3a9c3087d",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 46186234,
+              "actual_sha256": "ad4025fc707110cf30260f7aab99481deb6995478eedd712912888f3a9c3087d",
+              "media_members": {
+                "images": 8,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -340,7 +368,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 0,
         "api_video_completed": 0,
@@ -395,7 +423,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 32,
         "api_video_completed": 7,
@@ -436,16 +464,30 @@
               "kind": "images",
               "expected_size_bytes": 187453992,
               "expected_sha256": "a2fbe129a334ad994ffb877a9e4b80b0c7277af18e0feccf56eb543b5363823e",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 187453992,
+              "actual_sha256": "a2fbe129a334ad994ffb877a9e4b80b0c7277af18e0feccf56eb543b5363823e",
+              "media_members": {
+                "images": 32,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260702_132745-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 22994191,
               "expected_sha256": "faad90992fbd3afc2095bd8450d44560e261232d7a7e93d12d2109efaeed770f",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 22994191,
+              "actual_sha256": "faad90992fbd3afc2095bd8450d44560e261232d7a7e93d12d2109efaeed770f",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -467,7 +509,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 28,
         "api_video_completed": 7,
@@ -508,16 +550,30 @@
               "kind": "images",
               "expected_size_bytes": 162489428,
               "expected_sha256": "5784c07170be0a18a970781af1c1babee8325030160ab7232060afab47122348",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 162489428,
+              "actual_sha256": "5784c07170be0a18a970781af1c1babee8325030160ab7232060afab47122348",
+              "media_members": {
+                "images": 28,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260703_112425-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 24420387,
               "expected_sha256": "f98fb6737b286ed5a603734cdc9be5b5c0e4f3edb7c74a05654a1c7e81ca846e",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 24420387,
+              "actual_sha256": "f98fb6737b286ed5a603734cdc9be5b5c0e4f3edb7c74a05654a1c7e81ca846e",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -539,7 +595,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 80,
         "api_video_completed": 7,
@@ -580,16 +636,30 @@
               "kind": "images",
               "expected_size_bytes": 467461199,
               "expected_sha256": "b824f457665d66e886907fa9e3f5248c6fed85a8674b69a63308c5018de19a7a",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 467461199,
+              "actual_sha256": "b824f457665d66e886907fa9e3f5248c6fed85a8674b69a63308c5018de19a7a",
+              "media_members": {
+                "images": 80,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260705_200953-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 25362794,
               "expected_sha256": "92807727ccdb7d90b96def90d884c0f916c049735623841452e142c3abf23c21",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 25362794,
+              "actual_sha256": "92807727ccdb7d90b96def90d884c0f916c049735623841452e142c3abf23c21",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -611,7 +681,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 59,
         "api_video_completed": 0,
@@ -652,8 +722,15 @@
               "kind": "images",
               "expected_size_bytes": 375365781,
               "expected_sha256": "9ef12467e3a254d826d65bb276deb838c803fa3b9d932da013318aef308e9c72",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 375365781,
+              "actual_sha256": "9ef12467e3a254d826d65bb276deb838c803fa3b9d932da013318aef308e9c72",
+              "media_members": {
+                "images": 59,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -675,7 +752,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 145,
         "api_video_completed": 7,
@@ -716,16 +793,30 @@
               "kind": "images",
               "expected_size_bytes": 794125866,
               "expected_sha256": "0efea83d00b541fe853589bd2a385cfacc315cdabca6b83e0196424a74deaf93",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 794125866,
+              "actual_sha256": "0efea83d00b541fe853589bd2a385cfacc315cdabca6b83e0196424a74deaf93",
+              "media_members": {
+                "images": 145,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260712_175037-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 28389921,
               "expected_sha256": "a41f278b986ac23844b440a81bbf463930508f922b3fe9f73f87b2f168a617d2",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 28389921,
+              "actual_sha256": "a41f278b986ac23844b440a81bbf463930508f922b3fe9f73f87b2f168a617d2",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -747,7 +838,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 3,
         "api_video_completed": 1,
@@ -788,16 +879,30 @@
               "kind": "images",
               "expected_size_bytes": 16348210,
               "expected_sha256": "389f01e5e8c15af582503740dc8d0fcb3a9bc1341884f860c7d926e2b026c622",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 16348210,
+              "actual_sha256": "389f01e5e8c15af582503740dc8d0fcb3a9bc1341884f860c7d926e2b026c622",
+              "media_members": {
+                "images": 3,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260713_220443-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 1717191,
               "expected_sha256": "f3dd1fdceb424e60a4c86304fa4f7fe790faaf481745d46cbdbdbee193d373a5",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1717191,
+              "actual_sha256": "f3dd1fdceb424e60a4c86304fa4f7fe790faaf481745d46cbdbdbee193d373a5",
+              "media_members": {
+                "images": 0,
+                "videos": 1
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -819,7 +924,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 7,
         "api_video_completed": 4,
@@ -860,16 +965,30 @@
               "kind": "images",
               "expected_size_bytes": 39208512,
               "expected_sha256": "904a9717c0e9f82c3fad85dc7d656a2a2ee7fc712c0dc472eaa4f59988b7d547",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 39208512,
+              "actual_sha256": "904a9717c0e9f82c3fad85dc7d656a2a2ee7fc712c0dc472eaa4f59988b7d547",
+              "media_members": {
+                "images": 7,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260717_102749-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 14013384,
               "expected_sha256": "43c18cd0939c2e0f287533bf45702dc894d6c0f8436edbc51c92bd2977cc4c4d",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 14013384,
+              "actual_sha256": "43c18cd0939c2e0f287533bf45702dc894d6c0f8436edbc51c92bd2977cc4c4d",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -891,7 +1010,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 1,
         "api_video_completed": 4,
@@ -932,16 +1051,30 @@
               "kind": "images",
               "expected_size_bytes": 5411846,
               "expected_sha256": "a44112b55112bb089097faf21b32621b9044194bffc33115473d1e04e7fbf7b0",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 5411846,
+              "actual_sha256": "a44112b55112bb089097faf21b32621b9044194bffc33115473d1e04e7fbf7b0",
+              "media_members": {
+                "images": 1,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260720_085337-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 14735017,
               "expected_sha256": "7e9e499d82c1c37223a4dca405646e4198fa10009659e50e371d12dc63a367fc",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 14735017,
+              "actual_sha256": "7e9e499d82c1c37223a4dca405646e4198fa10009659e50e371d12dc63a367fc",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -963,7 +1096,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 3,
         "api_video_completed": 4,
@@ -1004,16 +1137,30 @@
               "kind": "images",
               "expected_size_bytes": 17223886,
               "expected_sha256": "f978094afa430c1fc4e54f2ea0f387ece9b98dc9acbc25302389117e4b5042ae",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 17223886,
+              "actual_sha256": "f978094afa430c1fc4e54f2ea0f387ece9b98dc9acbc25302389117e4b5042ae",
+              "media_members": {
+                "images": 3,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260721_084259-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 13316892,
               "expected_sha256": "c2cc521629ac3d6e572789027e20a24d4adaa6b6e5daae2f8677f34b157cc142",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 13316892,
+              "actual_sha256": "c2cc521629ac3d6e572789027e20a24d4adaa6b6e5daae2f8677f34b157cc142",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1035,7 +1182,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 1,
         "api_video_completed": 7,
@@ -1076,16 +1223,30 @@
               "kind": "images",
               "expected_size_bytes": 5498776,
               "expected_sha256": "10f3244d267a29e22558835f34b9d2600dc1a67c8bd36c24e1a506a71a01d82e",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 5498776,
+              "actual_sha256": "10f3244d267a29e22558835f34b9d2600dc1a67c8bd36c24e1a506a71a01d82e",
+              "media_members": {
+                "images": 1,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260722_104330-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 25899585,
               "expected_sha256": "cece317c907634efc5bece8047a4f73a24d537f210818b66192379a78632bc0a",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 25899585,
+              "actual_sha256": "cece317c907634efc5bece8047a4f73a24d537f210818b66192379a78632bc0a",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1107,7 +1268,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 0,
         "api_video_completed": 2,
@@ -1148,8 +1309,15 @@
               "kind": "videos",
               "expected_size_bytes": 3714848,
               "expected_sha256": "1668d087263842242bc425a3e175816053fc9729e7d34fe43261073683d90e7b",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 3714848,
+              "actual_sha256": "1668d087263842242bc425a3e175816053fc9729e7d34fe43261073683d90e7b",
+              "media_members": {
+                "images": 0,
+                "videos": 2
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1171,7 +1339,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 0,
         "api_video_completed": 0,
@@ -1226,7 +1394,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 306,
         "api_video_completed": 4,
@@ -1267,16 +1435,30 @@
               "kind": "images",
               "expected_size_bytes": 1834950054,
               "expected_sha256": "f0bc612ce23bb43330cd282c25e2dc7bc07dd8c5836153a221021e334ba45c94",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1834950054,
+              "actual_sha256": "f0bc612ce23bb43330cd282c25e2dc7bc07dd8c5836153a221021e334ba45c94",
+              "media_members": {
+                "images": 306,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260728_083739-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 12877640,
               "expected_sha256": "0c9a01cee754ab55f363c8aeb7a3920636e87bd61ac4b5c9adb2dcabafbd75d3",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 12877640,
+              "actual_sha256": "0c9a01cee754ab55f363c8aeb7a3920636e87bd61ac4b5c9adb2dcabafbd75d3",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1298,7 +1480,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 113,
         "api_video_completed": 7,
@@ -1339,16 +1521,30 @@
               "kind": "images",
               "expected_size_bytes": 623278177,
               "expected_sha256": "02dfca56fbe0b71cbab6faf499d04f0f047cb7145623a87e4d7402da4e00eb17",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 623278177,
+              "actual_sha256": "02dfca56fbe0b71cbab6faf499d04f0f047cb7145623a87e4d7402da4e00eb17",
+              "media_members": {
+                "images": 113,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260729_123054-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 27240525,
               "expected_sha256": "0667a89949956d09b85f93d4990b7d83af1ea1c23e0a0aba6caef8076fccd40f",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 27240525,
+              "actual_sha256": "0667a89949956d09b85f93d4990b7d83af1ea1c23e0a0aba6caef8076fccd40f",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1370,7 +1566,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 9,
         "api_video_completed": 7,
@@ -1411,16 +1607,30 @@
               "kind": "images",
               "expected_size_bytes": 50785945,
               "expected_sha256": "fd6ccee0c4d6f22bf5e1d3aacc7c29fec7017cdcf0e54853abaf92402224a1cd",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 50785945,
+              "actual_sha256": "fd6ccee0c4d6f22bf5e1d3aacc7c29fec7017cdcf0e54853abaf92402224a1cd",
+              "media_members": {
+                "images": 9,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260730_093754-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 25248791,
               "expected_sha256": "a9b34be12cebe3d055383007adba5a3519c29dc8f8a037f3756e41e27f50f9e1",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 25248791,
+              "actual_sha256": "a9b34be12cebe3d055383007adba5a3519c29dc8f8a037f3756e41e27f50f9e1",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1442,7 +1652,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 4,
         "api_video_completed": 7,
@@ -1483,16 +1693,30 @@
               "kind": "images",
               "expected_size_bytes": 22202512,
               "expected_sha256": "1dceabdb429fcb1975b32f56f104ad3a509c91b04a59649cbc597a7808c72434",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 22202512,
+              "actual_sha256": "1dceabdb429fcb1975b32f56f104ad3a509c91b04a59649cbc597a7808c72434",
+              "media_members": {
+                "images": 4,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260731_113040-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 25476629,
               "expected_sha256": "f4f588e07ff735ad90df2b663017915e6d70fc61eb1358a919b5a96aa4e3c14c",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 25476629,
+              "actual_sha256": "f4f588e07ff735ad90df2b663017915e6d70fc61eb1358a919b5a96aa4e3c14c",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1514,7 +1738,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 62,
         "api_video_completed": 7,
@@ -1555,16 +1779,30 @@
               "kind": "images",
               "expected_size_bytes": 396525895,
               "expected_sha256": "cb598de09fe5756754ebf0bc517a3be71fc4088195ad9590768ea25905bab149",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 396525895,
+              "actual_sha256": "cb598de09fe5756754ebf0bc517a3be71fc4088195ad9590768ea25905bab149",
+              "media_members": {
+                "images": 62,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260803_084658-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 27122932,
               "expected_sha256": "7fdba9588997d054d445346d6cb0590686d02117d59cc8d2dfb825e52a89d558",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 27122932,
+              "actual_sha256": "7fdba9588997d054d445346d6cb0590686d02117d59cc8d2dfb825e52a89d558",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1586,7 +1824,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 62,
         "api_video_completed": 7,
@@ -1627,16 +1865,30 @@
               "kind": "images",
               "expected_size_bytes": 392583907,
               "expected_sha256": "53ef0eb1a46d397912b1967dc6df0bf0f285ba1972579f7cb7fd6ef72bded082",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 392583907,
+              "actual_sha256": "53ef0eb1a46d397912b1967dc6df0bf0f285ba1972579f7cb7fd6ef72bded082",
+              "media_members": {
+                "images": 62,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260804_110456-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 26501298,
               "expected_sha256": "a28acbb2c0e5ab54b26ee560116ea25e9db55b4c03256a10a5ddf04b25863d99",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 26501298,
+              "actual_sha256": "a28acbb2c0e5ab54b26ee560116ea25e9db55b4c03256a10a5ddf04b25863d99",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1658,7 +1910,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 161,
         "api_video_completed": 7,
@@ -1699,16 +1951,30 @@
               "kind": "images",
               "expected_size_bytes": 878202706,
               "expected_sha256": "8e7a5672b0fc7d3eec758d74a8b9955b6b82ba46342ff47d4b7480eed844af58",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 878202706,
+              "actual_sha256": "8e7a5672b0fc7d3eec758d74a8b9955b6b82ba46342ff47d4b7480eed844af58",
+              "media_members": {
+                "images": 161,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260805_120437-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 25387912,
               "expected_sha256": "7bd36a31d4b41b7cdf2071811e29f09c42586a682ee2e9889ecd0242e389f108",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 25387912,
+              "actual_sha256": "7bd36a31d4b41b7cdf2071811e29f09c42586a682ee2e9889ecd0242e389f108",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1730,7 +1996,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 550,
         "api_video_completed": 6,
@@ -1771,24 +2037,45 @@
               "kind": "images",
               "expected_size_bytes": 1927505292,
               "expected_sha256": "f18fc48ef10a417653c08c9c51a3535ca04df866df220fecb90f3ad14d1c2b32",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1927505292,
+              "actual_sha256": "f18fc48ef10a417653c08c9c51a3535ca04df866df220fecb90f3ad14d1c2b32",
+              "media_members": {
+                "images": 322,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260806_083840-images-part02.zip",
               "kind": "images",
               "expected_size_bytes": 1490599407,
               "expected_sha256": "332746d63270a9940e019ce335a0edc30493ae67ebf122833e44c47f244fab05",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1490599407,
+              "actual_sha256": "332746d63270a9940e019ce335a0edc30493ae67ebf122833e44c47f244fab05",
+              "media_members": {
+                "images": 228,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260806_083840-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 20257090,
               "expected_sha256": "686b6f32f3ca37183bcc1bda36e15e25d9168277d54dc38f8c95bd42fc2def0e",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 20257090,
+              "actual_sha256": "686b6f32f3ca37183bcc1bda36e15e25d9168277d54dc38f8c95bd42fc2def0e",
+              "media_members": {
+                "images": 0,
+                "videos": 6
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1810,7 +2097,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 438,
         "api_video_completed": 3,
@@ -1851,24 +2138,45 @@
               "kind": "images",
               "expected_size_bytes": 1927900138,
               "expected_sha256": "4365c829fe69132c77b78c906233a03c45b534af6fb0923e4508569631ee9928",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1927900138,
+              "actual_sha256": "4365c829fe69132c77b78c906233a03c45b534af6fb0923e4508569631ee9928",
+              "media_members": {
+                "images": 321,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260807_155332-images-part02.zip",
               "kind": "images",
               "expected_size_bytes": 809161981,
               "expected_sha256": "e4cca8bfc22f2d1852ee15b77418a2971795b3627aa8655b236c712780c1bdeb",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 809161981,
+              "actual_sha256": "e4cca8bfc22f2d1852ee15b77418a2971795b3627aa8655b236c712780c1bdeb",
+              "media_members": {
+                "images": 117,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260807_155332-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 8730069,
               "expected_sha256": "d404c219ae8ac5d9bf0c61a4f28a28277608daa7f4b0ef2777a18fbfc28f1e71",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 8730069,
+              "actual_sha256": "d404c219ae8ac5d9bf0c61a4f28a28277608daa7f4b0ef2777a18fbfc28f1e71",
+              "media_members": {
+                "images": 0,
+                "videos": 3
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1890,7 +2198,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 350,
         "api_video_completed": 1,
@@ -1931,24 +2239,45 @@
               "kind": "images",
               "expected_size_bytes": 1931350064,
               "expected_sha256": "b1195d5fa2bfc5d029d4f6010840c7fc118bcd3480daca8b01da2d2277066820",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 1931350064,
+              "actual_sha256": "b1195d5fa2bfc5d029d4f6010840c7fc118bcd3480daca8b01da2d2277066820",
+              "media_members": {
+                "images": 321,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260810_104859-images-part02.zip",
               "kind": "images",
               "expected_size_bytes": 193165467,
               "expected_sha256": "6b87e896abe9a17ea02695acb6e3acdf8b529370538def86de6a09f1a2b212f9",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 193165467,
+              "actual_sha256": "6b87e896abe9a17ea02695acb6e3acdf8b529370538def86de6a09f1a2b212f9",
+              "media_members": {
+                "images": 29,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260810_104859-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 2232464,
               "expected_sha256": "1d0f5d9216ed6d34d9df76613d7ff0c698370ea2bc1e7c50f2b4bed53ef21a67",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 2232464,
+              "actual_sha256": "1d0f5d9216ed6d34d9df76613d7ff0c698370ea2bc1e7c50f2b4bed53ef21a67",
+              "media_members": {
+                "images": 0,
+                "videos": 1
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -1970,7 +2299,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 20,
         "api_video_completed": 0,
@@ -2011,8 +2340,15 @@
               "kind": "images",
               "expected_size_bytes": 117164116,
               "expected_sha256": "99b13ba76e1cdf09c94a42340711e2c6c21632105786d66e333aca524f658312",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 117164116,
+              "actual_sha256": "99b13ba76e1cdf09c94a42340711e2c6c21632105786d66e333aca524f658312",
+              "media_members": {
+                "images": 20,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -2034,7 +2370,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 71,
         "api_video_completed": 4,
@@ -2075,16 +2411,30 @@
               "kind": "images",
               "expected_size_bytes": 432087019,
               "expected_sha256": "a0616946e3d28fc3cd4d152c2cfa484a59b93d07c41969b3fa3cb76220c89bf3",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 432087019,
+              "actual_sha256": "a0616946e3d28fc3cd4d152c2cfa484a59b93d07c41969b3fa3cb76220c89bf3",
+              "media_members": {
+                "images": 71,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260812_092750-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 19359147,
               "expected_sha256": "4026b842e1132c7f05c0b9558d8411a4241db13755c7f517060faa3b7ae3463e",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 19359147,
+              "actual_sha256": "4026b842e1132c7f05c0b9558d8411a4241db13755c7f517060faa3b7ae3463e",
+              "media_members": {
+                "images": 0,
+                "videos": 4
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -2106,7 +2456,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 151,
         "api_video_completed": 7,
@@ -2147,16 +2497,30 @@
               "kind": "images",
               "expected_size_bytes": 824850734,
               "expected_sha256": "5e828cb73bdc27d59ec06254ba35f714411f338fdd013cf3403b911a8828a7c3",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 824850734,
+              "actual_sha256": "5e828cb73bdc27d59ec06254ba35f714411f338fdd013cf3403b911a8828a7c3",
+              "media_members": {
+                "images": 151,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             },
             {
               "name": "run_20260814_103007-videos.zip",
               "kind": "videos",
               "expected_size_bytes": 42486775,
               "expected_sha256": "68a79a37c020eeffd26447018e9fa3bb99c7b72fef3084b6a64d4d951d7afe6b",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 42486775,
+              "actual_sha256": "68a79a37c020eeffd26447018e9fa3bb99c7b72fef3084b6a64d4d951d7afe6b",
+              "media_members": {
+                "images": 0,
+                "videos": 7
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
@@ -2178,7 +2542,7 @@
       "canonical_runs": 1,
       "quarantined_runs": 0,
       "status": "ok",
-      "verify_archives": false,
+      "verify_archives": true,
       "totals": {
         "api_image_completed": 83,
         "api_video_completed": 0,
@@ -2219,8 +2583,15 @@
               "kind": "images",
               "expected_size_bytes": 484385871,
               "expected_sha256": "d1848dc6a3ad22b07595c2281f0c13a38126d887dd8b7230b6c0eaa47434f35d",
-              "downloaded": false,
-              "status": "not_downloaded"
+              "downloaded": true,
+              "actual_size_bytes": 484385871,
+              "actual_sha256": "d1848dc6a3ad22b07595c2281f0c13a38126d887dd8b7230b6c0eaa47434f35d",
+              "media_members": {
+                "images": 83,
+                "videos": 0
+              },
+              "bad_member": null,
+              "status": "ok"
             }
           ],
           "anomalies": [],
