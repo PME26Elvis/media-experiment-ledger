@@ -213,6 +213,8 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
             ".github/workflows/detector-nanodet-inference.yml",
         ],
         "publisher_workflow": ".github/workflows/detector-comparison-publish.yml",
+        "publisher_initial_mode": "workflow_dispatch with exact successful YOLOX and NanoDet workflow run IDs only",
+        "inference_trigger_policy": "workflow_dispatch only; no push-triggered full-corpus inference",
         "atlas_coupling": "none",
         "persistent_state": False,
         "cross_run_cache_skip": False,
@@ -232,8 +234,13 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
         require_equal(multi.get(key), value, f"Multi-detector contract {key}", errors)
     if "exact workflow run IDs" not in str(multi.get("artifact_pairing") or ""):
         errors.append("Multi-detector artifacts must be paired by exact workflow run IDs")
+    handoff = str(multi.get("promotion_handoff") or "")
+    for token in ("captures the exact run IDs", "waits for both successful completions", "dispatches the publisher"):
+        if token not in handoff:
+            errors.append(f"Promotion handoff is missing contract token: {token!r}")
     if "never accuracy" not in str(multi.get("comparison_language") or ""):
         errors.append("Multi-detector contract must prohibit accuracy claims without ground truth")
+
     lock = read_json(ROOT / multi["nanodet_model_lock"])
     expected_lock = {
         "model_family": "NanoDet-Plus-m-320",
@@ -248,6 +255,7 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
     }
     for key, value in expected_lock.items():
         require_equal(lock.get(key), value, f"NanoDet model lock {key}", errors)
+
     for path in (*multi["inference_workflows"], multi["publisher_workflow"]):
         if not (ROOT / path).exists():
             errors.append(f"Missing multi-detector workflow: {path}")
@@ -255,11 +263,15 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
         text = (ROOT / path).read_text(encoding="utf-8")
         if "contents: write" in text:
             errors.append(f"Inference workflow must not have contents write permission: {path}")
-        for token in ("actions/upload-artifact@v4", "complete canonical corpus from scratch"):
+        if "  push:\n" in text:
+            errors.append(f"Full-corpus inference workflow must not run automatically on push: {path}")
+        for token in ("workflow_dispatch:", "actions/upload-artifact@v4", "complete canonical corpus from scratch"):
             if token not in text:
                 errors.append(f"Inference workflow {path} is missing {token!r}")
+
     publisher = (ROOT / multi["publisher_workflow"]).read_text(encoding="utf-8")
     for token in (
+        "workflow_dispatch:",
         "run-id: ${{ needs.resolve.outputs.yolox_run_id }}",
         "run-id: ${{ needs.resolve.outputs.nanodet_run_id }}",
         "github-token: ${{ github.token }}",
@@ -268,6 +280,9 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
     ):
         if token not in publisher:
             errors.append(f"Publisher workflow is missing {token!r}")
+    if "workflow_run:" in publisher:
+        errors.append("Detector publisher must not depend on chained workflow_run orchestration")
+
     require_text(
         ROOT / multi["spec"],
         [
@@ -276,16 +291,21 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
             "media-detection-all-", "exact run IDs", "analysis_batch_id",
             "Original | YOLOX-Tiny | NanoDet-Plus",
             "not ground-truth labels or an accuracy benchmark", "Atlas impact: **none**",
-            "official immutable pre-exported ONNX",
+            "official immutable pre-exported ONNX", "workflow_dispatch only",
+            "waits for both detector runs",
         ],
         errors,
     )
+
     latest = read_json(ROOT / multi["latest_index"])
     history = read_json(ROOT / multi["history_index"])
     web = read_json(ROOT / multi["web_index"])
     require_equal(web, latest, "Detector web/latest index", errors)
-    if not isinstance(history.get("releases"), list):
+    releases = history.get("releases")
+    if not isinstance(releases, list):
         errors.append("Detector history must contain a releases list")
+        releases = []
+
     production_fields = (
         "production_release", "production_yolox_run_id", "production_nanodet_run_id",
         "production_publisher_run_id", "production_writeback_commit",
@@ -296,46 +316,56 @@ def validate_multidetector(contract: dict[str, Any], errors: list[str]) -> None:
                 errors.append(f"Pending production contract requires {key}=null")
         if latest.get("status") != "waiting_for_first_publication":
             errors.append("Pending production latest index must remain waiting_for_first_publication")
-    else:
-        for key in production_fields:
-            if not multi.get(key):
-                errors.append(f"Implemented detector contract requires {key}")
-        if latest.get("status") != "published" or latest.get("release_tag") != multi.get("production_release"):
-            errors.append("Implemented detector latest index must match production Release")
-        exact_fields = {
-            "analysis_batch_id": "production_analysis_batch_id",
-            "corpus_fingerprint": "production_corpus_fingerprint",
-        }
-        for index_key, contract_key in exact_fields.items():
-            require_equal(latest.get(index_key), multi.get(contract_key), f"Detector production {index_key}", errors)
-        detectors = latest.get("detectors") if isinstance(latest.get("detectors"), dict) else {}
-        summary = latest.get("summary") if isinstance(latest.get("summary"), dict) else {}
-        checks = {
-            "production_yolox_run_id": str((detectors.get("yolox-tiny") or {}).get("workflow_run_id") or ""),
-            "production_nanodet_run_id": str((detectors.get("nanodet-plus-m-320") or {}).get("workflow_run_id") or ""),
-            "production_canonical_images": summary.get("images_compared"),
-            "production_yolox_total_detections": summary.get("yolox_total_detections"),
-            "production_nanodet_total_detections": summary.get("nanodet_total_detections"),
-            "production_matched_boxes": summary.get("matched_boxes"),
-            "production_mean_disagreement_score": summary.get("mean_disagreement_score"),
-            "production_representative_previews": len(latest.get("previews") or []),
-        }
-        for contract_key, actual in checks.items():
-            require_equal(multi.get(contract_key), actual, f"Detector production {contract_key}", errors)
-        releases = history.get("releases") or []
-        if not releases or releases[0].get("tag") != multi.get("production_release"):
-            errors.append("Detector production history must lead with the production Release")
-        evidence_path = ROOT / str(multi.get("production_evidence_json") or "")
-        if not evidence_path.exists():
-            errors.append("Implemented detector contract requires permanent production evidence")
-        else:
-            evidence = read_json(evidence_path)
-            require_equal(evidence.get("status"), "verified", "Detector evidence status", errors)
-            require_equal((evidence.get("release") or {}).get("tag"), multi.get("production_release"), "Detector evidence Release", errors)
-            require_equal(str((evidence.get("publisher") or {}).get("run_id") or ""), str(multi.get("production_publisher_run_id") or ""), "Detector evidence publisher run", errors)
-            require_equal((evidence.get("writeback") or {}).get("sha"), multi.get("production_writeback_commit"), "Detector evidence writeback", errors)
-            require_equal((evidence.get("pages") or {}).get("status"), "verified", "Detector evidence Pages", errors)
-            require_equal((evidence.get("writeback") or {}).get("atlas_non_regression"), True, "Detector evidence Atlas non-regression", errors)
+        return
+
+    for key in production_fields:
+        if not multi.get(key):
+            errors.append(f"Implemented detector contract requires {key}")
+
+    # The production_* fields are an immutable first-production evidence snapshot.
+    # data/detection/latest.json is intentionally mutable and may point at a newer
+    # full-corpus publication. Validate latest against the history head, and validate
+    # the immutable baseline against the permanent production evidence instead.
+    if latest.get("status") != "published":
+        errors.append("Implemented detector latest index must describe a published Release")
+    latest_tag = latest.get("release_tag")
+    if releases:
+        require_equal(latest_tag, releases[0].get("tag"), "Detector latest/history head", errors)
+    production_tag = multi.get("production_release")
+    if production_tag and production_tag not in {row.get("tag") for row in releases if isinstance(row, dict)}:
+        errors.append("Detector history must retain the immutable first production Release")
+
+    evidence_path = ROOT / str(multi.get("production_evidence_json") or "")
+    if not evidence_path.exists():
+        errors.append("Implemented detector contract requires permanent production evidence")
+        return
+
+    evidence = read_json(evidence_path)
+    require_equal(evidence.get("status"), "verified", "Detector evidence status", errors)
+    require_equal(evidence.get("analysis_batch_id"), multi.get("production_analysis_batch_id"), "Detector evidence analysis_batch_id", errors)
+    require_equal(evidence.get("corpus_fingerprint"), multi.get("production_corpus_fingerprint"), "Detector evidence corpus fingerprint", errors)
+    require_equal((evidence.get("release") or {}).get("tag"), production_tag, "Detector evidence Release", errors)
+    require_equal((evidence.get("release") or {}).get("asset_count"), multi.get("production_release_asset_count"), "Detector evidence asset count", errors)
+    require_equal((evidence.get("release") or {}).get("asset_total_bytes"), multi.get("production_release_asset_bytes"), "Detector evidence asset bytes", errors)
+    require_equal(str((evidence.get("publisher") or {}).get("run_id") or ""), str(multi.get("production_publisher_run_id") or ""), "Detector evidence publisher run", errors)
+    require_equal((evidence.get("writeback") or {}).get("sha"), multi.get("production_writeback_commit"), "Detector evidence writeback", errors)
+    require_equal((evidence.get("pages") or {}).get("status"), "verified", "Detector evidence Pages", errors)
+    require_equal((evidence.get("writeback") or {}).get("atlas_non_regression"), True, "Detector evidence Atlas non-regression", errors)
+    require_equal(evidence.get("representative_preview_count"), multi.get("production_representative_previews"), "Detector evidence representative previews", errors)
+
+    detectors = evidence.get("detectors") if isinstance(evidence.get("detectors"), dict) else {}
+    summary = evidence.get("summary") if isinstance(evidence.get("summary"), dict) else {}
+    checks = {
+        "production_yolox_run_id": str((detectors.get("yolox-tiny") or {}).get("workflow_run_id") or ""),
+        "production_nanodet_run_id": str((detectors.get("nanodet-plus-m-320") or {}).get("workflow_run_id") or ""),
+        "production_canonical_images": summary.get("images_compared"),
+        "production_yolox_total_detections": summary.get("yolox_total_detections"),
+        "production_nanodet_total_detections": summary.get("nanodet_total_detections"),
+        "production_matched_boxes": summary.get("matched_boxes"),
+        "production_mean_disagreement_score": summary.get("mean_disagreement_score"),
+    }
+    for contract_key, actual in checks.items():
+        require_equal(multi.get(contract_key), actual, f"Detector baseline {contract_key}", errors)
 
 
 def validate_text_surfaces(contract: dict[str, Any], errors: list[str]) -> None:
@@ -352,12 +382,12 @@ def validate_text_surfaces(contract: dict[str, Any], errors: list[str]) -> None:
     ], errors)
     require_text(ROOT / "AGENTS.md", [
         "Traditional Chinese", "normal merge", "site/", "media-detection-*",
-        "exact workflow run IDs", "NanoDet-Plus", "Detector Lab", status,
+        "exact successful workflow run IDs", "NanoDet-Plus", "Detector Lab", status,
     ], errors)
     require_text(ROOT / "docs" / "PROJECT_CONTRACT.md", [
         "Source of truth", "Release quarantine", "Prompt Repeatability Atlas",
         "Pages build boundary", status, "media-detection-*", "Detector Lab",
-        "Contract validation",
+        "Contract validation", "workflow_dispatch only",
     ], errors)
     require_text(ROOT / "docs" / "ANALYTICS_AND_PAGES.md", [
         "build", "deploy", "writeback", "not committed to Git", "cannot block Pages",
