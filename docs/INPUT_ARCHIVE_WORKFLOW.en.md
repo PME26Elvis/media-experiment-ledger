@@ -138,10 +138,18 @@ Run **Actions → Promote input snapshot** with `latest` or an exact `media-inpu
 A non-dry-run Action promotion also completes downstream maintenance:
 
 - it dispatches a full Experiment Release Audit over all formal `media-exp-*` manifests, JSONL files, and media ZIPs;
-- only when the promotion actually creates at least one new formal Release, it dispatches YOLOX-Tiny and NanoDet-Plus with one shared batch ID;
+- only when the promotion actually creates at least one new formal Release, it creates one `promotion-<run-id>` batch and `workflow_dispatch`es YOLOX-Tiny and NanoDet-Plus with that same batch;
+- Promotion captures the **exact workflow run ID** returned by each dispatch and waits for both inference runs to succeed;
+- after both succeed, Promotion `workflow_dispatch`es **Publish YOLOX + NanoDet comparison** with those two exact run IDs and waits for the publisher to complete;
 - the detector pair rebuilds the complete canonical **image** corpus and the comparison publisher creates a new `media-detection-*` Release plus Detector Lab indexes. Videos are not part of this YOLOX/NanoDet corpus.
 
-After an Action promotion, review four layers: formal experiment Releases, Analytics/Pages, the full-corpus Atlas, and the Audit/Detector refresh. A CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches the Atlas, but it does not additionally dispatch the Audit or Detector workflows; run those manually from Actions when needed.
+This automatic path does **not** depend on chained `workflow_run` pairing. Both expensive inference workflows and the comparison publisher are `workflow_dispatch` only, so repository pushes or documentation changes cannot accidentally rerun the complete detector corpus.
+
+After an Action promotion, review four layers: formal experiment Releases, Analytics/Pages, the full-corpus Atlas, and the Audit/Detector refresh. For detector maintenance, the Promotion workflow itself finishes successfully only after inference A, inference B, and publisher C all succeed.
+
+If YOLOX and NanoDet both succeeded but Promotion was interrupted around publication, **do not rerun inference**. While the artifacts are retained, manually dispatch **Publish YOLOX + NanoDet comparison** using the two successful run IDs.
+
+A CLI promotion still creates formal Releases, triggers release-based Analytics, and dispatches the Atlas, but it does not additionally dispatch the Audit or Detector workflows; run those manually from Actions when needed.
 
 ### Codespaces
 

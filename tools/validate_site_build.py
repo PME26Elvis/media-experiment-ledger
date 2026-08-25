@@ -6,6 +6,8 @@ import argparse
 import json
 from pathlib import Path
 
+from prepare_pages_artifact import REPOSITORY_PREVIEW_MIRRORS
+
 BASE = "/media-experiment-ledger/"
 PRIMARY_ROUTES = (
     "overview",
@@ -78,13 +80,28 @@ def validate(root: Path) -> None:
             except json.JSONDecodeError as exc:
                 errors.append(f"Invalid JSON in {path}: {exc}")
 
+    for relative in REPOSITORY_PREVIEW_MIRRORS:
+        require(
+            not (root / relative).exists(),
+            (
+                "Pages artifact must exclude repository-backed preview mirror: "
+                f"{relative.as_posix()}"
+            ),
+            errors,
+        )
+
     files = [path for path in root.rglob("*") if path.is_file()]
     total_bytes = sum(path.stat().st_size for path in files)
-    require(
-        total_bytes <= MAX_SITE_BYTES,
-        f"Pages artifact is unexpectedly large: {total_bytes:,} bytes > {MAX_SITE_BYTES:,}",
-        errors,
-    )
+    if total_bytes > MAX_SITE_BYTES:
+        largest = sorted(
+            ((path.stat().st_size, path.relative_to(root)) for path in files),
+            reverse=True,
+        )[:10]
+        detail = ", ".join(f"{path}={size:,}" for size, path in largest)
+        errors.append(
+            f"Pages artifact is unexpectedly large: {total_bytes:,} bytes > "
+            f"{MAX_SITE_BYTES:,}; largest files: {detail}"
+        )
     for path in files:
         size = path.stat().st_size
         require(
@@ -97,7 +114,8 @@ def validate(root: Path) -> None:
         raise SystemExit("Site validation failed:\n- " + "\n- ".join(errors))
     print(
         f"Validated {len(PRIMARY_ROUTES)} routes, {len(DATA_ARTIFACTS)} data artifacts, "
-        f"and {len(files)} files ({total_bytes:,} bytes) under {BASE}"
+        f"and {len(files)} files ({total_bytes:,} bytes) under {BASE}; "
+        f"{len(REPOSITORY_PREVIEW_MIRRORS)} repo-backed preview mirrors excluded"
     )
 
 

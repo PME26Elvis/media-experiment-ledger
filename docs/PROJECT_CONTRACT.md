@@ -106,19 +106,25 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 
 ## YOLOX + NanoDet implementation
 
-[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`，且首個完整 production A/B/C 驗證已完成。NanoDet inference、YOLOX inference、exact-run／same-head safe publisher、comparison gallery、indexes 與 Detector Lab 均已上線；`media-detection-all-2026-07-13-v1` 與永久 evidence 文件保留首個 production baseline。所有 combined detector publications 均屬於 `media-detection-*` Release namespace。
+[`NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md`](NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) 的狀態為 `implemented`，且首個完整 production A/B/C 驗證已完成。NanoDet inference、YOLOX inference、exact-run publisher、comparison gallery、indexes 與 Detector Lab 均已上線；`media-detection-all-2026-07-13-v1` 與永久 evidence 文件保留首個 production baseline。所有 combined detector publications 均屬於 `media-detection-*` Release namespace。
 
 目前運作契約：
 
-- Workflow A：YOLOX-Tiny 全量 inference，只上傳短期 transport artifact。
-- Workflow B：NanoDet-Plus-m-320 全量 inference，只上傳短期 transport artifact。
-- Workflow C：可使用**明確的兩個 workflow run IDs**作為 recovery mode；自動模式只接受同 repository、trusted `main`、相同 head SHA 且成功的 A/B runs，並驗證共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
-- `Promote input snapshot` Action 在本次確實建立新正式 Releases 時，會以同一個 batch ID dispatch A 與 B；重複 promote 且沒有新正式 Release 時不重跑 detector。
+- Workflow A：YOLOX-Tiny 全量 inference，只上傳短期 transport artifact；**workflow_dispatch only**（`workflow_dispatch` trigger），沒有 `push` trigger。
+- Workflow B：NanoDet-Plus-m-320 全量 inference，只上傳短期 transport artifact；**workflow_dispatch only**（`workflow_dispatch` trigger），沒有 `push` trigger。
+- Workflow C：**workflow_dispatch only**（`workflow_dispatch` trigger），必須提供明確且成功的兩個 workflow run IDs。它驗證 repository、trusted `main`、expected workflow ID、共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
+- Publisher 不再依賴 chained `workflow_run` 或 generic latest-run discovery；`"Latest successful YOLO" + "latest successful NanoDet"` 類型的獨立 latest 配對禁止使用。
+- `Promote input snapshot` Action 在本次確實建立新正式 Releases 時，以同一個 `promotion-<run-id>` batch ID dispatch A 與 B。每次 dispatch 都使用 workflow-dispatch REST API 的 `return_run_details=true`，因此 exact `workflow_run_id` 直接來自 API response，不解析 CLI 顯示文字、也不猜測最新 run。
+- Promotion 把等待拆成三個 job 階段：第一個 job 完成 promote 並 dispatch A/B；第二個 job 等待 exact A/B 成功後 dispatch C；第三個 job 等待 exact C 完成。這避免 350-minute detector 上限與 120-minute publisher 上限被硬塞進同一個 GitHub-hosted job timeout。
+- 整體 Promotion workflow 仍以 A/B/C 都成功才視為完整 detector handoff 成功；重複 promote 且沒有新正式 Release 時不重跑 detector。
+- 如果 Promotion 在 A/B 已成功後中斷，保留的 detector artifacts 可直接用 exact run IDs 手動 dispatch C；publisher recovery 不需要重新執行昂貴 inference。
 - workflow artifacts 不是 source of truth、state、cache 或 published-result reuse；最終 immutable Release 才是正式產品。
 - comparison gallery 使用 `Original | YOLOX-Tiny | NanoDet-Plus` tri-panel，另有完整 offline HTML ZIP。
 - detector corpus 僅處理 canonical 圖片；影片仍由 Atlas 與一般 Analytics 處理。
 - 由於沒有 human-verified ground truth，只能報告 agreement、disagreement、coverage、box IoU、class distribution 與 runtime；不得稱為 accuracy、precision、recall 或此 corpus 的 mAP。
 - 現有 `media-yolo-*` Releases 保持不可變歷史；Atlas 完全不受影響。
+
+這個 trigger contract 的目的之一是避免一般 main push、workflow 調整或文件更新意外啟動數千張圖片的完整 YOLOX/NanoDet inference。自動化只由 corpus-changing Action Promotion 明確協調；手動 recovery 則一律使用 exact run IDs。
 
 ## Git and publication behavior
 

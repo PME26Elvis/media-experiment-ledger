@@ -24,6 +24,8 @@ class NanoDetPipelineSpecTests(unittest.TestCase):
             '"Latest successful YOLO" plus "latest successful NanoDet" is forbidden',
             "official immutable pre-exported ONNX",
             "4f12723cce3d48e47ca92cb925ba74d97a965c069208edca660bbb9f7ce2c610",
+            "workflow_dispatch only",
+            "waits for both detector runs",
         ):
             self.assertIn(token, spec)
         self.assertIn("workflow artifacts are transport", spec.lower())
@@ -43,6 +45,16 @@ class NanoDetPipelineSpecTests(unittest.TestCase):
         self.assertFalse(contract["persistent_state"])
         self.assertFalse(contract["cross_run_cache_skip"])
         self.assertFalse(contract["published_result_reuse"])
+        self.assertEqual(
+            contract["publisher_initial_mode"],
+            "workflow_dispatch with exact successful YOLOX and NanoDet workflow run IDs only",
+        )
+        self.assertEqual(
+            contract["inference_trigger_policy"],
+            "workflow_dispatch only; no push-triggered full-corpus inference",
+        )
+        self.assertIn("captures the exact run IDs", contract["promotion_handoff"])
+        self.assertIn("waits for both successful completions", contract["promotion_handoff"])
 
 
 if __name__ == "__main__":

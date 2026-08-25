@@ -40,8 +40,9 @@
 
 ### 物件偵測
 
-- YOLOX-Tiny 與 NanoDet-Plus-m-320 以 read-only inference workflows 從零分析完整 canonical image corpus。
+- YOLOX-Tiny 與 NanoDet-Plus-m-320 以 read-only、`workflow_dispatch`-only inference workflows 從零分析完整 canonical image corpus；repo push 不會意外啟動昂貴的全量推論。
 - Publisher 只接受 exact workflow run IDs、相同 `analysis_batch_id`、corpus fingerprint、quarantine digest、SHA set、labels 與 thresholds。
+- Action Promotion 在 corpus 真的改變時會記錄兩個精確 inference run IDs、等待兩者成功，再把該 pair 明確交給 comparison publisher；不依賴 chained `workflow_run` 猜測配對。
 - `media-detection-*` 只報告 agreement、disagreement、box IoU、class delta 與 runtime；沒有人工 ground truth 時不宣稱 accuracy、precision、recall 或 mAP。
 - [多模型管線規格](docs/NANODET_MULTI_DETECTOR_PIPELINE_SPEC.md) · [Detector Lab](web/src/content/docs/detector-lab.mdx)
 
@@ -65,9 +66,9 @@ python tools/publish_from_archive.py results.zip --dry-run
 python tools/input_snapshot.py publish results.zip
 ```
 
-接著到 **Actions → Promote input snapshot**。非 dry-run 且確實建立新正式 Releases 時，Action 會接續更新 Analytics、Release Audit，並以共同 batch ID 啟動 YOLOX 與 NanoDet；重複 Promote 的 no-op 不會浪費 detector inference。
+接著到 **Actions → Promote input snapshot**。非 dry-run 且確實建立新正式 Releases 時，Action 會接續更新 Analytics、Release Audit，以共同 batch ID 啟動 YOLOX 與 NanoDet，記錄兩個精確 run IDs、等待兩者成功，再 dispatch comparison publisher 並等待發布完成。重複 Promote 的 no-op 不會浪費 detector inference。
 
-> 直接 CLI Promote 仍會建立正式 Releases、觸發 Analytics 與 Atlas，但不額外 dispatch Audit／detector maintenance；完整差異見[輸入流程文件](docs/INPUT_ARCHIVE_WORKFLOW.md)。
+> 直接 CLI Promote 仍會建立正式 Releases、觸發 Analytics 與 Atlas，但不額外 dispatch Audit／detector maintenance；完整差異見[輸入流程文件](docs/INPUT_ARCHIVE_WORKFLOW.md)。若 detector 已成功但 publisher 中斷，可直接用兩個既有 run IDs 手動執行 **Publish YOLOX + NanoDet comparison**，不必重跑 inference。
 
 ## 資料流程
 
@@ -78,7 +79,7 @@ results.zip / results/
   ├─ Analytics + Forecast + GitHub Pages
   ├─ image/video Prompt Repeatability Atlas → media-analysis-*
   ├─ full Release integrity audit
-  └─ YOLOX + NanoDet comparison → media-detection-*
+  └─ exact YOLOX + NanoDet runs → comparison publisher → media-detection-*
 ```
 
 ## 資料完整性
