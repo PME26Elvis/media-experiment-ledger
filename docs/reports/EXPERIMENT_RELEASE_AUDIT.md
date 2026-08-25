@@ -2,13 +2,13 @@
 
 > 此報告由 GitHub Actions 全量重建，不使用持久化 state 或 cache。
 
-- Generated at (UTC): `2026-08-04T07:12:27+00:00`
+- Generated at (UTC): `2026-08-25T09:11:21+00:00`
 - Repository: `PME26Elvis/media-experiment-ledger`
-- Releases audited: **20**
-- Canonical runs: **22**
+- Releases audited: **29**
+- Canonical runs: **31**
 - Quarantined historical runs: **2**
-- Canonical archived images: **893**
-- Canonical archived videos: **86**
+- Canonical archived images: **2,779**
+- Canonical archived videos: **121**
 
 ## Release summary
 
@@ -34,6 +34,15 @@
 | `media-exp-2026-07-30` | ok | 1 | 1 | 0 | 9 | 9 | 7 | 7 |
 | `media-exp-2026-07-31` | ok | 1 | 1 | 0 | 4 | 4 | 7 | 7 |
 | `media-exp-2026-08-03` | ok | 1 | 1 | 0 | 62 | 62 | 7 | 7 |
+| `media-exp-2026-08-04` | ok | 1 | 1 | 0 | 62 | 62 | 7 | 7 |
+| `media-exp-2026-08-05` | ok | 1 | 1 | 0 | 161 | 161 | 7 | 7 |
+| `media-exp-2026-08-06` | ok | 1 | 1 | 0 | 550 | 550 | 6 | 6 |
+| `media-exp-2026-08-07` | ok | 1 | 1 | 0 | 438 | 438 | 3 | 3 |
+| `media-exp-2026-08-10` | ok | 1 | 1 | 0 | 350 | 350 | 1 | 1 |
+| `media-exp-2026-08-11` | ok | 1 | 1 | 0 | 20 | 20 | 0 | 0 |
+| `media-exp-2026-08-12` | ok | 1 | 1 | 0 | 71 | 71 | 4 | 4 |
+| `media-exp-2026-08-14` | ok | 1 | 1 | 0 | 151 | 151 | 7 | 7 |
+| `media-exp-2026-08-19` | ok | 1 | 1 | 0 | 83 | 83 | 0 | 0 |
 
 ## Findings
 
