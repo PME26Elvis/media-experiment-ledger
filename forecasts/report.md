@@ -1,35 +1,35 @@
 # Forecast Lab
 
-Generated: `2026-08-04T04:39:19+00:00`
+Generated: `2026-08-25T16:32:15+00:00`
 
-Data fingerprint: `1366730e04e13e19afefe0579aa18147c58809bd7f4ff54eb7bbde6bed698d85`
+Data fingerprint: `e2d086a253ed7cd4ad03314f4c443280de0f27e52a3ac92d061df22bf5f43fc2`
 
-Confidence: **Moderate (73/100)**
+Confidence: **Strong (80/100)**
 
 ## Next active experiment day
 
-Estimated date: **2026-08-05** 
-(80% empirical window 2026-08-05 to 2026-08-08)
+Estimated date: **2026-08-27** 
+(80% empirical window 2026-08-27 to 2026-08-30)
 
 | Target | Ensemble point | 80% interval |
 |---|---:|---:|
-| Runs | 1.0 | 0.9–1.1 |
-| Images | 30.7 | 0.0–335.3 |
-| Videos | 6.0 | 6.4–8.7 |
-| Errors | 1.2 | 0.4–1.3 |
-| Success rate | 85.4% | 81.8%–100.0% |
-| Mean latency | 84.9 | 20.3–149.1 |
+| Runs | 1.0 | 1.0–1.0 |
+| Images | 95.9 | 0.0–167.4 |
+| Videos | 0.5 | 0.0–3.7 |
+| Errors | 2.0 | 0.2–2.4 |
+| Success rate | 96.5% | 88.8%–98.7% |
+| Mean latency | 57.5 | 44.4–74.6 |
 
 ## Next calendar month — 2026-09
 
 | Metric | Median | 80% interval |
 |---|---:|---:|
-| Active days | 16 | 12–20 |
-| Runs | 16 | 12–20 |
-| Images | 1389 | 698–2228 |
-| Videos | 120 | 92–151 |
-| Errors | 16 | 12–20 |
-| Success | 99.0% | 98.2%–99.3% |
+| Active days | 16 | 13–20 |
+| Runs | 16 | 13–20 |
+| Images | 1644 | 1175–2178 |
+| Videos | 21 | 13–32 |
+| Errors | 30 | 22–39 |
+| Success | 98.2% | 97.7%–98.6% |
 
 ## Methodology
 
