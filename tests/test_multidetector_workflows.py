@@ -10,12 +10,14 @@ class MultiDetectorWorkflowTests(unittest.TestCase):
     def text(self, name: str) -> str:
         return (ROOT / ".github" / "workflows" / name).read_text(encoding="utf-8")
 
-    def test_inference_workflows_are_artifact_only_and_read_only(self) -> None:
+    def test_inference_workflows_are_dispatch_only_artifact_only_and_read_only(self) -> None:
         for name, artifact in (
             ("detector-yolox-inference.yml", "detector-yolox-"),
             ("detector-nanodet-inference.yml", "detector-nanodet-"),
         ):
             workflow = self.text(name)
+            self.assertIn("workflow_dispatch:", workflow)
+            self.assertNotIn("  push:\n", workflow)
             self.assertIn("contents: read", workflow)
             self.assertNotIn("contents: write", workflow)
             self.assertIn("actions/upload-artifact@v4", workflow)
@@ -26,13 +28,29 @@ class MultiDetectorWorkflowTests(unittest.TestCase):
 
     def test_publisher_downloads_exact_run_ids_and_trusted_main_code(self) -> None:
         workflow = self.text("detector-comparison-publish.yml")
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertNotIn("workflow_run:", workflow)
         self.assertIn("run-id: ${{ needs.resolve.outputs.yolox_run_id }}", workflow)
         self.assertIn("run-id: ${{ needs.resolve.outputs.nanodet_run_id }}", workflow)
         self.assertIn("github-token: ${{ github.token }}", workflow)
         self.assertIn("ref: main", workflow)
+        self.assertIn("Batch {yolox_batch} is already published", workflow)
         self.assertIn("Detector artifacts do not match", (ROOT / "tools" / "publish_detector_comparison.py").read_text(encoding="utf-8"))
         self.assertNotIn("latest successful YOLO", workflow)
         self.assertNotIn("latest successful NanoDet", workflow)
+
+    def test_promotion_waits_for_exact_pair_then_dispatches_publisher(self) -> None:
+        workflow = self.text("promote-input-snapshot.yml")
+        self.assertIn('batch="promotion-${GITHUB_RUN_ID}"', workflow)
+        self.assertIn("dispatch_workflow detector-yolox-inference.yml", workflow)
+        self.assertIn("dispatch_workflow detector-nanodet-inference.yml", workflow)
+        self.assertIn('gh run watch "$yolox_run_id"', workflow)
+        self.assertIn('gh run watch "$nanodet_run_id"', workflow)
+        self.assertIn("dispatch_workflow detector-comparison-publish.yml", workflow)
+        self.assertIn('-f yolox_run_id="$yolox_run_id"', workflow)
+        self.assertIn('-f nanodet_run_id="$nanodet_run_id"', workflow)
+        self.assertIn('gh run watch "$publisher_run_id"', workflow)
+        self.assertIn("steps.promote.outputs.published_count != '0'", workflow)
 
     def test_publisher_is_independent_from_atlas(self) -> None:
         workflow = self.text("detector-comparison-publish.yml")
