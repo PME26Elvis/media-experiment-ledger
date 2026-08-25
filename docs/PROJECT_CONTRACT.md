@@ -114,7 +114,9 @@ YOLO 功能狀態為 `implemented`。完整規格位於 [`YOLO_OBJECT_DETECTION_
 - Workflow B：NanoDet-Plus-m-320 全量 inference，只上傳短期 transport artifact；**workflow_dispatch only**（`workflow_dispatch` trigger），沒有 `push` trigger。
 - Workflow C：**workflow_dispatch only**（`workflow_dispatch` trigger），必須提供明確且成功的兩個 workflow run IDs。它驗證 repository、trusted `main`、expected workflow ID、共同 `analysis_batch_id`、corpus fingerprint、quarantine digest、source Release list、canonical image SHA set 與 COCO labels hash，再發布單一 `media-detection-all-<date>-vN` Release。
 - Publisher 不再依賴 chained `workflow_run` 或 generic latest-run discovery；`"Latest successful YOLO" + "latest successful NanoDet"` 類型的獨立 latest 配對禁止使用。
-- `Promote input snapshot` Action 在本次確實建立新正式 Releases 時，以同一個 `promotion-<run-id>` batch ID dispatch A 與 B，從 dispatch 回傳值記錄兩個**精確 run IDs**，等待 A/B 成功，再以那一對 exact IDs dispatch C，最後等待 C 成功。重複 promote 且沒有新正式 Release 時不重跑 detector。
+- `Promote input snapshot` Action 在本次確實建立新正式 Releases 時，以同一個 `promotion-<run-id>` batch ID dispatch A 與 B。每次 dispatch 都使用 workflow-dispatch REST API 的 `return_run_details=true`，因此 exact `workflow_run_id` 直接來自 API response，不解析 CLI 顯示文字、也不猜測最新 run。
+- Promotion 把等待拆成三個 job 階段：第一個 job 完成 promote 並 dispatch A/B；第二個 job 等待 exact A/B 成功後 dispatch C；第三個 job 等待 exact C 完成。這避免 350-minute detector 上限與 120-minute publisher 上限被硬塞進同一個 GitHub-hosted job timeout。
+- 整體 Promotion workflow 仍以 A/B/C 都成功才視為完整 detector handoff 成功；重複 promote 且沒有新正式 Release 時不重跑 detector。
 - 如果 Promotion 在 A/B 已成功後中斷，保留的 detector artifacts 可直接用 exact run IDs 手動 dispatch C；publisher recovery 不需要重新執行昂貴 inference。
 - workflow artifacts 不是 source of truth、state、cache 或 published-result reuse；最終 immutable Release 才是正式產品。
 - comparison gallery 使用 `Original | YOLOX-Tiny | NanoDet-Plus` tri-panel，另有完整 offline HTML ZIP。
