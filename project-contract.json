@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "contract_version": "2026-08-25.1",
+  "contract_version": "2026-08-26.1",
   "default_user_language": "zh-TW",
   "repository": {
     "formal_release_pattern": "^media-exp-\\d{4}-\\d{2}-\\d{2}(?:-s\\d{2})?$",
@@ -126,7 +126,9 @@
       "artifact_role": "short-lived transport only; not a source of truth or inference cache",
       "publisher_initial_mode": "workflow_dispatch with exact successful YOLOX and NanoDet workflow run IDs only",
       "inference_trigger_policy": "workflow_dispatch only; no push-triggered full-corpus inference",
-      "promotion_handoff": "when an Action promotion changes the formal corpus, it dispatches both detectors with one batch, captures the exact run IDs, waits for both successful completions, dispatches the publisher with that exact pair, and waits for publication",
+      "promotion_handoff": "when an Action promotion changes the formal corpus, it dispatches both detectors with one batch, captures the exact run IDs directly from workflow-dispatch API responses, waits for both successful completions, dispatches the publisher with that exact pair, and waits for publication",
+      "promotion_dispatch_identity": "workflow dispatch REST API with return_run_details=true; workflow_run_id is taken directly from the response",
+      "promotion_timeout_strategy": "separate promote, detector-wait-and-publisher-dispatch, and publisher-verification jobs so detector and publisher waits do not share one GitHub-hosted job timeout",
       "comparison_language": "agreement and disagreement only; never accuracy without ground truth",
       "atlas_coupling": "none",
       "persistent_state": false,
@@ -193,6 +195,7 @@
     ".gitignore",
     ".github/workflows/analytics.yml",
     ".github/workflows/validate.yml",
+    ".github/workflows/promote-input-snapshot.yml",
     ".github/workflows/yolo-object-detection.yml",
     ".github/workflows/detector-yolox-inference.yml",
     ".github/workflows/detector-nanodet-inference.yml",
