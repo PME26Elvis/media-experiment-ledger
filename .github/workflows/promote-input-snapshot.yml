@@ -81,7 +81,8 @@ jobs:
             -f verify_archives=true \
             -f repair_notes=true
 
-      - name: Refresh YOLOX and NanoDet comparison for a changed corpus
+      - name: Run and publish exact YOLOX + NanoDet refresh for a changed corpus
+        id: detectors
         if: ${{ success() && inputs.dry_run == false && steps.promote.outputs.published_count != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -89,14 +90,49 @@ jobs:
         run: |
           set -euo pipefail
           batch="promotion-${GITHUB_RUN_ID}"
-          gh workflow run detector-yolox-inference.yml \
-            --ref main \
-            -f analysis_batch_id="$batch"
-          gh workflow run detector-nanodet-inference.yml \
-            --ref main \
-            -f analysis_batch_id="$batch"
+
+          dispatch_workflow() {
+            local workflow="$1"
+            shift
+            local output run_url run_id
+            output="$(gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref main "$@")"
+            printf '%s\n' "$output" >&2
+            run_url="$(printf '%s\n' "$output" | grep -Eo 'https://github\.com/[^[:space:]]+/actions/runs/[0-9]+' | tail -n 1 || true)"
+            run_id="${run_url##*/}"
+            if [[ ! "$run_id" =~ ^[0-9]+$ ]]; then
+              echo "Unable to resolve workflow run ID after dispatching $workflow" >&2
+              exit 1
+            fi
+            printf '%s' "$run_id"
+          }
+
+          yolox_run_id="$(dispatch_workflow detector-yolox-inference.yml \
+            -f analysis_batch_id="$batch")"
+          nanodet_run_id="$(dispatch_workflow detector-nanodet-inference.yml \
+            -f analysis_batch_id="$batch")"
+
+          echo "yolox_run_id=$yolox_run_id" >> "$GITHUB_OUTPUT"
+          echo "nanodet_run_id=$nanodet_run_id" >> "$GITHUB_OUTPUT"
+
+          echo "Waiting for YOLOX run $yolox_run_id"
+          gh run watch "$yolox_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+          echo "Waiting for NanoDet run $nanodet_run_id"
+          gh run watch "$nanodet_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+
+          publisher_run_id="$(dispatch_workflow detector-comparison-publish.yml \
+            -f yolox_run_id="$yolox_run_id" \
+            -f nanodet_run_id="$nanodet_run_id" \
+            -f publish_release=true)"
+          echo "publisher_run_id=$publisher_run_id" >> "$GITHUB_OUTPUT"
+
+          echo "Waiting for comparison publisher run $publisher_run_id"
+          gh run watch "$publisher_run_id" --repo "$GITHUB_REPOSITORY" --exit-status
+
           {
             echo '## Post-promotion detector refresh'
             echo "- Shared batch: \`$batch\`"
-            echo '- YOLOX-Tiny and NanoDet-Plus were dispatched against the complete canonical image corpus.'
+            echo "- YOLOX run: \`$yolox_run_id\`"
+            echo "- NanoDet run: \`$nanodet_run_id\`"
+            echo "- Comparison publisher run: \`$publisher_run_id\`"
+            echo '- The promotion waited for both full-corpus inference runs and then dispatched the publisher with that exact run pair.'
           } >> "$GITHUB_STEP_SUMMARY"
