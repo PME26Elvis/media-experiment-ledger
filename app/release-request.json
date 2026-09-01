@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "request_revision": 11,
+  "source_branch": "app-main",
+  "version": "1.0.0-rc.7",
+  "channel": "beta",
+  "draft": false,
+  "publish": true,
+  "release_notes": "Media Experiment Ledger Studio 1.0.0-rc.7 completes the Detection workflow expansion milestone. Detection jobs now accept image and video corpora, checkpoint sampled frames by source hash and frame index, resume without repeating completed inference, export annotated MP4 video and per-class crops, and emit COCO JSON, JSONL, CSV and class-summary evidence. Detection Studio adds saved presets, searchable result and crop browsing, and a multi-model, multi-provider benchmark matrix whose durable jobs separate fresh-session cold latency from steady-state median, p95 and throughput. Existing provider truth, optional engine verification and resource-aware scheduling remain authoritative.",
+  "features": [
+    "Resumable video detection with deterministic frame-index and target-FPS sampling",
+    "Source-hash and frame-index checkpoints that reuse completed sidecars and annotated frames",
+    "Annotated MP4 export with best-effort original audio preservation",
+    "Per-class crop export linked from each structured detection",
+    "COCO JSON, JSONL, UTF-8 CSV and class-summary exports",
+    "Searchable detection and crop browser with class and confidence filters",
+    "Saved local Detection presets and a selectable default preset",
+    "Multi-model and multi-provider benchmark suites represented as independent durable jobs",
+    "Fresh-session cold initialization and first-inference measurements",
+    "Steady-state median, p95, minimum, maximum and throughput measurements",
+    "Existing CPU and accelerator resource budgets applied to benchmark jobs",
+    "Schema 7 image and video-frame detection manifests with annotated-media inventory"
+  ],
+  "quick_start_tag": "studio-sample-corpus-quick-start-v2",
+  "full_research_tag": ""
+}

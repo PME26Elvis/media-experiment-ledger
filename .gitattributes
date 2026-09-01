@@ -1,0 +1,3 @@
+# Detector lockfiles and label corpora participate in SHA-256 verification.
+# Keep their working-tree bytes identical on Windows, macOS and Linux.
+object-detection/*.json text eol=lf

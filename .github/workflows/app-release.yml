@@ -1,0 +1,75 @@
+name: Release Media Experiment Ledger Studio
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer without leading v, or auto
+        required: false
+        default: auto
+        type: string
+      channel:
+        description: Release channel
+        required: true
+        default: beta
+        type: choice
+        options: [alpha, beta, stable]
+      release_notes:
+        description: Optional Markdown release summary
+        required: false
+        type: string
+      features:
+        description: Optional comma/newline-separated feature and fix list
+        required: false
+        type: string
+      quick_start_tag:
+        description: Compatible Quick Start corpus Release tag
+        required: false
+        type: string
+      full_research_tag:
+        description: Compatible Full Research corpus Release tag
+        required: false
+        type: string
+      draft:
+        description: Keep the completed Release as a private draft
+        required: true
+        default: true
+        type: boolean
+      publish:
+        description: Create the GitHub Release after all verification
+        required: true
+        default: false
+        type: boolean
+  pull_request:
+    branches: [app-main]
+    paths:
+      - app/release-request.json
+      - .github/workflows/app-release.yml
+      - .github/workflows/app-release-core.yml
+      - app/scripts/resolve_release_plan.py
+      - app/scripts/render_release_notes.py
+      - app/scripts/finalize_release_assets.py
+      - app/scripts/verify_release_assets.py
+      - app/scripts/collect_platform_artifacts.py
+  push:
+    branches: [app-main]
+    paths:
+      - app/release-request.json
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    uses: ./.github/workflows/app-release-core.yml
+    with:
+      source_ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event_name == 'push' && github.sha || 'app-main' }}
+      version_override: ${{ github.event_name == 'workflow_dispatch' && inputs.version || '' }}
+      channel_override: ${{ github.event_name == 'workflow_dispatch' && inputs.channel || '' }}
+      release_notes_override: ${{ github.event_name == 'workflow_dispatch' && inputs.release_notes || '' }}
+      features_override: ${{ github.event_name == 'workflow_dispatch' && inputs.features || '' }}
+      quick_start_tag_override: ${{ github.event_name == 'workflow_dispatch' && inputs.quick_start_tag || '' }}
+      full_research_tag_override: ${{ github.event_name == 'workflow_dispatch' && inputs.full_research_tag || '' }}
+      draft_override: ${{ github.event_name == 'pull_request' && 'true' || github.event_name == 'workflow_dispatch' && format('{0}', inputs.draft) || '' }}
+      publish_override: ${{ github.event_name == 'pull_request' && 'false' || github.event_name == 'workflow_dispatch' && format('{0}', inputs.publish) || '' }}
+    secrets: inherit

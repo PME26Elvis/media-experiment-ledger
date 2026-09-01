@@ -1,0 +1,20 @@
+import { fileURLToPath, URL } from 'node:url'
+import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  root: '.',
+  base: './',
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src/renderer', import.meta.url)),
+      '@shared': fileURLToPath(new URL('./src/shared', import.meta.url)),
+    },
+  },
+  build: {
+    outDir: 'dist/renderer',
+    emptyOutDir: false,
+    sourcemap: true,
+  },
+})

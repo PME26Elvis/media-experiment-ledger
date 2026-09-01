@@ -1,0 +1,9 @@
+Media Experiment Ledger Studio
+Copyright 2026 PME26Elvis and Media Experiment Ledger Studio contributors
+
+This product includes software developed by third parties. Production Releases
+must include generated third-party notices and an SBOM that match the packaged
+contents. The app's Apache-2.0 license does not automatically cover model
+weights, sample corpora, user media, fonts, icons, provider assets, or other
+third-party artifacts. Those items require separate provenance and license
+manifests before redistribution.

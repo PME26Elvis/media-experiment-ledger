@@ -1,0 +1,62 @@
+name: Desktop App Large Corpus Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      images:
+        description: Synthetic image count
+        required: true
+        type: number
+        default: 10000
+      videos:
+        description: Synthetic GIF/video count
+        required: true
+        type: number
+        default: 1000
+      workers:
+        description: Bounded proxy workers
+        required: true
+        type: number
+        default: 8
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-large-corpus-benchmark
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: app-main
+          show-progress: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: app/engine/requirements.txt
+      - name: Install engine dependencies
+        run: python -m pip install --quiet -r app/engine/requirements.txt
+      - name: Run full synthetic corpus benchmark
+        env:
+          PYTHONPATH: app/engine
+          IMAGE_COUNT: ${{ inputs.images }}
+          VIDEO_COUNT: ${{ inputs.videos }}
+          WORKERS: ${{ inputs.workers }}
+        run: |
+          python app/scripts/benchmark_large_corpus.py \
+            --images "$IMAGE_COUNT" \
+            --videos "$VIDEO_COUNT" \
+            --workers "$WORKERS" \
+            --output performance-evidence
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-large-corpus-benchmark-${{ github.run_id }}
+          path: performance-evidence/large-corpus-benchmark.json
+          if-no-files-found: error
+          retention-days: 30

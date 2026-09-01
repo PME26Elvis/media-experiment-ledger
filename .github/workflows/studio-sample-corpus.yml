@@ -1,0 +1,303 @@
+name: Publish Studio Sample Corpus
+
+on:
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: Corpus tier
+        required: true
+        type: choice
+        default: quick-start
+        options: [quick-start, full-research]
+      version:
+        description: Positive corpus version
+        required: true
+        type: number
+        default: 1
+      source_release_tags:
+        description: Comma-separated immutable media-exp-* tags for Full Research
+        required: false
+        type: string
+        default: ''
+      rights_attestation:
+        description: Approved rights JSON path for Full Research
+        required: false
+        type: string
+        default: config/studio-sample-corpus-rights.example.json
+      draft:
+        description: Keep the corpus Release as a draft
+        required: true
+        type: boolean
+        default: true
+  push:
+    branches: [app-main]
+    paths:
+      - '.github/studio-sample-corpus-request.json'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: studio-sample-corpus-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.tier || 'request-file' }}
+  cancel-in-progress: false
+
+jobs:
+  build-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Resolve immutable publication request
+        env:
+          EVENT_BEFORE: ${{ github.event.before || '' }}
+          INPUT_TIER: ${{ inputs.tier || '' }}
+          INPUT_VERSION: ${{ inputs.version || '' }}
+          INPUT_SOURCE_RELEASE_TAGS: ${{ inputs.source_release_tags || '' }}
+          INPUT_RIGHTS_ATTESTATION: ${{ inputs.rights_attestation || '' }}
+          INPUT_DRAFT: ${{ inputs.draft || '' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          if os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch':
+              request = {
+                  'enabled': True,
+                  'source_sha': os.environ['GITHUB_SHA'],
+                  'tier': os.environ['INPUT_TIER'],
+                  'version': int(os.environ['INPUT_VERSION']),
+                  'source_release_tags': os.environ['INPUT_SOURCE_RELEASE_TAGS'],
+                  'rights_attestation': os.environ['INPUT_RIGHTS_ATTESTATION'],
+                  'draft': os.environ['INPUT_DRAFT'].lower() == 'true',
+              }
+          else:
+              request = json.loads(Path('.github/studio-sample-corpus-request.json').read_text(encoding='utf-8'))
+              if int(request.get('schema_version', 0)) != 1:
+                  raise SystemExit('unsupported sample corpus request schema')
+
+          enabled = bool(request.get('enabled', False))
+          source_sha = str(request.get('source_sha') or '')
+          if enabled:
+              if not re.fullmatch(r'[0-9a-f]{40}', source_sha):
+                  raise SystemExit('enabled sample corpus requests require a full lowercase source SHA')
+              if os.environ['GITHUB_EVENT_NAME'] == 'push' and source_sha != os.environ['EVENT_BEFORE']:
+                  raise SystemExit(
+                      f"request source_sha {source_sha!r} does not match the pre-trigger app-main SHA {os.environ['EVENT_BEFORE']!r}"
+                  )
+
+          values = {
+              'REQUEST_ENABLED': 'true' if enabled else 'false',
+              'TIER': str(request.get('tier') or 'quick-start'),
+              'VERSION': str(int(request.get('version') or 1)),
+              'SOURCE_RELEASE_TAGS': str(request.get('source_release_tags') or ''),
+              'RIGHTS_ATTESTATION': str(request.get('rights_attestation') or 'config/studio-sample-corpus-rights.example.json'),
+              'DRAFT': 'true' if bool(request.get('draft', True)) else 'false',
+              'REQUEST_SOURCE_SHA': source_sha,
+          }
+          for key, value in values.items():
+              if '\n' in value or '\r' in value:
+                  raise SystemExit(f'unsafe newline in {key}')
+          with Path(os.environ['GITHUB_ENV']).open('a', encoding='utf-8') as handle:
+              for key, value in values.items():
+                  handle.write(f'{key}={value}\n')
+          PY
+      - name: Install corpus builder dependencies
+        if: env.REQUEST_ENABLED == 'true'
+        run: python -m pip install 'Pillow>=11,<13'
+      - name: Validate workflow inputs
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          python - <<'PY'
+          import os, re
+          tier = os.environ['TIER']
+          version = int(os.environ['VERSION'])
+          if tier not in {'quick-start', 'full-research'}:
+              raise SystemExit(f'unsupported corpus tier: {tier}')
+          if version < 1:
+              raise SystemExit('version must be positive')
+          tags = [item.strip() for item in os.environ.get('SOURCE_RELEASE_TAGS', '').split(',') if item.strip()]
+          for tag in tags:
+              if not re.fullmatch(r'media-exp-\d{4}-\d{2}-\d{2}(?:-s\d{2})?', tag):
+                  raise SystemExit(f'unsupported source release tag: {tag}')
+          if tier == 'full-research' and not tags:
+              raise SystemExit('Full Research requires source_release_tags')
+          if tier == 'quick-start' and tags:
+              raise SystemExit('Quick Start is procedural and must not receive source releases')
+          PY
+      - name: Reject an existing corpus tag or Release
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          set -euo pipefail
+          TAG="studio-sample-corpus-${TIER}-v${VERSION}"
+          if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "Refusing to overwrite existing tag ${TAG}. Choose a new corpus version." >&2
+            exit 1
+          fi
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Refusing to overwrite existing Release ${TAG}. Choose a new corpus version." >&2
+            exit 1
+          fi
+      - name: Download approved immutable source Releases
+        if: env.REQUEST_ENABLED == 'true' && env.TIER == 'full-research'
+        run: |
+          python - <<'PY'
+          import os, pathlib, subprocess
+          root = pathlib.Path('sample-corpus-inputs')
+          root.mkdir(parents=True, exist_ok=True)
+          for tag in [item.strip() for item in os.environ['SOURCE_RELEASE_TAGS'].split(',') if item.strip()]:
+              destination = root / tag
+              destination.mkdir(parents=True, exist_ok=True)
+              subprocess.run([
+                  'gh', 'release', 'download', tag,
+                  '--repo', os.environ['GITHUB_REPOSITORY'],
+                  '--pattern', '*.zip',
+                  '--dir', str(destination),
+              ], check=True)
+          PY
+      - name: Build deterministic corpus parts
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          TAG="studio-sample-corpus-${TIER}-v${VERSION}"
+          ARGS=(
+            --tier "$TIER"
+            --version "$VERSION"
+            --release-tag "$TAG"
+            --output sample-corpus-output
+          )
+          if [ "$TIER" = "full-research" ]; then
+            ARGS+=(
+              --download-root sample-corpus-inputs
+              --source-release-tags "$SOURCE_RELEASE_TAGS"
+              --rights-attestation "$RIGHTS_ATTESTATION"
+            )
+          fi
+          python tools/build_studio_sample_corpus.py "${ARGS[@]}"
+      - name: Validate corpus publication evidence
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, zipfile
+          root = pathlib.Path('sample-corpus-output')
+          manifest = json.loads((root / 'corpus-manifest.json').read_text(encoding='utf-8'))
+          evidence = json.loads((root / 'build-evidence.json').read_text(encoding='utf-8'))
+          if manifest['rightsStatus'] != 'approved':
+              raise SystemExit('corpus rights are not approved')
+          if manifest['releaseTag'] != f"studio-sample-corpus-{manifest['tier']}-v{manifest['version']}":
+              raise SystemExit('release tag mismatch')
+          if not manifest['assets']:
+              raise SystemExit('corpus has no assets')
+          if evidence['max_part_bytes'] > 1_900_000_000:
+              raise SystemExit('corpus part exceeds 1.9 GB')
+          for asset in manifest['assets']:
+              path = root / asset['fileName']
+              digest = hashlib.sha256(path.read_bytes()).hexdigest()
+              if path.stat().st_size != asset['sizeBytes'] or digest != asset['sha256']:
+                  raise SystemExit(f'asset mismatch: {path}')
+              with zipfile.ZipFile(path) as bundle:
+                  bad = bundle.testzip()
+                  if bad:
+                      raise SystemExit(f'corrupt member {bad} in {path}')
+                  names = bundle.namelist()
+                  if len(names) != len(set(names)):
+                      raise SystemExit(f'duplicate ZIP member in {path}')
+                  for name in names:
+                      parts = pathlib.PurePosixPath(name).parts
+                      if pathlib.PurePosixPath(name).is_absolute() or '..' in parts:
+                          raise SystemExit(f'unsafe ZIP member: {name}')
+          PY
+      - name: Render Release notes
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          root = pathlib.Path('sample-corpus-output')
+          manifest = json.loads((root / 'corpus-manifest.json').read_text(encoding='utf-8'))
+          evidence = json.loads((root / 'build-evidence.json').read_text(encoding='utf-8'))
+          lines = [
+              f"# {manifest['title']}",
+              '',
+              manifest['description'],
+              '',
+              '## Verification',
+              '',
+              f"- Source commit: `{os.environ['REQUEST_SOURCE_SHA']}`",
+              f"- Workflow commit: `{os.environ['GITHUB_SHA']}`",
+              f"- Rights status: `{manifest['rightsStatus']}`",
+              f"- License: `{manifest['license']}`",
+              f"- Parts: `{evidence['part_count']}`",
+              f"- Total bytes: `{evidence['total_bytes']}`",
+              f"- Manifest SHA-256: `{evidence['manifest_sha256']}`",
+              f"- Prompt policy: `{manifest['sanitization']['prompts']}`",
+              '',
+              'The desktop app downloads each required part as a durable job and verifies size plus SHA-256 before installation.',
+          ]
+          pathlib.Path('sample-corpus-release-notes.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          PY
+      - name: Create immutable draft and upload exact assets
+        if: env.REQUEST_ENABLED == 'true'
+        run: |
+          set -euo pipefail
+          TAG="studio-sample-corpus-${TIER}-v${VERSION}"
+          TITLE="MEL Studio ${TIER} corpus v${VERSION}"
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$REQUEST_SOURCE_SHA" \
+            --title "$TITLE" \
+            --notes-file sample-corpus-release-notes.md \
+            --draft
+          gh release upload "$TAG" sample-corpus-output/* --repo "$GITHUB_REPOSITORY"
+
+          python - <<'PY'
+          import json, os, pathlib, subprocess
+          tag = f"studio-sample-corpus-{os.environ['TIER']}-v{os.environ['VERSION']}"
+          payload = subprocess.check_output([
+              'gh', 'release', 'view', tag,
+              '--repo', os.environ['GITHUB_REPOSITORY'],
+              '--json', 'databaseId,tagName,targetCommitish,isDraft,assets',
+          ], text=True)
+          release = json.loads(payload)
+          expected = sorted(path.name for path in pathlib.Path('sample-corpus-output').iterdir() if path.is_file())
+          actual = sorted(asset['name'] for asset in release.get('assets', []))
+          if actual != expected:
+              raise SystemExit(f'remote asset set mismatch: expected={expected} actual={actual}')
+          if not release.get('isDraft'):
+              raise SystemExit('corpus Release must remain a draft until all remote assets are verified')
+          pathlib.Path('remote-release-evidence.json').write_text(json.dumps({
+              'schema_version': 1,
+              'release_id': release['databaseId'],
+              'tag': release['tagName'],
+              'source_sha': os.environ['REQUEST_SOURCE_SHA'],
+              'workflow_sha': os.environ['GITHUB_SHA'],
+              'target_commitish': release['targetCommitish'],
+              'draft_before_publish': release['isDraft'],
+              'asset_names': actual,
+          }, indent=2) + '\n', encoding='utf-8')
+          PY
+      - name: Publish verified corpus Release once
+        if: env.REQUEST_ENABLED == 'true' && env.DRAFT != 'true'
+        run: |
+          set -euo pipefail
+          TAG="studio-sample-corpus-${TIER}-v${VERSION}"
+          RELEASE_ID="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json databaseId --jq .databaseId)"
+          gh api -X PATCH "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+            -F draft=false \
+            -F prerelease=true \
+            -f make_latest=legacy >/dev/null
+          test "$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)" = "false"
+      - uses: actions/upload-artifact@v4
+        if: env.REQUEST_ENABLED == 'true'
+        with:
+          name: studio-sample-corpus-${{ env.TIER }}-v${{ env.VERSION }}-evidence
+          path: |
+            sample-corpus-output/corpus-manifest.json
+            sample-corpus-output/build-evidence.json
+            sample-corpus-release-notes.md
+            remote-release-evidence.json
+          retention-days: 30
